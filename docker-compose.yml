@@ -1,0 +1,36 @@
+#
+# Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+services:
+  bi-sandbox:
+    image: digitalasset/bond-issuance-sandbox:0.0.1
+    build:
+      context: .
+      dockerfile: Dockerfile-sandbox
+    ports:
+      - "7600:7600"
+  bi-navigator:
+    image: digitalasset/bond-issuance-navigator:0.0.1
+    build:
+      context: .
+      dockerfile: Dockerfile-navigator
+    depends_on:
+      - "bi-sandbox"
+    ports:
+      - "7500:7500"
+    environment:
+      - SANDBOX_HOST=bi-sandbox
+      - SANDBOX_PORT=7600
+  bi-bots:
+    image: digitalasset/bond-issuance-bots:0.0.1
+    build:
+      context: .
+      dockerfile: Dockerfile-bots
+    depends_on:
+      - "bi-sandbox"
+    environment:
+      - SANDBOX_HOST=bi-sandbox
+      - SANDBOX_PORT=7600

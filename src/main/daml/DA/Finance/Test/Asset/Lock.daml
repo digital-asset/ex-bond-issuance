@@ -1,0 +1,93 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.Finance.Test.Asset.Lock where
+
+import DA.Assert
+import DA.Time
+import DA.Finance.Types
+import DA.Finance.Asset.Fact
+import DA.Finance.Asset.Lock
+
+template UnlockAssetRequest
+  with
+    actor1: Party
+    actor2: Party
+    assetLockedFactCid: ContractId AssetLockedFact
+  where
+    signatory actor1
+    controller actor2 can
+      Accept: ContractId AssetFact do
+        exercise assetLockedFactCid AssetLockedFact_Unlock
+
+test = scenario do
+  party <- getParty "Party"
+  agent <- getParty "Agent"
+
+  (lockedCid1, lockedCid2, lockedCid3, asset) <- submit party do
+    -- setup
+    assetCid1 <- create AssetFact with
+      assetId = AssetId {issuer = party; instrumentId = InstrumentId { label = "i"; version = 0}, version = 0}
+      quantity = 10.0
+      accountId = AccountId {provider = party; identifier = "a"; owner = party }
+      observers = []
+    assetCid2 <- create AssetFact with
+      assetId = AssetId {issuer = party; instrumentId = InstrumentId { label = "i"; version = 0}, version = 0}
+      quantity = 10.0
+      accountId = AccountId {provider = party; identifier = "a"; owner = party }
+      observers = []
+    assetCid3 <- create AssetFact with
+      assetId = AssetId {issuer = party; instrumentId = InstrumentId { label = "i"; version = 0}, version = 0}
+      quantity = 10.0
+      accountId = AccountId {provider = party; identifier = "a"; owner = party }
+      observers = []
+    ruleCid <- create AssetLockRule with
+      provider = party
+      owner = party
+      observers = []
+    now <- getTime
+    asset <- fetch assetCid2
+
+    -- lock
+    lockedCid1 <- exercise ruleCid AssetLockRule_Lock with
+      assetFactCid = assetCid1
+      agent = agent
+      until = Some (addRelTime now $ seconds 3600)
+    lockedCid2 <- exercise ruleCid AssetLockRule_Lock with
+      assetFactCid = assetCid2
+      agent = agent
+      until = Some (addRelTime now $ seconds 7200)
+    lockedCid3 <- exercise ruleCid AssetLockRule_Lock with
+      assetFactCid = assetCid3
+      agent = agent
+      until = None
+    return (lockedCid1, lockedCid2, lockedCid3, asset)
+
+  -- clawback
+  pass (seconds 3601)
+  submit party do
+    clawedBackAssetCid <- exercise lockedCid1 AssetLockedFact_Clawback
+    clawedBackAsset <- fetch clawedBackAssetCid
+    clawedBackAsset === asset
+
+  submitMustFail party do
+    exercise lockedCid2 AssetLockedFact_Clawback
+    exercise lockedCid3 AssetLockedFact_Clawback
+
+  -- unlock
+  requestCid <- submit party do 
+    create UnlockAssetRequest with
+      actor1 = party
+      actor2 = agent
+      assetLockedFactCid = lockedCid2
+
+  unlockedCid <- submit agent do
+    exercise requestCid Accept
+
+  submit party do
+    unlocked <- fetch unlockedCid
+    unlocked === asset
+  

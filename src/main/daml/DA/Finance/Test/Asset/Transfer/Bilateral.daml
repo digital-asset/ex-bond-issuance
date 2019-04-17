@@ -1,0 +1,62 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.Finance.Test.Asset.Transfer.Bilateral where
+
+import DA.Assert
+import DA.Finance.Types
+import DA.Finance.Account.Fact
+import DA.Finance.Asset.Fact
+import DA.Finance.Asset.Transfer.Bilateral
+
+test = scenario do
+    originalOwner <- getParty "OriginalOwner"
+    newOwner <- getParty "NewOwner"
+
+    -- for the sake of simplicity, OriginalOwner is both the Operator and the provider
+    targetAccountRequest <- submit originalOwner do
+        create AccountRequest with
+            accountId = AccountId with
+                provider = originalOwner
+                identifier = "NewOwnerAccount"
+                owner = newOwner
+            observers = []
+            operator = originalOwner
+       
+     
+    targetAccountFactCid <- submit newOwner do
+        exercise targetAccountRequest AccountRequest_Accept
+
+    transferCid <- submit originalOwner do    
+        assetCid <- create AssetFact with
+            assetId = AssetId {issuer = originalOwner; instrumentId = InstrumentId { label = "usd"; version = 0}, version = 0}
+            quantity = 10.0
+            accountId = AccountId {provider = originalOwner; identifier = "OriginalOwnerAccount"; owner = originalOwner }
+            observers = []
+        
+        ruleCid <- create AssetTransferRule with
+            provider = originalOwner
+            owner = originalOwner
+            observers = []
+
+        -- OriginalOwner requests the transfer of the asset
+        exercise ruleCid AssetTransferRule_RequestTransfer with 
+            assetFactCid = assetCid
+            newOwner = newOwner
+            targetAccountName = "NewOwnerAccount"
+
+    newAssetFactCid <- submit newOwner do
+        -- the NewOwner accepts the asset transfer
+        newAssetFactCid <- exercise transferCid AssetTransferRuleRequest_Accept with 
+            targetAccountFactCid = targetAccountFactCid
+
+        newAssetFact <- fetch newAssetFactCid
+
+        -- the new asset should be linked to Bob's account
+        newAssetFact.accountId.owner === newOwner   
+        return ()
+    
+    return ()    

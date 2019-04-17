@@ -1,0 +1,38 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2 module DA.Finance.Asset.Transfer.Immediate where
+
+import DA.Finance.Account.Fact
+import DA.Finance.Asset.Fact
+
+template AssetTransferRule
+  with
+    provider: Party
+    actor1: Party
+    actor2: Party
+    observers: [Party]
+  where
+    signatory provider
+    observer observers
+    controller [actor1, actor2] can
+      nonconsuming Transfer: ContractId AssetFact
+        with
+          assetFactCid: ContractId AssetFact
+          accountCid: ContractId AccountFact
+        do
+          assetFact <- fetch assetFactCid
+          account <- fetch accountCid
+          let owner = if actor1 == assetFact.accountId.owner then actor1 else actor2
+              newOwner = if actor1 == assetFact.accountId.owner then actor2 else actor1
+          assertMsg "account matches" (account.accountId.provider == provider && account.accountId.owner == newOwner)
+          archive assetFactCid
+          assertMsg "valid transfer" (owner /= newOwner || assetFact.accountId /= account.accountId)
+          create assetFact with accountId = account.accountId
+
+assetTransferRule
+  ((assetTransferRuleCid, assetFactCid, accountFactCid): (ContractId AssetTransferRule, ContractId AssetFact, ContractId AccountFact))
+  =
+  exercise assetTransferRuleCid Transfer with assetFactCid = assetFactCid; accountCid = accountFactCid

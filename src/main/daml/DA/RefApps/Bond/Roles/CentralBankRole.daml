@@ -1,0 +1,144 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.Roles.CentralBankRole where
+
+import DA.Finance.Types
+import DA.Finance.Account.Fact
+import DA.Finance.Asset.Fact
+import DA.Finance.Asset.Lock
+import DA.Finance.Asset.SplitAndMerge
+import DA.Finance.Asset.Transfer.Immediate as Immediate
+import DA.Finance.Asset.Transfer.Bilateral as Bilateral
+import DA.Finance.Instruments.Cash
+
+-- Role contract invitation for Central Bank (cash issuer) role.
+template CentralBankRoleInvitation
+  with
+    centralBank: Party
+    operator: Party
+    regulators: [Party]
+  where
+    signatory operator
+    observer regulators
+
+    controller centralBank can
+      CentralBankRoleInvitation_Accept: ContractId CentralBankRole
+        do create CentralBankRole with
+            centralBank = centralBank
+            operator = operator
+            regulators = regulators
+
+      CentralBankRoleInvitation_Reject: ()
+        do return ()
+
+    controller operator can
+      CentralBankRoleInvitation_Revoke: ()
+        do return ()
+
+-- Role contract for the Central Bank role. This role is entitled to create
+-- cash accounts and issue cash.
+template CentralBankRole
+  with
+    centralBank: Party
+    operator: Party
+    regulators: [Party]
+  where
+    signatory operator, centralBank
+    observer regulators
+
+    controller centralBank can
+      nonconsuming CentralBankRole_IssueCash: ContractId CashFact
+        with
+          currency: Text
+        do
+          let instrumentId = InstrumentId currency 0
+          create CashFact with
+            provider = centralBank
+            instrumentId = instrumentId
+            currency = currency
+            observers = []
+
+      nonconsuming CentralBankRole_RequestAccount: ContractId CashAccountRequest
+        with
+          owner: Party
+          accountName: Text
+          cashAmount: Decimal
+          instrumentId: InstrumentId
+          observers: [Party]
+        do
+          accountReq <- create AccountRequest with
+            accountId = AccountId with
+              provider = centralBank
+              identifier = accountName
+              owner = owner
+            observers = owner :: regulators <> observers
+            operator = operator
+          assetCid <- create AssetFact with
+            assetId = AssetId centralBank instrumentId 0
+            quantity = cashAmount
+            accountId = AccountId centralBank "temporary" centralBank
+            observers = [owner]  -- this is needed, otherwise the AssetFact is not visible to the eventual owner
+          transferRuleCid <- create Immediate.AssetTransferRule with
+            provider = centralBank
+            actor1 = centralBank
+            actor2 = owner
+            observers = []
+          create CashAccountRequest with
+            centralBank = centralBank
+            owner = owner
+            accountRequestCid = accountReq
+            assetFactCid = assetCid
+            transferRuleCid = transferRuleCid
+            regulators = regulators
+
+      nonconsuming CentralBankRole_CreateTransferRule: ContractId Bilateral.AssetTransferRule
+        with
+          owner: Party
+        do
+          create Bilateral.AssetTransferRule with
+            provider = centralBank
+            owner = owner
+            observers = []
+
+      nonconsuming CentralBankRole_CreateSplitAndMergeRule: ContractId AssetSplitAndMergeRule
+        with
+          owner: Party
+        do
+          create AssetSplitAndMergeRule with
+            provider = centralBank
+            owner = owner
+            observers = []
+
+      nonconsuming CentralBankRole_CreateLockRule: ContractId AssetLockRule
+        with
+          owner: Party
+        do
+          create AssetLockRule with
+            provider = centralBank
+            owner = owner
+            observers = []
+
+-- Request contract to establish a cash accpimt associated with an initial
+-- balance (given as `assetFactCid`)
+template CashAccountRequest
+  with
+    centralBank: Party
+    owner: Party
+    accountRequestCid: ContractId AccountRequest
+    assetFactCid: ContractId AssetFact
+    transferRuleCid: ContractId Immediate.AssetTransferRule
+    regulators: [Party]
+  where
+    signatory centralBank
+    observer regulators
+
+    controller owner can
+      CashAccountRequest_Accept: (ContractId AccountFact, ContractId AssetFact)
+        do
+          account <- exercise accountRequestCid AccountRequest_Accept
+          asset <- exercise transferRuleCid Transfer with assetFactCid = assetFactCid; accountCid = account
+          return (account, asset)

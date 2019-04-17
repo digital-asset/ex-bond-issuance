@@ -1,0 +1,192 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2 module DA.Finance.Test.Dvp.Settlement.Asymmetric where
+
+import DA.Date
+import DA.Optional
+import DA.Time
+import DA.Finance.Account.Fact
+import DA.Finance.Asset.Fact
+import DA.Finance.Asset.Lock
+import DA.Finance.Asset.Transfer.Bilateral
+import DA.Finance.Dvp.Fact
+import DA.Finance.Dvp.Settlement.Asymmetric
+import DA.Finance.Test.Asset.Transfer
+import DA.Finance.Test.Dvp.Fact
+import DA.Finance.Test.Dvp.Setup
+
+
+-- setupDvp
+-- A utility scenario function for setting up a settlement method
+setupDvp
+  (actor1: Party)
+  (actor2: Party)
+  (observers: [Party])
+  =
+  scenario do
+    -- Register Trade
+    cid <- actor1 `submit` create DvpRuleRequest with actor1; actor2; observers
+    actor2 `submit` exercise cid DvpRuleRequest_Accept
+
+-- settleTrade
+-- A utility scenario function for settling a trade
+allocateAndSettleDvp
+  (buyer: Party)
+  (seller: Party)
+  (dvpFactCid: ContractId DvpFact)
+  (dvpCid: ContractId DvpRule)
+  (paymentTransferRuleCids: [(ContractId AssetTransferRule)])
+  (paymentFactCids: [(ContractId AssetFact)])
+  (deliveryTransferRuleCids: [(ContractId AssetTransferRule)])
+  (deliveryFactCids: [(ContractId AssetFact)])
+  (paymentTargetAccountFactCids: [(ContractId AccountFact)])
+  (deliveryTargetAccountFactCids: [(ContractId AccountFact)])
+  (paymentAssetLockCids: [(ContractId AssetLockRule)])
+  =
+  scenario do
+    dvp <- buyer `submit` fetch dvpFactCid
+    -- pass time to settlementDate
+    nowTime <- getTime
+    let nowDate = toDateUTC nowTime
+        settlementDate = fromSome dvp.settlementDate
+    if nowDate /= settlementDate then passToDate settlementDate else pass $ seconds $ 0
+
+    -- allocate
+    dvp <- buyer `submit` fetch dvpCid
+    d <- if buyer == dvp.actor1 then
+           buyer `submit` exercise dvpCid DvpRule_Allocate1 with dvpFactCid; assetLockRuleCids = paymentAssetLockCids; paymentTransferRuleCids; paymentFactCids; deliveryTargetAccountFactCids
+         else
+           buyer `submit` exercise dvpCid DvpRule_Allocate2 with dvpFactCid; assetLockRuleCids = paymentAssetLockCids; paymentTransferRuleCids; paymentFactCids; deliveryTargetAccountFactCids
+    -- settle
+    if buyer == dvp.actor1 then
+      seller `submit` exercise dvpCid DvpRule_Settle2 with dvpFactCid = d._1; dvpAllocationFactCid = d._2; deliveryTransferRuleCids; deliveryFactCids; paymentTargetAccountFactCids
+    else
+      seller `submit` exercise dvpCid DvpRule_Settle1 with dvpFactCid = d._1; dvpAllocationFactCid = d._2; deliveryTransferRuleCids; deliveryFactCids; paymentTargetAccountFactCids
+
+-- settleTradeBasic
+-- A utility scenario function for settling a basic trade consisting of one payment and one delivery leg
+allocateAndSettleDvpBasic
+  (buyer: Party)
+  (seller: Party)
+  (dvpFactCid: ContractId DvpFact)
+  (dvpCid: ContractId DvpRule)
+  (paymentTransferCid: ContractId AssetTransferRule)
+  (paymentCid: ContractId AssetFact)
+  (deliveryTransferCid: ContractId AssetTransferRule)
+  (deliveryCid: ContractId AssetFact)
+  (paymentTargetAccountCid: ContractId AccountFact)
+  (deliveryTargetAccountCid: ContractId AccountFact)
+  (paymentAssetLockCid: ContractId AssetLockRule)
+  =
+  allocateAndSettleDvp buyer seller dvpFactCid dvpCid [paymentTransferCid] [paymentCid] [deliveryTransferCid] [deliveryCid] [paymentTargetAccountCid] [deliveryTargetAccountCid] [paymentAssetLockCid]
+
+dvp1 =
+  scenario do
+    -- ----------------- Setup -----------------
+    s <- registerAccountsInstrumentsAssetsAndAssetLock
+    -- ----------------- Allocate and settle trade -----------------
+    -- register trade
+    dvpCid <- setupDvp s.acc1_1.accountId.owner s.acc2_2.accountId.owner []
+    dvpFactCid <- registerDvpFactBasic "dvpId2" s.asset1_1 s.asset2_2 s.settlementDate []
+    -- register assets
+    paymentCid <- registerAssetOnAccount s.asset1_1 s.accountCid1_1
+    deliveryCid <- registerAssetOnAccount s.asset2_2 s.accountCid2_2
+    -- allocate and settle trade
+    allocateAndSettleDvpBasic
+      s.acc1_1.accountId.owner
+      s.acc2_2.accountId.owner
+      dvpFactCid
+      dvpCid
+      s.assetTransferCid1_1
+      paymentCid
+      s.assetTransferCid2_2
+      deliveryCid
+      s.accountCid1_2
+      s.accountCid2_1
+      s.assetLockCid1_1
+
+dvp2 =
+  scenario do
+    -- ----------------- Setup -----------------
+    s <- registerAccountsInstrumentsAssetsAndAssetLock
+    -- ----------------- Allocate and settle trade -----------------
+    dvpCid <- setupDvp s.acc1_1.accountId.owner s.acc2_2.accountId.owner []
+    dvpFactCid <- registerDvpFact
+      "dvpId1"
+      s.acc1_1.accountId.owner
+      s.acc2_2.accountId.owner
+      (assetsToLegs [s.asset1_1, s.asset1_2])
+      (assetsToLegs [s.asset2_1, s.asset2_2])
+      s.settlementDate
+      []
+    allocateAndSettleDvp
+      s.acc1_1.accountId.owner
+      s.acc2_2.accountId.owner
+      dvpFactCid
+      dvpCid
+      [s.assetTransferCid1_1, s.assetTransferCid1_1]
+      [s.assetCid1_1, s.assetCid1_2]
+      [s.assetTransferCid2_2, s.assetTransferCid2_2]
+      [s.assetCid2_1, s.assetCid2_2]
+      [s.accountCid1_2, s.accountCid1_2]
+      [s.accountCid2_1, s.accountCid2_1]
+      [s.assetLockCid1_1, s.assetLockCid1_1]
+
+dvp3 =
+  scenario do
+    -- ----------------- Setup -----------------
+    s <- registerAccountsInstrumentsAssetsAndAssetLock
+    -- ----------------- Allocate and settle trade -----------------
+    dvpCid <- setupDvp s.acc1_1.accountId.owner s.acc2_2.accountId.owner []
+    dvpFactCid <- registerDvpFact "dvpId1" s.acc1_1.accountId.owner s.acc2_2.accountId.owner (assetsToLegs [s.asset1_1, s.asset1_2]) (assetsToLegs [s.asset2_1, s.asset2_2]) s.settlementDate []
+    -- allocate failure 1 (wrong order of assets)
+    submitMustFail s.acc1_1.accountId.owner do
+      (exercise dvpCid DvpRule_Allocate1 with
+        dvpFactCid = dvpFactCid
+        assetLockRuleCids = [s.assetLockCid1_1, s.assetLockCid1_1]
+        paymentTransferRuleCids = [s.assetTransferCid1_1, s.assetTransferCid1_1]
+        paymentFactCids = [s.assetCid1_2, s.assetCid1_1]
+        deliveryTargetAccountFactCids = [s.accountCid2_1, s.accountCid2_1])
+    -- allocate failure 2 (wrong accounts)
+    submitMustFail s.acc1_1.accountId.owner do
+      (exercise dvpCid DvpRule_Allocate1 with
+        dvpFactCid = dvpFactCid
+        assetLockRuleCids = [s.assetLockCid1_1, s.assetLockCid1_1]
+        paymentTransferRuleCids = [s.assetTransferCid1_1, s.assetTransferCid1_1]
+        paymentFactCids = [s.assetCid1_1, s.assetCid1_2]
+        deliveryTargetAccountFactCids = [s.accountCid1_1, s.accountCid1_1])
+    -- allocate
+    d <- s.acc1_1.accountId.owner `submit`
+      exercise dvpCid DvpRule_Allocate1 with
+        dvpFactCid = dvpFactCid
+        assetLockRuleCids = [s.assetLockCid1_1, s.assetLockCid1_1]
+        paymentTransferRuleCids = [s.assetTransferCid1_1, s.assetTransferCid1_1]
+        paymentFactCids = [s.assetCid1_1, s.assetCid1_2]
+        deliveryTargetAccountFactCids = [s.accountCid2_1, s.accountCid2_1]
+    -- settle failure 1 (wrong order of assets)
+    submitMustFail s.acc2_2.accountId.owner do
+      (exercise dvpCid DvpRule_Settle2 with
+        dvpFactCid = d._1
+        dvpAllocationFactCid = d._2
+        deliveryTransferRuleCids = [s.assetTransferCid2_1, s.assetTransferCid2_1]
+        deliveryFactCids = [s.assetCid2_2, s.assetCid2_1]
+        paymentTargetAccountFactCids = [s.accountCid1_2, s.accountCid1_2])
+    -- settle failure 2 (wrong accounts)
+    submitMustFail s.acc2_2.accountId.owner do
+      (exercise dvpCid DvpRule_Settle2 with
+        dvpFactCid = d._1
+        dvpAllocationFactCid = d._2
+        deliveryTransferRuleCids = [s.assetTransferCid2_1, s.assetTransferCid2_1]
+        deliveryFactCids = [s.assetCid2_1, s.assetCid2_2]
+        paymentTargetAccountFactCids = [s.accountCid2_2, s.accountCid2_2])
+    -- settle
+    s.acc2_2.accountId.owner `submit`
+      exercise dvpCid DvpRule_Settle2 with
+        dvpFactCid = d._1
+        dvpAllocationFactCid = d._2
+        deliveryTransferRuleCids = [s.assetTransferCid2_2, s.assetTransferCid2_2]
+        deliveryFactCids = [s.assetCid2_1, s.assetCid2_2]
+        paymentTargetAccountFactCids = [s.accountCid1_2, s.accountCid1_2]

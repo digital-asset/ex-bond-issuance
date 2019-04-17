@@ -1,0 +1,62 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.Roles.OperatorRole where
+
+import DA.RefApps.Bond.Roles.BankRole
+import DA.RefApps.Bond.Roles.CentralBankRole
+import DA.RefApps.Bond.Roles.CsdRole
+import DA.RefApps.Bond.Roles.IssuerRole
+import DA.RefApps.Bond.Roles.AuctionAgentRole
+
+-- Role template to initiate a market infrastructure.
+-- Operator role is the basic role which is responsible to invite al the
+-- trusted market participants.
+-- All the other role contracts have two signatories meaning that mutual
+-- consent is required to create them.
+template OperatorRole
+  with
+    operator: Party
+    regulators: [Party]
+  where
+    signatory operator
+    observer regulators
+
+    controller operator can
+      nonconsuming OperatorRole_InviteAuctionAgent: ContractId AuctionAgentRoleInvitation
+        with auctionAgent : Party
+        do create AuctionAgentRoleInvitation with
+            auctionAgent = auctionAgent
+            operator = operator
+            regulators = regulators
+
+      nonconsuming OperatorRole_InviteBank: ContractId BankRoleInvitation
+        with bank : Party
+        do create BankRoleInvitation with
+              bank = bank
+              operator = operator
+              regulators = regulators
+
+      nonconsuming OperatorRole_InviteCsd: ContractId CsdRoleInvitation
+        with csd : Party
+        do create CsdRoleInvitation with
+              csd = csd
+              operator = operator
+              regulators = regulators
+
+      nonconsuming OperatorRole_InviteIssuer: ContractId IssuerRoleInvitation
+        with issuer : Party
+        do create IssuerRoleInvitation with
+              issuer = issuer
+              operator = operator
+              regulators = regulators
+
+      nonconsuming OperatorRole_InviteCentralBank: ContractId CentralBankRoleInvitation
+        with centralBank : Party
+        do create CentralBankRoleInvitation with
+              centralBank = centralBank
+              operator = operator
+              regulators = regulators

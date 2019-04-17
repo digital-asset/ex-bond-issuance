@@ -1,0 +1,14 @@
+#
+# Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+FROM digitalasset/daml-sdk:0.12.1-master
+
+WORKDIR /home/sdk
+
+COPY ui-backend.conf frontend-config.js /home/sdk/
+
+EXPOSE 7500
+
+CMD da run navigator -- server ${SANDBOX_HOST} ${SANDBOX_PORT} --port 7500 --config-file ui-backend.conf

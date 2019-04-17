@@ -1,0 +1,16 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2 module DA.Finance.Utility where
+
+import DA.Date
+
+-- Utility functions
+isDue (d: Optional Date) =
+  do
+    ledgerTime <- getTime
+    assertMsg
+      ("ledger date " <> show (toDateUTC ledgerTime) <> " is on or after settlement date")
+      (optional True (\(a: Date) -> toDateUTC ledgerTime >= a) d)

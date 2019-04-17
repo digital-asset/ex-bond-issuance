@@ -1,0 +1,21 @@
+#
+# Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+project:
+  name: bond-issuance
+  sdk-version: 0.12.1
+  source: src/main/daml/DA/RefApps/Bond/Test/MarketSetup.daml
+  scenario: DA.RefApps.Bond.Test.MarketSetup:testMarketSetup
+  parties:
+  - Operator
+  - Regulator
+  - AuctionAgent
+  - Bank1
+  - Bank2
+  - Bank3
+  - CSD
+  - Issuer
+  - CentralBank
+version: 2

@@ -1,0 +1,26 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2 module DA.Finance.Test.Account.Fact where
+
+import DA.Finance.Account.Fact
+import DA.Finance.Types
+
+-- setupAccount
+-- a utility function for setting up an account
+setupAccount (account: AccountFact) =
+  scenario do
+    accountRequestCid <- submit account.accountId.provider do 
+        create AccountRequest with accountId = account.accountId; observers = account.observers; operator = account.accountId.provider
+    asd <- submit account.accountId.owner do 
+        exercise accountRequestCid AccountRequest_Accept
+    return asd
+
+account = scenario do
+    alice <- getParty "Alice"
+    bob <- getParty "Bob"
+    eve <- getParty "Eve"
+
+    setupAccount (AccountFact with accountId = AccountId {provider = alice; identifier = "123"; owner = bob };  observers = [eve])

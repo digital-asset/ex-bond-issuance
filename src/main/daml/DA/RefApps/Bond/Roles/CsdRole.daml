@@ -1,0 +1,59 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.Roles.CsdRole where
+
+import DA.Finance.Types
+import DA.Finance.Account.Fact
+
+-- Role contract invitation for CSD role.
+template CsdRoleInvitation
+  with
+    csd: Party
+    operator: Party
+    regulators: [Party]
+  where
+    signatory operator
+    observer regulators
+
+    controller csd can
+      CsdRoleInvitation_Accept: ContractId CsdRole
+        do create CsdRole with
+            csd = csd
+            operator = operator
+            regulators = regulators
+
+      CsdRoleInvitation_Reject: ()
+        do return ()
+
+    controller operator can
+      CsdRoleInvitation_Revoke: ()
+        do return ()
+
+-- Role contract for the CSD role. This role is entitled to manage bond
+-- accounts and approve bond issuance.
+template CsdRole
+  with
+    csd: Party
+    operator: Party
+    regulators: [Party]
+  where
+    signatory operator, csd
+    observer regulators
+
+    controller csd can
+      nonconsuming CsdRole_RequestAccount: ContractId AccountRequest
+        with
+          owner: Party
+          accountName: Text
+        do
+          create AccountRequest with
+            accountId = AccountId with
+              provider = csd
+              identifier = accountName
+              owner = owner
+            observers = owner :: regulators
+            operator = operator

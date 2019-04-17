@@ -1,0 +1,254 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.Roles.IssuerRole where
+
+import DA.Date
+
+import DA.Finance.Types
+import DA.Finance.Asset.Fact
+import DA.Finance.Asset.Lock
+import DA.Finance.Asset.SplitAndMerge
+import DA.Finance.Asset.Transfer.Bilateral
+import DA.Finance.Account.Fact
+import DA.Finance.Instruments.FixedRateBond
+
+import DA.RefApps.Bond.Auction
+import DA.RefApps.Bond.Util
+import DA.RefApps.Bond.Redemption
+
+-- Role contract invitation for bond Issuer role.
+template IssuerRoleInvitation
+  with
+    issuer: Party
+    operator: Party
+    regulators: [Party]
+  where
+    signatory operator
+    observer regulators
+
+    controller issuer can
+      IssuerRoleInvitation_Accept: ContractId IssuerRole
+        do create IssuerRole with
+            issuer = issuer
+            operator = operator
+            regulators = regulators
+
+      IssuerRoleInvitation_Reject: ()
+        do return ()
+
+    controller operator can
+      IssuerRoleInvitation_Revoke: ()
+        do return ()
+
+-- Role contract for the bond Issuer role. This role is entitled to initiate
+-- bond issuance, auction and redemption.
+template IssuerRole
+  with
+    issuer: Party
+    operator: Party
+    regulators: [Party]
+  where
+    signatory operator, issuer
+    observer regulators
+    controller issuer can
+      nonconsuming IssuerRole_Issuance: ContractId IssuanceRequest
+        with
+          issueSize: Int
+          issueDate: Date
+          currency: Text
+          denomination: Decimal
+          maturityDate: Date
+          couponRate: Decimal
+          couponDates: [Date]
+          bondAccountId: ContractId AccountFact
+        do
+          assertMsg "Denomination should be positive" $ denomination > 0.0
+          assertMsg "Coupon rate should be positive" $ couponRate > 0.0
+          now <- getTime
+          let today = toDateUTC now
+          assertMsg "Issue date should not be in the past" $ issueDate >= today
+          -- coupon dates should happen earlier than maturity, since maturity is added to couponDates implicitly
+          forA couponDates $ \date -> assertMsg
+            ("Coupon dates should be between the issue date and maturity. Issue date: " <> show issueDate <> " Maturity: " <> show maturityDate <> " current date: " <> show date) $
+            date >= issueDate && date < maturityDate
+          bondAccount <- fetch bondAccountId
+          create IssuanceRequest with
+            issuer = issuer
+            operator = operator
+            regulators = regulators
+            issueSize = issueSize
+            issueDate = issueDate
+            maturityDate = maturityDate
+            currency = currency
+            denomination = denomination
+            couponRate = couponRate
+            couponDates = couponDates
+            bondAccount = bondAccount
+
+      nonconsuming IssuerRole_CommissionAuction: ContractId CommissionBotTrigger
+        with
+          bondAssetFactCid: ContractId AssetFact
+          auctionAgent: Party
+          startDate: Date
+          endDate: Date
+          minPrice: Decimal
+          size: Int
+          cashInstrumentKey: InstrumentKey
+          cashAccountCid: ContractId AccountFact
+        do
+          assertMsg "Minimum price should be positive" $ minPrice > 0.0
+          assertMsg "Size price should be positive" $ size > 0
+          time <- getTime
+          let today = toDateUTC time
+          assertMsg "Start date should not be in the past" $ startDate >= today
+          assertMsg "End date should be after start date" $ endDate >= startDate
+          asset <- fetch bondAssetFactCid
+          assertMsg ("Asset quantity [" <> show asset.quantity <> "] should be greater than or equal to issue size [" <> show size <> "]") $
+            asset.quantity >= intToDecimal size
+
+          create CommissionBotTrigger with
+            issuer = issuer
+            operator = operator
+            bondAccountProvider = asset.accountId.provider
+            regulators = regulators
+            bondAssetFactCid = bondAssetFactCid
+            bondInstrumentId = asset.assetId.instrumentId
+            auctionAgent = auctionAgent
+            startDate = startDate
+            endDate = endDate
+            minPrice = minPrice
+            size = size
+            cashInstrumentKey = cashInstrumentKey
+            cashAccount = cashAccountCid
+
+      nonconsuming IssuerRole_Redeem: ContractId RedemptionRequest
+        with
+          fixedRateBondFactCid: ContractId FixedRateBondFact
+        do
+          now <- getTime
+          let today = toDateUTC now
+          fact <- fetch fixedRateBondFactCid
+          assertMsg ("Redemption should happen at maturity date: " <> show fact.maturityDate) $ fact.maturityDate == today
+          create RedemptionRequest with
+            provider = fact.provider
+            issuer = issuer
+            bondInstrumentId = fact.instrumentId
+            fixedRateBondFactCid = fixedRateBondFactCid
+            regulators = regulators
+
+-- Triggers the commission bot, which is responsible to provide the FixedRateBond
+-- and rule contracts required for the allocation and settlement after the successful
+-- auction.
+template CommissionBotTrigger
+  with
+    issuer: Party
+    operator: Party
+    bondAccountProvider: Party
+    regulators: [Party]
+    bondAssetFactCid: ContractId AssetFact
+    bondInstrumentId: InstrumentId
+    auctionAgent: Party
+    startDate: Date
+    endDate: Date
+    minPrice: Decimal
+    size: Int
+    cashInstrumentKey: InstrumentKey
+    cashAccount: ContractId AccountFact
+  where
+    signatory issuer, operator
+    observer regulators
+
+    controller issuer can
+      CommissionBotTrigger_InviteAgent: (ContractId AuctionInvitation, Optional (ContractId AssetFact))
+        with
+          bondSplitAndMergeRuleCid: ContractId AssetSplitAndMergeRule
+          bondLockRuleCid: ContractId AssetLockRule
+          bondTransferRuleCid: ContractId AssetTransferRule
+          fixedRateBondFactCid: ContractId FixedRateBondFact
+        do
+          assetFact <- fetch bondAssetFactCid
+          -- Splitting the asset if needed
+          splitFactPair <- if (assetFact.quantity > intToDecimal size) then do
+                 (first, second) <- exercise bondSplitAndMergeRuleCid $ AssetSplitAndMergeRule_Split bondAssetFactCid $ intToDecimal size
+                 return (first, Some second)
+                else return (bondAssetFactCid, None)
+          let splitFactCid = fst splitFactPair
+          observedAssetFactCid <- exercise splitFactCid $ AssetFact_SetObservers (auctionAgent :: assetFact.observers)
+          fixedRateBondFact <- fetch fixedRateBondFactCid
+          let auction = Auction with
+                auctionAgent = auctionAgent
+                issuer = issuer
+                operator = operator
+                bondAccountProvider = bondAccountProvider
+                regulators = regulators
+                startDate = startDate
+                endDate = endDate
+                minPrice = minPrice
+                size = size
+                cashInstrumentKey = cashInstrumentKey
+                issuerCashAccountCid = cashAccount
+                bondBundleData = BondBundleData observedAssetFactCid bondSplitAndMergeRuleCid bondLockRuleCid bondTransferRuleCid assetFact.assetId.instrumentId.label
+                invitedBidders = []
+                auctionName = ""
+                fixedRateBondFact = fixedRateBondFact
+
+          invitation <- create AuctionInvitation with auction
+          return (invitation, snd splitFactPair)
+
+-- Using this template the issuer can request approval of the CSD for a bond
+-- issuance initiated by the `IssuerRole_Issuance` choice.
+template IssuanceRequest
+  with
+    issuer: Party
+    operator: Party
+    regulators: [Party]
+    issueSize: Int
+    issueDate: Date
+    maturityDate: Date
+    currency: Text
+    denomination: Decimal
+    couponRate: Decimal
+    couponDates: [Date]
+    bondAccount: AccountFact
+  where
+    signatory operator, issuer
+    observer regulators
+
+    controller bondAccount.accountId.provider can
+      IssuanceRequest_Accept: (ContractId FixedRateBondFact, ContractId AssetFact)
+        with
+          isin: Text
+        do
+          let bondId = InstrumentId with
+                        label = isin
+                        version = 0
+              cashId = currencyInstrumentId currency
+              assetId = AssetId with
+                issuer = issuer
+                instrumentId = bondId
+                version = 0
+              assetFact = AssetFact with
+                assetId = assetId
+                quantity = intToDecimal issueSize
+                accountId = bondAccount.accountId
+                observers = regulators
+              instrumentKey = InstrumentKey bondAccount.accountId.provider bondId
+          fixedRateBondFactCid <- create FixedRateBondFact with
+            provider = bondAccount.accountId.provider
+            instrumentId = bondId
+            isin = isin
+            cashInstrumentId = cashId
+            rate = couponRate
+            paymentLag = 0
+            denomination = denomination
+            couponDates = couponDates
+            couponDatesTriggered = []
+            issueDate = issueDate
+            maturityDate = maturityDate
+            observers = issuer :: regulators
+          assetCid <- create assetFact
+          return (fixedRateBondFactCid, assetCid)

@@ -1,0 +1,42 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.Roles.AuctionAgentRole where
+
+-- Role contract invitation for Auction Agent role.
+template AuctionAgentRoleInvitation
+  with
+    auctionAgent: Party
+    operator: Party
+    regulators: [Party]
+  where
+    signatory operator
+    observer regulators
+
+    controller auctionAgent can
+      AuctionAgentRoleInvitation_Accept: ContractId AuctionAgentRole
+        do create AuctionAgentRole with
+            auctionAgent = auctionAgent
+            operator = operator
+            regulators = regulators
+
+      AuctionAgentRoleInvitation_Reject: ()
+        do return ()
+
+    controller operator can
+      AuctionAgentRoleInvitation_Revoke: ()
+        do return ()
+
+-- Role contract for the Auction Agent role. This role is entitled to conduct
+-- (Dutch) auctions to sell the bonds issued by an Issuer
+template AuctionAgentRole
+  with
+    auctionAgent: Party
+    operator: Party
+    regulators: [Party]
+  where
+    signatory operator, auctionAgent
+    observer regulators

@@ -1,0 +1,14 @@
+#
+# Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+FROM digitalasset/daml-sdk:0.12.1-master
+
+WORKDIR /home/sdk
+
+COPY target/bond-issuance.dar /home/sdk/
+
+EXPOSE 7600
+
+CMD da run sandbox -- --port 7600 --scenario DA.RefApps.Bond.Test.MarketSetup:testMarketSetup  bond-issuance.dar

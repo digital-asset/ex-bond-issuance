@@ -1,0 +1,167 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2 module DA.Finance.Test.Dvp.Setup where
+
+import DA.Date
+import DA.Map
+import DA.Finance.Account.Fact
+import DA.Finance.Asset.Fact
+import DA.Finance.Asset.Lock
+import DA.Finance.Asset.Transfer.Bilateral as B
+import DA.Finance.Asset.Transfer.Immediate as I
+import DA.Finance.Types
+import DA.Finance.Test.Account.Fact
+import DA.Finance.Test.Asset.Transfer
+
+
+-- assetsToLegs
+-- utility function for creating a dvp legs from assets
+assetsToLegs (l: [AssetFact]) = fromList (map (\(e: AssetFact) -> ((InstrumentKey with provider = e.accountId.provider, instrumentId = e.assetId.instrumentId), e.quantity)) l)
+
+registerAccountsInstrumentsAssetsAndAssetLock =
+  scenario do
+    -- ----------------- Setup -----------------
+    settlementTime <- getTime
+    agent <- getParty "Agent"
+    provider1 <- getParty "Custodian1"
+    provider2 <- getParty "Custodian2"
+    owner1 <- getParty "Alice"
+    owner2 <- getParty "Bob"
+    let settlementDate = toDateUTC settlementTime
+        all = [agent, provider1, provider2, owner1, owner2]
+        -- accounts at provider 1
+        acc1_1 = AccountFact with accountId = AccountId {provider = provider1; identifier = "Acc1_1"; owner = owner1 };  observers = [agent]
+        acc1_2 = AccountFact with accountId = AccountId {provider = provider1; identifier = "Acc1_2"; owner = owner2 };  observers = [agent]
+        -- assets at provider 1
+        instrumentId1_1 = InstrumentId with label = "Asset1_1"; version = 0
+        instrumentId1_2 = InstrumentId with label = "Asset1_2"; version = 0
+        
+        asset1_1 = AssetFact with
+            assetId = AssetId {issuer = acc1_1.accountId.owner; instrumentId = instrumentId1_1; version = 0}
+            quantity = 10.0
+            accountId = acc1_1.accountId
+            observers = acc1_1.observers
+        asset1_2 = AssetFact with
+            assetId = AssetId {issuer = acc1_1.accountId.owner; instrumentId = instrumentId1_2; version = 0}
+            quantity = 11.0
+            accountId = acc1_1.accountId
+            observers = acc1_1.observers
+
+        -- accounts at provider 2
+        acc2_1 = AccountFact with accountId = AccountId {provider = provider2; identifier = "Acc2_1"; owner = owner1 };  observers = [agent]
+        acc2_2 = AccountFact with accountId = AccountId {provider = provider2; identifier = "Acc2_2"; owner = owner2 };  observers = [agent]
+        -- assets at provider 2
+        instrumentId2_1 = InstrumentId with label = "Asset2_1"; version = 0
+        instrumentId2_2 = InstrumentId with label = "Asset2_2"; version = 0
+
+        asset2_1 = AssetFact with
+            assetId = AssetId {issuer = acc2_2.accountId.owner; instrumentId = instrumentId2_1; version = 0}
+            quantity = 20.0
+            accountId = acc2_2.accountId
+            observers = acc2_2.observers
+
+        asset2_2 =   AssetFact with
+            assetId = AssetId {issuer = acc2_2.accountId.owner; instrumentId = instrumentId2_2; version = 0}
+            quantity = 22.0
+            accountId = acc2_2.accountId
+            observers = acc2_2.observers
+
+    -- setup accounts
+    accountCid1_1 <- setupAccount acc1_1
+    accountCid1_2 <- setupAccount acc1_2
+    accountCid2_1 <- setupAccount acc2_1
+    accountCid2_2 <- setupAccount acc2_2
+    -- create assets
+    assetCid1_1 <- registerAssetOnAccount asset1_1 accountCid1_1
+    assetCid1_2 <- registerAssetOnAccount asset1_2 accountCid1_1
+    assetCid2_1 <- registerAssetOnAccount asset2_1 accountCid2_2
+    assetCid2_2 <- registerAssetOnAccount asset2_2 accountCid2_2
+    -- create assetFact transfers
+    assetTransferCid1_1 <- provider1 `submit` create B.AssetTransferRule with provider = provider1; owner = owner1; observers = [agent]
+    assetTransferCid1_2 <- provider1 `submit` create B.AssetTransferRule with provider = provider1; owner = owner2; observers = [agent]
+    assetTransferCid2_1 <- provider2 `submit` create B.AssetTransferRule with provider = provider2; owner = owner1; observers = [agent]
+    assetTransferCid2_2 <- provider2 `submit` create B.AssetTransferRule with provider = provider2; owner = owner2; observers = [agent]
+    --
+    assetTransferImmediateRuleCid1_1_2 <- provider1 `submit` create I.AssetTransferRule with provider = provider1; actor1 = owner1; actor2 = owner2; observers = [agent]
+    assetTransferImmediateRuleCid2_1_2 <- provider2 `submit` create I.AssetTransferRule with provider = provider2; actor1 = owner1; actor2 = owner2; observers = [agent]
+    -- create an AssetLockRule (for assets at a provider)
+    assetLockCid1_1 <- acc1_1.accountId.provider `submit` create AssetLockRule with provider = acc1_1.accountId.provider; owner = acc1_1.accountId.owner; observers = []
+    -- return
+    return
+      DvpSetupData with 
+        agent = agent
+        provider1 = provider1
+        provider2 = provider2
+        owner1 = owner1
+        owner2 = owner2
+        all = all
+        instrumentId1_1 = instrumentId1_1
+        instrumentId1_2 = instrumentId1_2
+        asset1_1 = asset1_1
+        asset1_2 = asset1_2
+        instrumentId2_1 = instrumentId2_1
+        instrumentId2_2 = instrumentId2_2
+        asset2_1 = asset2_1
+        asset2_2 = asset2_2
+        acc1_1 = acc1_1
+        accountCid1_1 = accountCid1_1
+        assetCid1_1 = assetCid1_1
+        assetCid1_2 = assetCid1_2
+        acc1_2 = acc1_2
+        accountCid1_2 = accountCid1_2
+        acc2_1 = acc2_1
+        accountCid2_1 = accountCid2_1
+        acc2_2 = acc2_2
+        accountCid2_2 = accountCid2_2
+        assetCid2_1 = assetCid2_1
+        assetCid2_2 = assetCid2_2
+        assetTransferCid1_1 = assetTransferCid1_1
+        assetTransferCid1_2 = assetTransferCid1_2
+        assetTransferCid2_1 = assetTransferCid2_1
+        assetTransferCid2_2 = assetTransferCid2_2
+        assetTransferImmediateRuleCid1_1_2 = assetTransferImmediateRuleCid1_1_2
+        assetTransferImmediateRuleCid2_1_2 = assetTransferImmediateRuleCid2_1_2
+        settlementDate = settlementDate
+        assetLockCid1_1 = assetLockCid1_1
+      
+
+data DvpSetupData = DvpSetupData 
+    with 
+        agent: Party
+        provider1: Party
+        provider2: Party
+        owner1: Party
+        owner2: Party
+        all: [Party]
+        instrumentId1_1: InstrumentId
+        instrumentId1_2: InstrumentId
+        asset1_1: AssetFact
+        asset1_2: AssetFact
+        instrumentId2_1: InstrumentId
+        instrumentId2_2: InstrumentId
+        asset2_1: AssetFact
+        asset2_2: AssetFact
+        acc1_1: AccountFact
+        accountCid1_1: ContractId AccountFact
+        assetCid1_1: ContractId AssetFact
+        assetCid1_2: ContractId AssetFact
+        acc1_2: AccountFact
+        accountCid1_2: ContractId AccountFact
+        acc2_1: AccountFact
+        accountCid2_1: ContractId AccountFact
+        acc2_2: AccountFact
+        accountCid2_2: ContractId AccountFact
+        assetCid2_1: ContractId AssetFact
+        assetCid2_2: ContractId AssetFact
+        assetTransferCid1_1: ContractId B.AssetTransferRule
+        assetTransferCid1_2: ContractId B.AssetTransferRule
+        assetTransferCid2_1: ContractId B.AssetTransferRule
+        assetTransferCid2_2: ContractId B.AssetTransferRule
+        assetTransferImmediateRuleCid1_1_2: ContractId I.AssetTransferRule
+        assetTransferImmediateRuleCid2_1_2 : ContractId I.AssetTransferRule
+        settlementDate: Date
+        assetLockCid1_1: ContractId AssetLockRule
+    deriving (Eq, Show)

@@ -1,0 +1,50 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.Util where
+
+import DA.Finance.Asset.Fact
+import DA.Finance.Asset.Lock
+import DA.Finance.Asset.SplitAndMerge
+import DA.Finance.Asset.Transfer.Bilateral
+import DA.Finance.Types
+import DA.List
+
+currencyInstrumentId currency
+    = InstrumentId with
+        label = currency
+        version = 0
+
+data BondBundleData = BondBundleData {
+  assetFactCid: ContractId AssetFact
+, assetSplitAndMergeRuleCid: ContractId AssetSplitAndMergeRule
+, assetLockRuleCid: ContractId AssetLockRule
+, assetTransferRuleCid: ContractId AssetTransferRule
+, assetLabel: Text
+} deriving (Eq, Show)
+
+-- Utility function to combine a set of AssetFacts so that it results in a single
+-- AssetFact which has the required quantity and the rest.
+mergeForQuantity: ContractId AssetFact ->
+                  AssetFact ->
+                  [ContractId AssetFact] ->
+                  Decimal ->
+                  ContractId AssetSplitAndMergeRule ->
+                  Update (Optional (ContractId AssetFact, [ContractId AssetFact]))
+mergeForQuantity firstAssetCid firstAsset otherAssets requiredQuantity mergeRule
+  | firstAsset.quantity == requiredQuantity = do return (Some (firstAssetCid, otherAssets))
+  | firstAsset.quantity > requiredQuantity = do
+    (withRequiredQuantity, remainder) <- exercise mergeRule $ AssetSplitAndMergeRule_Split firstAssetCid requiredQuantity
+    return (Some (withRequiredQuantity, remainder :: otherAssets))
+  | otherwise =
+    if length otherAssets <= 0 then
+      -- There's no subsequent asset to merge into the firstAsset, it means that the sum is lower than the required quantity.
+      do return None
+    else
+      do
+        mergedAssetCid <- exercise mergeRule $ AssetSplitAndMergeRule_Merge firstAssetCid (head otherAssets)
+        mergedAsset <- fetch mergedAssetCid
+        mergeForQuantity mergedAssetCid mergedAsset (tail otherAssets) requiredQuantity mergeRule

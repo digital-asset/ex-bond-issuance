@@ -1,0 +1,288 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.Redemption where
+
+import DA.Date
+import DA.List
+import DA.Optional
+
+import DA.Finance.Types
+import DA.Finance.Account.Fact
+import DA.Finance.Asset.Fact
+import DA.Finance.Asset.Lock
+import DA.Finance.Asset.SplitAndMerge
+import DA.Finance.Asset.Transfer.Bilateral
+import DA.Finance.Instruments.FixedRateBond
+
+import DA.RefApps.Bond.Util
+
+{-
+-    InvestorSettlementBotTrigger_Finalize   +----------------------+
+-   ---------------------------------------->| RedemptionPayoutInfo |---------------------+
+-                                            +----------------------+                     |
+- Redemption process:                                                                     |
+-   IssuerRole_Redeem  ---+                                                               |
+-                         |                                                               |
+-                         v                                                               v
+-               +--------------------+  Accept   +---------------------------------+    Start     +-----------------------+   Finalize
+-               | RedemptionRequest  |---------->| RedemptionCalculationBotTrigger | -----------> | RedemptionFinalizer   |------------>
+-               +--------------------+  (CSD)    +---------------------------------+    (CSD)     +-----------------------+    (Issuer)
+-}
+
+-- The finalization of the auction settlement creates a set of `RedemptionPayoutInfo` contracts
+-- corresponding to each DvP. These contracts contain the relevant party and account information
+-- required for a redemption when it is due
+template RedemptionPayoutInfo
+  with
+    issuer: Party
+    investor: Party
+    bondAccountProvider: Party
+    cashAccountProvider: Party
+    bondInstrumentId: InstrumentId
+    cashAccountCid: ContractId AccountFact
+    bondAssetFactCid: ContractId AssetFact
+    regulators: [Party]
+  where
+    signatory investor
+    observer bondAccountProvider :: regulators
+
+    controller issuer can
+      RedemptionPayoutInfo_Redeem: ContractId AssetFact
+        with
+          cashAssetFactCid: ContractId AssetFact
+          cashTransferRuleCid: ContractId AssetTransferRule
+          bondArchivalRequestCid: ContractId BondArchivalRequest
+          fixedRateBondFactCid: ContractId FixedRateBondFact
+        do
+          -- date check
+          now <- getTime
+          let today = toDateUTC now
+          fixedRateBondFact <- fetch fixedRateBondFactCid
+          let maturityDate = fixedRateBondFact.maturityDate
+          assertMsg ("Only final redemption supported: " <> show maturityDate) $ maturityDate == today
+
+          -- quantity check
+          bondAssetFact <- fetch bondAssetFactCid
+          let quantity = fixedRateBondFact.denomination * (1.0 + fixedRateBondFact.rate) * bondAssetFact.quantity
+          cashAssetFact <- fetch cashAssetFactCid
+          assertMsg ("Cash asset quantity should be " <> (show quantity)) $ quantity == cashAssetFact.quantity
+
+          cashAccount <- fetch cashAccountCid
+
+          -- archive the bond asset
+          exercise bondArchivalRequestCid BondArchivalRequest_Archive
+
+          -- transfer
+          transferRequest <- exercise cashTransferRuleCid $ AssetTransferRule_RequestTransfer cashAssetFactCid investor cashAccount.accountId.identifier
+          exercise transferRequest $ AssetTransferRuleRequest_Accept cashAccountCid
+
+-- The issuer can initiate a redemption at the bond account provider using this contract.
+-- The `RedemptionRequest_Accept` choice creates a trigger contract which is picked
+-- up by the redemption calculation bot.
+template RedemptionRequest
+  with
+    issuer: Party
+    provider: Party
+    bondInstrumentId: InstrumentId
+    fixedRateBondFactCid: ContractId FixedRateBondFact
+    regulators: [Party]
+  where
+    signatory issuer
+    observer regulators
+
+    controller provider can
+      RedemptionRequest_Accept: ContractId RedemptionCalculationBotTrigger
+        do
+          bond <- fetch fixedRateBondFactCid
+          create RedemptionCalculationBotTrigger with
+              issuer = issuer
+              provider = provider
+              fixedRateBondFactCid = fixedRateBondFactCid
+              bondInstrumentId = bond.instrumentId
+              regulators = regulators
+
+-- Triggers the redemption calculation bot. The bot collects the relevant bond assets
+-- and `RedemptionPayoutInfo`s and calculates the final coupon and creates cash
+-- transfers to each of the investors.
+-- It also archives the bonds still in active DvP contracts and the bond which weren't
+-- sold at all.
+template RedemptionCalculationBotTrigger
+  with
+    issuer: Party
+    provider: Party
+    fixedRateBondFactCid: ContractId FixedRateBondFact
+    bondInstrumentId: InstrumentId
+    regulators: [Party]
+  where
+    signatory issuer, provider
+    observer regulators
+
+    controller provider can
+      RedemptionCalculationBotTrigger_Start: (ContractId RedemptionFinalizeBotTrigger, [ContractId LockedBondArchivalRequest])
+        with
+          redemptionPayoutInfos: [ContractId RedemptionPayoutInfo]
+          bondsAtIssuer: [ContractId AssetFact]
+          lockedAssets: [ContractId AssetLockedFact]
+        do
+          fixedRateBond <- fetch fixedRateBondFactCid
+
+          -- archive the bonds left at issuer
+          forA bondsAtIssuer \factCid -> do
+            fact <- fetch factCid
+            assertMsg ("Account owner of bondsAtIssuer should be " <> show issuer) $ fact.accountId.owner == issuer
+            let factInstrumentId = fact.assetId.instrumentId
+            let bondInstrumentId = fixedRateBond.instrumentId
+            assertMsg ("Identifier of the asset [" <> show factInstrumentId <> "] should match the bond [" <> show bondInstrumentId) $
+              factInstrumentId == bondInstrumentId
+            archive factCid
+
+          -- request archival of locked assets
+          lockRequests <- forA lockedAssets \lockedCid -> do
+            locked <- fetch lockedCid
+            create LockedBondArchivalRequest with
+              provider = provider
+              agent = locked.agent
+              issuer = issuer
+              lockedAssetFactCid = lockedCid
+              regulators = regulators
+
+
+          -- proceed with redemption of the sold bonds
+          zippedInstructions <- forA redemptionPayoutInfos \redemptionPayoutInfoCid -> do
+            acct <- fetch redemptionPayoutInfoCid
+            asset <- fetch acct.bondAssetFactCid
+            assertMsg ("Bond owner [" <> (show asset.accountId.owner) <> "] and account owner [" <> (show acct.investor) <> "] should be the same") $
+              asset.accountId.owner == acct.investor
+            assertMsg ("Asset fact instrumentId [" <> show asset.assetId.instrumentId <> "] should match " <> show bondInstrumentId) $
+              asset.assetId.instrumentId == bondInstrumentId
+            assertMsg ("RedemptionPayoutInfo instrumentId [" <> show acct.bondInstrumentId <> "] should match " <> show bondInstrumentId) $
+              acct.bondInstrumentId == bondInstrumentId
+            arcReq <- create BondArchivalRequest with
+              provider = provider
+              issuer = issuer
+              owner = acct.investor
+              bondAssetFactCid = acct.bondAssetFactCid
+              regulators = regulators
+            let payment = fixedRateBond.denomination * (1.0 + fixedRateBond.rate) * asset.quantity
+                instruction = RedemptionInstruction with
+                    issuer = issuer
+                    provider = provider
+                    investor = acct.investor
+                    payment = payment
+                    bondInstrumentId = fixedRateBond.instrumentId
+                    cashInstrumentId = fixedRateBond.cashInstrumentId
+                    bondAssetFactCid = acct.bondAssetFactCid
+                    redemptionPayoutInfoCid = redemptionPayoutInfoCid
+                    fixedRateBondFactCid = fixedRateBondFactCid
+                    bondArchivalRequestCid = arcReq
+            return (instruction, acct.cashAccountProvider)
+          let (instructions, cashProviders) = unzip zippedInstructions
+          finalizer <- create RedemptionFinalizeBotTrigger with
+            issuer = issuer
+            bondAccountProvider = provider
+            instructions = instructions
+            cashInstrumentId = fixedRateBond.cashInstrumentId
+            cashAccountProvider = head cashProviders
+            regulators = regulators
+
+          return (finalizer, lockRequests)
+
+data RedemptionInstruction = RedemptionInstruction
+  with
+    issuer: Party
+    provider: Party
+    investor: Party
+    payment: Decimal
+    bondInstrumentId: InstrumentId
+    cashInstrumentId: InstrumentId
+    bondAssetFactCid: ContractId AssetFact
+    redemptionPayoutInfoCid: ContractId RedemptionPayoutInfo
+    fixedRateBondFactCid: ContractId FixedRateBondFact
+    bondArchivalRequestCid: ContractId BondArchivalRequest
+  deriving (Eq, Show)
+
+processInstructions: [RedemptionInstruction] ->
+                     [ContractId AssetFact] ->
+                     ContractId AssetSplitAndMergeRule ->
+                     ContractId AssetTransferRule ->
+                     [ContractId AssetFact] ->
+                     Update [ContractId AssetFact]
+processInstructions instructions cashAssetFactCids cashSplitAndMergeRuleCid cashTransferRuleCid payments
+  | length instructions == 0 = do return payments
+  | otherwise = do
+      let instruction :: otherInstructions = instructions
+      let firstCid = head cashAssetFactCids
+      firstCashAsset <- fetch firstCid
+      mergeResult <- mergeForQuantity firstCid firstCashAsset (tail cashAssetFactCids) instruction.payment cashSplitAndMergeRuleCid
+      assertMsg "Cash assets should suffice when paying out on redemption" $ isSome mergeResult
+      let (merged, remainingAssets)  = fromSome $ mergeResult
+      payment <- exercise instruction.redemptionPayoutInfoCid RedemptionPayoutInfo_Redeem with
+        cashAssetFactCid = merged
+        cashTransferRuleCid = cashTransferRuleCid
+        bondArchivalRequestCid = instruction.bondArchivalRequestCid
+        fixedRateBondFactCid = instruction.fixedRateBondFactCid
+      processInstructions otherInstructions remainingAssets cashSplitAndMergeRuleCid cashTransferRuleCid (payment :: payments)
+
+-- Triggers the redemption finalize bot which accepts the redemption payment
+-- on behalf of the investor.
+template RedemptionFinalizeBotTrigger
+  with
+    issuer: Party
+    bondAccountProvider: Party
+    instructions: [RedemptionInstruction]
+    cashInstrumentId: InstrumentId
+    cashAccountProvider: Party
+    regulators: [Party]
+  where
+    signatory issuer, bondAccountProvider
+    observer regulators
+
+    controller issuer can
+      RedemptionFinalizeBotTrigger_Finalize: [ContractId AssetFact]
+        with
+          cashAssetFactCids: [ContractId AssetFact] -- the cash assets this choice can merge and split the required payment from
+          cashTransferRuleCid: ContractId AssetTransferRule
+          cashSplitAndMergeRuleCid: ContractId AssetSplitAndMergeRule
+        do
+          assertMsg "Cash asset parameter should not be empty" $ (length cashAssetFactCids) > 0
+          processInstructions instructions cashAssetFactCids cashSplitAndMergeRuleCid cashTransferRuleCid []
+
+-- Helper contract to archive the bond assets (which needs signature of both
+-- the investor and the provider (CSD))
+template BondArchivalRequest
+  with
+    provider: Party
+    owner: Party
+    issuer: Party
+    bondAssetFactCid: ContractId AssetFact
+    regulators: [Party]
+  where
+    signatory provider
+    observer regulators
+
+    controller owner can
+      BondArchivalRequest_Archive: ()
+        do archive bondAssetFactCid
+
+-- Helper contract to archive the locked bond assets (which needs signature of both
+-- the issuer and the provider (CSD))
+template LockedBondArchivalRequest
+  with
+    provider: Party
+    agent: Party
+    issuer: Party
+    lockedAssetFactCid: ContractId AssetLockedFact
+    regulators: [Party]
+  where
+    signatory provider, issuer
+    observer regulators
+
+    controller agent can
+      LockedBondArchivalRequest_Accept: ()
+        do
+          fact <- exercise lockedAssetFactCid AssetLockedFact_Unlock
+          archive fact

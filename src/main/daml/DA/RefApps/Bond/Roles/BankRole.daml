@@ -1,0 +1,42 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.Roles.BankRole where
+
+-- Role contract invitation for Bank (investor) role.
+template BankRoleInvitation
+  with
+    bank: Party
+    operator: Party
+    regulators: [Party]
+  where
+    signatory operator
+    observer regulators
+
+    controller bank can
+      BankRoleInvitation_Accept: ContractId BankRole
+        do create BankRole with
+            bank = bank
+            operator = operator
+            regulators = regulators
+
+      BankRoleInvitation_Reject: ()
+        do return ()
+
+    controller operator can
+      BankRoleInvitation_Revoke: ()
+        do return ()
+
+-- Role contract for the Bank (investor) role. This role is entitled to participate
+-- in auctions and place bids to acquire portion of the issued bonds
+template BankRole
+  with
+    bank: Party
+    operator: Party
+    regulators: [Party]
+  where
+    signatory operator, bank
+    observer regulators

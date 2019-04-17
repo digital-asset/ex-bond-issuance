@@ -1,0 +1,106 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2 module DA.Finance.Asset.Transfer.Bilateral where
+
+import DA.Finance.Account.Fact
+import DA.Finance.Asset.Fact
+
+
+template AssetTransferRule
+  with
+    provider: Party
+    owner: Party
+    observers: [Party]
+  where
+    signatory provider
+    observer observers
+    controller owner can
+      nonconsuming AssetTransferRule_RequestTransfer: ContractId AssetTransferRuleRequest
+        with
+          assetFactCid: ContractId AssetFact
+          newOwner: Party
+          targetAccountName: Text
+        do
+          assetFact <- fetch assetFactCid
+          assertMsg "assetFact parties match" (assetFact.accountId.provider == provider && assetFact.accountId.owner == this.owner)
+          archive assetFactCid
+          assertMsg "valid transfer" (this.owner /= newOwner || assetFact.accountId.identifier /= targetAccountName)
+          create AssetTransferRuleRequest with
+            assetFact = assetFact
+            targetAccountName = targetAccountName
+            newOwner = newOwner
+      AssetTransferRule_SetObservers: ContractId AssetTransferRule
+        with
+            newObservers: [Party]
+        do create this with observers = newObservers
+      nonconsuming AssetTransferRule_PrepareFor: ContractId OneTimeAssetTransferRule
+        with
+          party: Party
+        do
+          create OneTimeAssetTransferRule with
+            provider = provider
+            owner = owner
+            observers = (party :: observers)
+
+template OneTimeAssetTransferRule
+  with
+    provider: Party
+    owner: Party
+    observers: [Party]
+  where
+    signatory provider
+    observer observers
+    controller owner can
+      OneTimeAssetTransferRule_RequestTransfer: ContractId AssetTransferRuleRequest
+        with
+          assetFactCid: ContractId AssetFact
+          newOwner: Party
+          targetAccountName: Text
+        do
+          assetFact <- fetch assetFactCid
+          assertMsg "assetFact parties match" (assetFact.accountId.provider == provider && assetFact.accountId.owner == this.owner)
+          archive assetFactCid
+          assertMsg "valid transfer" (this.owner /= newOwner || assetFact.accountId.identifier /= targetAccountName)
+          create AssetTransferRuleRequest with
+            assetFact = assetFact
+            targetAccountName = targetAccountName
+            newOwner = newOwner
+      OneTimeAssetTransferRule_SetObservers: ContractId OneTimeAssetTransferRule
+        with
+            newObservers: [Party]
+        do create this with observers = newObservers
+
+-- AssetTransferRuleRequest
+-- A AssetTransferRuleRequest contract instance is used to model an AssetFact transfer
+-- pending Accept/Reject/Cancel.
+template AssetTransferRuleRequest
+  with
+    assetFact: AssetFact
+    targetAccountName: Text
+    newOwner: Party
+  where
+    signatory assetFact.accountId.provider, assetFact.accountId.owner
+    controller newOwner can
+      AssetTransferRuleRequest_Accept: ContractId AssetFact
+        with targetAccountFactCid: ContractId AccountFact
+        do
+          targetAccount <- fetch targetAccountFactCid
+          assertMsg "provider matches" (targetAccount.accountId.provider == assetFact.accountId.provider)
+          assertMsg "accountId matches" (targetAccount.accountId.identifier == targetAccountName)
+          assertMsg "owner matches" (targetAccount.accountId.owner == newOwner)
+          create assetFact with
+                accountId = targetAccount.accountId
+                observers = []
+      AssetTransferRuleRequest_Reject: ContractId AssetFact
+        do create assetFact
+    controller assetFact.accountId.owner can
+      AssetTransferRuleRequest_Cancel: ContractId AssetFact
+        do create assetFact
+
+assetTransferRule
+  ((assetTransferRuleCid, accountFactCid): (ContractId AssetTransferRuleRequest, ContractId AccountFact))
+  =
+  exercise assetTransferRuleCid AssetTransferRuleRequest_Accept with targetAccountFactCid = accountFactCid

@@ -1,0 +1,25 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2 module DA.Finance.Instruments.Equity.Fact where
+
+import DA.Finance.Types
+
+-- EquityFact
+-- EquityFact is instrument reference data for an equity.
+-- The link between the instrument reference data and an AssetFact is provided by the InstrumentId.
+template EquityFact
+  with
+    -- general
+    provider: Party
+    instrumentId: InstrumentId
+    observers: [Party]
+    -- specific
+    isin: Text
+    ticker: Text
+    name: Text
+  where
+    signatory provider
+    observer observers
