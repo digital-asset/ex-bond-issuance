@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/digital-asset/ex-bond-issuance.svg?style=svg)](https://circleci.com/gh/digital-asset/ex-bond-issuance)
 # Reference Application: Bond Issuance
 
 ## Overview
