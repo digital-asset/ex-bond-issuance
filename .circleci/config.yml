@@ -30,6 +30,10 @@ jobs:
           path: target/surefire-reports
       - store_artifacts:
           path: target/surefire-reports
+      - run:
+          name: Run Blackduck Detect
+          command: |
+              bash <(curl -s https://blackducksoftware.github.io/hub-detect/hub-detect.sh) --detect.docker.image=alpine:latest --detect.blackduck.signature.scanner.disabled=true --blackduck.blackduck.offline.mode=true --detect.docker.passthrough.imageinspector.service.start=true --blackduck.api.token=${HUBDETECT_TOKEN} --logging.level.com.blackducksoftware.integration=INFO --blackduck.url=https://digitalasset.blackducksoftware.com
 
   daml_test:
     executor: daml-executor
@@ -50,4 +54,5 @@ workflows:
   build_and_test:
     jobs:
       - daml_test
-      - mvn_test
+      - mvn_test:
+          context: blackduck
