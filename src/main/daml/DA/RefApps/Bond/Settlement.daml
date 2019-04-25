@@ -6,16 +6,6 @@
 daml 1.2
 module DA.RefApps.Bond.Settlement where
 
-import DA.Finance.OldTypes
-import DA.Finance.Dvp.Fact
-import DA.Finance.Asset.Fact
-import DA.Finance.Asset.Lock
-import DA.Finance.Asset.SplitAndMerge
-import DA.Finance.Asset.Transfer.Bilateral
-import DA.Finance.Account.Fact
-import DA.Finance.Dvp.Settlement.Asymmetric
-
--- new finlib
 import DA.Finance.Rule.Trade.Dvp
 import DA.Finance.Fact.Trade.Dvp
 import DA.Finance.Types
@@ -25,7 +15,6 @@ import DA.Finance.Rule.Asset
 
 import DA.RefApps.Bond.Redemption
 import DA.List
-import DA.Map as Map
 import DA.Set as Set
 import DA.Optional
 import DA.Action
@@ -64,18 +53,17 @@ template InvestorSettlementBotTrigger
       InvestorSettlementBotTrigger_Finalize: [ContractId RedemptionPayoutInfo]
         with
           bondAccount: Account
-          investorCashAssetDepositCids: [ContractId AssetDeposit]
+          auctionLockedCashCids: [ContractId AuctionLockedCash]
           cashAssetFungible: ContractId AssetFungible
         do
 
         -- unlock
-          -- possibleDeliveryFactCids <- forA auctionLockedCashCids \lockCid -> do
-          --   lock <- fetch lockCid
-          --   assertMsg "Lock should be owned by the settling party" $ lock.owner == investor
-          --   assertMsg "AuctionLockedCash should match the auction" $ lock.auctionName == auctionName && lock.auctionAgent == auctionAgent
-          --   unlocked <- exercise lock.lockedCashAssetCid AssetLockedFact_Unlock
-          --   archive lockCid
-          --   return unlocked
+          investorCashAssetDepositCids <- forA auctionLockedCashCids \lockCid -> do
+            lock <- fetch lockCid
+            assertMsg "Lock should be owned by the settling party" $ lock.owner == investor
+            assertMsg "AuctionLockedCash should match the auction" $ lock.auctionName == auctionName && lock.auctionAgent == auctionAgent
+            unlocked <- exercise lockCid AuctionLockedCash_Unlock
+            return unlocked
 
           -- process all settle requests
           (_, payoutInfos) <- foldlA (\(remaining, redemptionPayouts) settleRequestCid -> do
@@ -85,7 +73,7 @@ template InvestorSettlementBotTrigger
             bondAssetDeposit <- fetch settleRequest.issuerBondAssetDepositCid
             let firstCashAssetCid = head remaining
             firstCashAsset <- fetch firstCashAssetCid
-            mergeResult <- mergeForQuantity2 firstCashAssetCid firstCashAsset (tail remaining) settleRequest.cashAmountToPay cashAssetFungible
+            mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail remaining) settleRequest.cashAmountToPay cashAssetFungible
             assertMsg "Locked cash should be sufficient to finalize settlement" $ isSome mergeResult
             let (cashMergedForQuantityCid, remainingNew)  = fromSome $ mergeResult
             cashMergedForQuantity <- fetch cashMergedForQuantityCid
@@ -204,3 +192,8 @@ template AuctionLockedCash
   where
     signatory owner
     observer regulators
+
+    controller [owner, auctionAgent] can
+      AuctionLockedCash_Unlock: ContractId AssetDeposit
+        do
+          create lockedCashAssetDeposit

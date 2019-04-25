@@ -216,7 +216,7 @@ processInstructions instructions cashAssetDepositCids cashAssetFungibleCid cashA
       let instruction :: otherInstructions = instructions
       let firstCid = head cashAssetDepositCids
       firstCashDeposit <- fetch firstCid
-      mergeResult <- mergeForQuantity2 firstCid firstCashDeposit (tail cashAssetDepositCids) instruction.payment cashAssetFungibleCid
+      mergeResult <- mergeForQuantity firstCid firstCashDeposit (tail cashAssetDepositCids) instruction.payment cashAssetFungibleCid
       assertMsg "Cash assets should suffice when paying out on redemption" $ isSome mergeResult
       let (merged, remainingAssets)  = fromSome $ mergeResult
       payoutInfo <- fetch instruction.redemptionPayoutInfoCid

@@ -11,20 +11,11 @@ import DA.Finance.Rule.Asset
 import DA.Finance.Types
 
 import DA.Finance.OldTypes
-import DA.Finance.Dvp.Fact
-import DA.Finance.Asset.Fact
-import DA.Finance.Asset.Lock
-import DA.Finance.Asset.SplitAndMerge
-import DA.Finance.Asset.Transfer.Bilateral
-import DA.Finance.Account.Fact
-import DA.Finance.Dvp.Settlement.Asymmetric
 import DA.Finance.Instruments.FixedRateBond
 
 import DA.RefApps.Bond.Settlement
 import DA.Date
 import DA.List as List
-import DA.Map
-import DA.Set as Set
 import DA.RefApps.Bond.Util
 
 
@@ -350,14 +341,13 @@ template BidderParticipation
             auctionBid = auctionBid
             cashAssetId = cashAssetId
             regulators = regulators
-      nonconsuming AuctionBidderParticipantion_RevokeLockedBid: ContractId AssetFact
+
+      nonconsuming AuctionBidderParticipantion_RevokeLockedBid: ContractId AssetDeposit
         with
           auctionBidCid: ContractId AuctionBid
           auctionLockedCashCid: ContractId AuctionLockedCash
         do
-          auctionLockedCash <- fetch auctionLockedCashCid
-          unlocked <- exercise auctionLockedCash.lockedCashAssetCid AssetLockedFact_Unlock
-          archive auctionLockedCashCid
+          unlocked <- exercise auctionLockedCashCid AuctionLockedCash_Unlock
           archive auctionBidCid
           return unlocked
 
@@ -378,17 +368,16 @@ template PlaceBidBotTrigger
     observer regulators
 
     controller auctionBid.bidder can
-      PlaceBidBotTrigger_LockCash: Either (ContractId InvalidBidNotification) (ContractId AuctionLockedCash, ContractId AuctionBid, [ContractId AssetFact])
+      PlaceBidBotTrigger_LockCash: Either (ContractId InvalidBidNotification) (ContractId AuctionLockedCash, ContractId AuctionBid, [ContractId AssetDeposit])
         with
-          cashAssets: [ContractId AssetFact]
-          cashSplitAndMergeRuleCid: ContractId AssetSplitAndMergeRule
-          cashLockRuleCid: ContractId AssetLockRule
+          cashDepositCids: [ContractId AssetDeposit]
+          cashAssetFungibleCid: ContractId AssetFungible
         do
-          assertMsg "The cashAssets should not be empty" $ length cashAssets > 0
-          let firstCashAssetCid = head cashAssets
+          assertMsg "The cashAssets should not be empty" $ length cashDepositCids > 0
+          let firstCashAssetCid = head cashDepositCids
               requiredQuantity = auctionBid.bidData.price * intToDecimal auctionBid.bidData.quantity
           firstCashAsset <- fetch firstCashAssetCid
-          mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail cashAssets) requiredQuantity cashSplitAndMergeRuleCid
+          mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail cashDepositCids) requiredQuantity cashAssetFungibleCid
           case mergeResult of
             None -> do
               notification <- create InvalidBidNotification with
@@ -397,7 +386,7 @@ template PlaceBidBotTrigger
                 regulators = regulators
               return (Left notification)
             Some (mergedFactCid, rest) -> do
-              lockedAsset <- exercise cashLockRuleCid $ AssetLockRule_Lock mergedFactCid auctionBid.issuer None
+              -- lockedAsset <- exercise cashLockRuleCid $ AssetLockRule_Lock mergedFactCid auctionBid.issuer None
               mergedFact <- fetch mergedFactCid
               archive mergedFactCid
               lock <- create AuctionLockedCash with

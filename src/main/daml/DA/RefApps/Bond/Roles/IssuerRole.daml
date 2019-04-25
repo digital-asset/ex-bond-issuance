@@ -14,11 +14,7 @@ import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 
 import DA.Finance.OldTypes
-import DA.Finance.Asset.Fact
 import DA.Finance.Asset.Lock
-import DA.Finance.Asset.SplitAndMerge
-import DA.Finance.Asset.Transfer.Bilateral
-import DA.Finance.Account.Fact
 import DA.Finance.Instruments.FixedRateBond
 
 import DA.RefApps.Bond.Auction

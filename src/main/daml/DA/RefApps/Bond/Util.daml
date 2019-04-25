@@ -9,9 +9,7 @@ module DA.RefApps.Bond.Util where
 import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 
-import DA.Finance.Asset.Fact
 import DA.Finance.Asset.Lock
-import DA.Finance.Asset.SplitAndMerge
 import DA.Finance.OldTypes
 import DA.List
 
@@ -28,13 +26,15 @@ data BondBundleData = BondBundleData {
 , assetLabel: Text
 } deriving (Eq, Show)
 
-mergeForQuantity2: ContractId AssetDeposit ->
+-- Utility function to combine a set of AssetFacts so that it results in a single
+-- AssetFact which has the required quantity and the rest.
+mergeForQuantity: ContractId AssetDeposit ->
                   AssetDeposit ->
                   [ContractId AssetDeposit] ->
                   Decimal ->
                   ContractId AssetFungible ->
                   Update (Optional (ContractId AssetDeposit, [ContractId AssetDeposit]))
-mergeForQuantity2 firstAssetCid firstAsset otherAssets requiredQuantity assetFungible
+mergeForQuantity firstAssetCid firstAsset otherAssets requiredQuantity assetFungible
   | firstAsset.asset.quantity == requiredQuantity = do return (Some (firstAssetCid, otherAssets))
   | firstAsset.asset.quantity > requiredQuantity = do
     withRequiredQuantity :: remainder <- exercise assetFungible $ AssetFungible_Split firstAssetCid [requiredQuantity]
@@ -47,27 +47,4 @@ mergeForQuantity2 firstAssetCid firstAsset otherAssets requiredQuantity assetFun
       do
         mergedAssetCid <- exercise assetFungible $ AssetFungible_Merge [firstAssetCid, head otherAssets]
         mergedAsset <- fetch mergedAssetCid
-        mergeForQuantity2 mergedAssetCid mergedAsset (tail otherAssets) requiredQuantity assetFungible
-
--- Utility function to combine a set of AssetFacts so that it results in a single
--- AssetFact which has the required quantity and the rest.
-mergeForQuantity: ContractId AssetFact ->
-                  AssetFact ->
-                  [ContractId AssetFact] ->
-                  Decimal ->
-                  ContractId AssetSplitAndMergeRule ->
-                  Update (Optional (ContractId AssetFact, [ContractId AssetFact]))
-mergeForQuantity firstAssetCid firstAsset otherAssets requiredQuantity mergeRule
-  | firstAsset.quantity == requiredQuantity = do return (Some (firstAssetCid, otherAssets))
-  | firstAsset.quantity > requiredQuantity = do
-    (withRequiredQuantity, remainder) <- exercise mergeRule $ AssetSplitAndMergeRule_Split firstAssetCid requiredQuantity
-    return (Some (withRequiredQuantity, remainder :: otherAssets))
-  | otherwise =
-    if length otherAssets <= 0 then
-      -- There's no subsequent asset to merge into the firstAsset, it means that the sum is lower than the required quantity.
-      do return None
-    else
-      do
-        mergedAssetCid <- exercise mergeRule $ AssetSplitAndMergeRule_Merge firstAssetCid (head otherAssets)
-        mergedAsset <- fetch mergedAssetCid
-        mergeForQuantity mergedAssetCid mergedAsset (tail otherAssets) requiredQuantity mergeRule
+        mergeForQuantity mergedAssetCid mergedAsset (tail otherAssets) requiredQuantity assetFungible
