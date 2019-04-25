@@ -20,7 +20,7 @@ import DA.Finance.Asset.Transfer.Bilateral
 import DA.Finance.Account.Fact
 import DA.Finance.Instruments.FixedRateBond
 
-import DA.RefApps.Bond.Auction
+-- import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Util
 -- import DA.RefApps.Bond.Redemption
 
@@ -104,17 +104,17 @@ template IssuerRole
           let today = toDateUTC time
           assertMsg "Start date should not be in the past" $ startDate >= today
           assertMsg "End date should be after start date" $ endDate >= startDate
-          asset <- fetch bondAssetFactCid
-          assertMsg ("Asset quantity [" <> show asset.quantity <> "] should be greater than or equal to issue size [" <> show size <> "]") $
-            asset.quantity >= intToDecimal size
+          asset <- fetch bondAssetDepositCid
+          assertMsg ("Asset quantity [" <> show asset.asset.quantity <> "] should be greater than or equal to issue size [" <> show size <> "]") $
+            asset.asset.quantity >= intToDecimal size
 
           create CommissionBotTrigger with
             issuer = issuer
             operator = operator
-            bondAccountProvider = asset.accountId.provider
+            bondAccountProvider = asset.account.provider
             regulators = regulators
-            bondAssetFactCid = bondAssetFactCid
-            bondInstrumentId = asset.assetId.instrumentId
+            bondAssetDepositCid = bondAssetDepositCid
+            bondAssetId = asset.asset.id
             auctionAgent = auctionAgent
             startDate = startDate
             endDate = endDate
@@ -145,8 +145,8 @@ template CommissionBotTrigger
     operator: Party
     bondAccountProvider: Party
     regulators: [Party]
-    bondAssetFactCid: ContractId AssetFact
-    bondInstrumentId: InstrumentId
+    bondAssetDepositCid: ContractId AssetDeposit
+    bondAssetId: Id
     auctionAgent: Party
     startDate: Date
     endDate: Date
@@ -156,42 +156,42 @@ template CommissionBotTrigger
     signatory issuer, operator
     observer regulators
 
-    controller issuer can
-      CommissionBotTrigger_InviteAgent: (ContractId AuctionInvitation, Optional (ContractId AssetFact))
-        with
-          bondSplitAndMergeRuleCid: ContractId AssetSplitAndMergeRule
-          bondLockRuleCid: ContractId AssetLockRule
-          bondTransferRuleCid: ContractId AssetTransferRule
-          fixedRateBondFactCid: ContractId FixedRateBondFact
-        do
-          assetFact <- fetch bondAssetFactCid
-          -- Splitting the asset if needed
-          splitFactPair <- if (assetFact.quantity > intToDecimal size) then do
-                 (first, second) <- exercise bondSplitAndMergeRuleCid $ AssetSplitAndMergeRule_Split bondAssetFactCid $ intToDecimal size
-                 return (first, Some second)
-                else return (bondAssetFactCid, None)
-          let splitFactCid = fst splitFactPair
-          observedAssetFactCid <- exercise splitFactCid $ AssetFact_SetObservers (auctionAgent :: assetFact.observers)
-          fixedRateBondFact <- fetch fixedRateBondFactCid
-          let auction = Auction with
-                auctionAgent = auctionAgent
-                issuer = issuer
-                operator = operator
-                bondAccountProvider = bondAccountProvider
-                regulators = regulators
-                startDate = startDate
-                endDate = endDate
-                minPrice = minPrice
-                size = size
-                cashInstrumentKey = cashInstrumentKey
-                issuerCashAccountCid = cashAccount
-                bondBundleData = BondBundleData observedAssetFactCid bondSplitAndMergeRuleCid bondLockRuleCid bondTransferRuleCid assetFact.assetId.instrumentId.label
-                invitedBidders = []
-                auctionName = ""
-                fixedRateBondFact = fixedRateBondFact
+    -- controller issuer can
+    --   CommissionBotTrigger_InviteAgent: (ContractId AuctionInvitation, Optional (ContractId AssetFact))
+    --     with
+    --       bondSplitAndMergeRuleCid: ContractId AssetSplitAndMergeRule
+    --       bondLockRuleCid: ContractId AssetLockRule
+    --       bondTransferRuleCid: ContractId AssetTransferRule
+    --       fixedRateBondFactCid: ContractId FixedRateBondFact
+    --     do
+    --       assetFact <- fetch bondAssetFactCid
+    --       -- Splitting the asset if needed
+    --       splitFactPair <- if (assetFact.quantity > intToDecimal size) then do
+    --              (first, second) <- exercise bondSplitAndMergeRuleCid $ AssetSplitAndMergeRule_Split bondAssetFactCid $ intToDecimal size
+    --              return (first, Some second)
+    --             else return (bondAssetFactCid, None)
+    --       let splitFactCid = fst splitFactPair
+    --       observedAssetFactCid <- exercise splitFactCid $ AssetFact_SetObservers (auctionAgent :: assetFact.observers)
+    --       fixedRateBondFact <- fetch fixedRateBondFactCid
+    --       let auction = Auction with
+    --             auctionAgent = auctionAgent
+    --             issuer = issuer
+    --             operator = operator
+    --             bondAccountProvider = bondAccountProvider
+    --             regulators = regulators
+    --             startDate = startDate
+    --             endDate = endDate
+    --             minPrice = minPrice
+    --             size = size
+    --             cashInstrumentKey = cashInstrumentKey
+    --             issuerCashAccountCid = cashAccount
+    --             bondBundleData = BondBundleData observedAssetFactCid bondSplitAndMergeRuleCid bondLockRuleCid bondTransferRuleCid assetFact.assetId.instrumentId.label
+    --             invitedBidders = []
+    --             auctionName = ""
+    --             fixedRateBondFact = fixedRateBondFact
 
-          invitation <- create AuctionInvitation with auction
-          return (invitation, snd splitFactPair)
+    --       invitation <- create AuctionInvitation with auction
+    --       return (invitation, snd splitFactPair)
 
 -- Using this template the issuer can request approval of the CSD for a bond
 -- issuance initiated by the `IssuerRole_Issuance` choice.
