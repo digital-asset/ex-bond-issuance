@@ -1,0 +1,178 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module Test.Finance.Market where
+
+import DA.Date
+import DA.Map as M
+import DA.Optional
+import DA.Set as S
+
+import DA.Finance.Fact.Asset
+import DA.Finance.Fact.Trade.Dvp
+import DA.Finance.Rule.Asset
+import DA.Finance.Rule.Trade.Dvp
+import DA.Finance.Rule.Instrument.Entitlement
+import DA.Finance.Rule.Instrument.Equity
+import DA.Finance.Types
+import DA.Finance.Utils
+
+import Test.Finance.Helpers
+
+
+data TrustModel = TrustModel_Bilateral | TrustModel_Unilateral | TrustModel_Agent
+  deriving (Eq, Show)
+
+data MarketTrustModel = MarketTrustModel
+  with
+    account : TrustModel
+    masterAgreement : TrustModel
+  deriving (Eq, Show)
+
+data MarketSetup_Process_Result = MarketSetup_Process_Result
+  with
+    partyMap : Map Text Party
+    assetFungibleMap : Map Text (ContractId AssetFungible)
+    assetSettlementMap : Map Text (ContractId AssetSettlement)
+    assetLifecycleMap : Map Text (ContractId AssetLifecycle)
+    assetDepositMap : Map Text (ContractId AssetDeposit)
+    dvpInstructionMap : Map Text (ContractId DvpInstruction)
+    dvpSettlementMap : Map Text (ContractId DvpSettlement)
+    dvpLifecycleMap : Map Text (ContractId DvpLifecycle)
+    dvpMap : Map Text (ContractId Dvp)
+    equityCashDividendLifecycleMap : Map Text (ContractId EquityCashDividendLifecycle)
+    equityStockSplitLifecycleMap : Map Text (ContractId EquityStockSplitLifecycle)
+    entitlementLifecycleMap : Map Text (ContractId EntitlementLifecycle)
+  deriving (Eq, Show)
+
+template MarketSetup
+  with
+    signatories : Set Party
+    partyMap : Map Text Party
+    trustModel : MarketTrustModel
+  where
+    signatory signatories
+
+    let agent = partyMap ! "Agent"
+        parties = S.fromList $ elems partyMap
+        signatoryNext = fromOptional agent $ listToOptional $ S.toList $ difference parties signatories
+
+        initSignatories trustModel party1 party2 =
+          case trustModel of
+            TrustModel_Bilateral  -> S.fromList [party1, party2]
+            TrustModel_Unilateral -> singleton party1
+            TrustModel_Agent      -> singleton $ agent
+
+        processAccount providerK ownerK MarketSetup_Process_Result{..} = do
+          let provider = partyMap ! providerK
+          let owner = partyMap ! ownerK
+          let label = ownerK <> "@" <> providerK
+          let id = Id with signatories = initSignatories trustModel.account provider owner; label; version = 0
+          let account = Account with id; provider; owner
+          let createAsset label version quantity = create AssetDeposit with 
+                account; asset = initAsset partyMap label version quantity; observers = S.empty
+
+          assetFungibleMap <- insertA assetFungibleMap label $ create AssetFungible with account; observers = S.empty
+          assetSettlementMap <- insertA assetSettlementMap label $ create AssetSettlement with account; observers = parties
+          assetLifecycleMap <- insertA assetLifecycleMap label $ create AssetLifecycle with account; observers = S.empty
+          assetDepositMap <- insertA assetDepositMap (label <> ":USD:0:1000") $ createAsset "USD" 0 1000.0
+          assetDepositMap <- insertA assetDepositMap (label <> ":DAH:0:50") $ createAsset "DAH" 0 50.0
+          return MarketSetup_Process_Result with ..
+
+        processMasterAgreement party1K party2K MarketSetup_Process_Result{..} = do
+          let party1 = partyMap ! party1K
+          let party2 = partyMap ! party2K
+          let label = party1K <> "&" <> party2K
+          let id = Id with signatories = initSignatories trustModel.masterAgreement party1 party2; label; version = 0
+          let masterAgreement = MasterAgreement with id; party1; party2
+
+          dvpInstructionMap <- insertA dvpInstructionMap label $ create DvpInstruction with masterAgreement; observers = S.empty
+          dvpSettlementMap <- insertA dvpSettlementMap label $ create DvpSettlement with masterAgreement; observers = S.empty
+          dvpLifecycleMap <- insertA dvpLifecycleMap label $ create DvpLifecycle with masterAgreement; observers = S.empty
+          dvpMap <- insertA dvpMap (label <> ":Dvp:0") $ create Dvp with 
+            masterAgreement
+            tradeId = Id with signatories = S.empty; label = "Dvp:0"; version = 0
+            buyer = party1
+            status = SettlementStatus_Pending
+            settlementDate = Some $ date 2019 Mar 1
+            payments = [ initAsset partyMap "USD" 0 1000.0 ]
+            deliveries = [ initAsset partyMap "DAH" 0 50.0 ]
+            observers = S.empty
+          
+          return MarketSetup_Process_Result with ..
+
+    controller signatoryNext can
+      MarketSetup_Sign : ContractId MarketSetup
+        do create this with signatories = S.insert signatoryNext signatories
+    
+    controller agent can
+      MarketSetup_Process : MarketSetup_Process_Result
+        do
+          equityCashDividendLifecycleMap <- insertA M.empty "DAH" $
+            create EquityCashDividendLifecycle with signatories = singleton $ partyMap ! "Reuters"; observers = parties
+
+          equityStockSplitLifecycleMap <- insertA M.empty "DAH" $
+            create EquityStockSplitLifecycle with signatories = singleton $ partyMap ! "Reuters"; observers = parties
+
+          entitlementLifecycleMap <- insertA M.empty "" $
+            create EntitlementLifecycle with signatories = singleton $ partyMap ! "Reuters"; observers = parties
+          
+          let result = MarketSetup_Process_Result with 
+                partyMap; assetFungibleMap = M.empty; assetSettlementMap = M.empty
+                assetLifecycleMap = M.empty; assetDepositMap = M.empty; dvpInstructionMap = M.empty
+                dvpSettlementMap = M.empty; dvpLifecycleMap = M.empty; dvpMap = M.empty
+                equityCashDividendLifecycleMap; equityStockSplitLifecycleMap; entitlementLifecycleMap
+          
+          result <- processAccount "AcmeBank" "Alice" result
+          result <- processAccount "AcmeBank" "Bob" result
+          result <- processAccount "GencoBank" "Charlie" result
+          result <- processAccount "AcmeBank" "AcmeBank" result
+          result <- processAccount "CB" "AcmeBank" result
+          result <- processAccount "CSD" "AcmeBank" result
+          result <- processAccount "GencoBank" "GencoBank" result
+          result <- processAccount "CB" "GencoBank" result
+          result <- processAccount "CSD" "GencoBank" result
+
+          result <- processMasterAgreement "Alice" "Bob" result
+          result <- processMasterAgreement "Charlie" "Alice" result
+
+          return result
+
+
+marketTrustModelBilateral = MarketTrustModel with 
+  account = TrustModel_Bilateral; masterAgreement = TrustModel_Bilateral
+
+marketTrustModelUnilateralAccount = MarketTrustModel with
+  account = TrustModel_Unilateral; masterAgreement = TrustModel_Bilateral
+
+marketTrustModelAgent = MarketTrustModel with
+  account = TrustModel_Agent; masterAgreement = TrustModel_Agent
+
+
+initMarket trustModel = do
+  passToDate $ date 2019 Mar 1
+  
+  let insertParty k m = insertA m k $ getParty k
+  partyMap <- insertParty "AcmeBank" M.empty
+  partyMap <- insertParty "Agent" partyMap
+  partyMap <- insertParty "Alice" partyMap
+  partyMap <- insertParty "Bob" partyMap
+  partyMap <- insertParty "CB" partyMap
+  partyMap <- insertParty "CSD" partyMap
+  partyMap <- insertParty "Charlie" partyMap
+  partyMap <- insertParty "GencoBank" partyMap
+  partyMap <- insertParty "Reuters" partyMap
+  
+  setupCid <- submit (partyMap ! "AcmeBank") $ create MarketSetup with 
+    signatories = singleton $ partyMap ! "AcmeBank"; partyMap; trustModel
+  setupCid <- submit (partyMap ! "Agent") $ exercise setupCid MarketSetup_Sign
+  setupCid <- submit (partyMap ! "Alice") $ exercise setupCid MarketSetup_Sign
+  setupCid <- submit (partyMap ! "Bob") $ exercise setupCid MarketSetup_Sign
+  setupCid <- submit (partyMap ! "CB") $ exercise setupCid MarketSetup_Sign
+  setupCid <- submit (partyMap ! "CSD") $ exercise setupCid MarketSetup_Sign
+  setupCid <- submit (partyMap ! "Charlie") $ exercise setupCid MarketSetup_Sign
+  setupCid <- submit (partyMap ! "GencoBank") $ exercise setupCid MarketSetup_Sign
+  setupCid <- submit (partyMap ! "Reuters") $ exercise setupCid MarketSetup_Sign
+  
+  submit (partyMap ! "Agent") $ exercise setupCid MarketSetup_Process

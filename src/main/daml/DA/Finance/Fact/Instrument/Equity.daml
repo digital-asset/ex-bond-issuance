@@ -1,0 +1,48 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module DA.Finance.Fact.Instrument.Equity where
+
+import DA.Set
+
+import DA.Finance.Types
+
+
+-- | Reference data describing an equity cash dividend. Can be used to
+-- lifecycle asset deposits, trades or dependent instruments.
+template EquityCashDividend
+  with
+    id : Id
+      -- ^ The asset id to which the dividend applies. Depending on the trust model
+      -- the signatories might be the issuer or a third party reference data provider
+      -- such as Reuters.
+    exDate : Date
+      -- ^ The date on or after which a security is traded without the dividend.
+    settlementDate : Date
+      -- ^ The date on which the dividend gets paid.
+    perShare : Asset
+      -- ^ The id and amount of the distributed assets per unit of equity.
+    observers : Set Party
+  where
+    signatory id.signatories
+    observer observers
+    ensure exDate <= settlementDate && perShare.quantity > 0.0
+
+-- | Reference data describing an equity stock split. Can be used to
+-- lifecycle asset deposits, trades or dependent instruments.
+template EquityStockSplit
+  with
+    id : Id
+      -- ^ The asset id to which the stock split applies. Depending on the trust model
+      -- the signatories might be the issuer or a third party reference data provider
+      -- such as Reuters.
+    exDate : Date
+      -- ^ The date on or after which the security is traded with the split applied.
+    rFactor : Decimal
+      -- ^ The factor through which the quantity has to be devided to obtain the new quantity.
+    observers : Set Party
+  where
+    signatory id.signatories
+    observer observers
+    ensure rFactor > 0.0

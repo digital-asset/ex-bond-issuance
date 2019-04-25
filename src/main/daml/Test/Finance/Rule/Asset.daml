@@ -1,0 +1,101 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module Test.Finance.Rule.Asset where
+
+import DA.Assert
+import DA.Set
+
+import DA.Finance.Fact.Asset
+import DA.Finance.Rule.Asset
+import DA.Finance.Utils
+
+import Test.Finance.Market
+
+
+matchAssetDeposit MarketSetup_Process_Result{..} (cid : ContractId AssetDeposit) provider owner label version quantity =
+  submit (partyMap ! owner) do
+    c <- fetch cid
+    c.account.provider === partyMap ! provider
+    c.account.owner === partyMap ! owner
+    c.asset.id.label === label
+    c.asset.id.version === version
+    c.asset.quantity === quantity
+
+
+testAssetFungible = scenario do
+  m@MarketSetup_Process_Result{..} <- initMarket marketTrustModelBilateral
+
+  [deposit1Cid, deposit2Cid, deposit3Cid] <- submit (partyMap ! "Alice") do
+    exercise (assetFungibleMap ! "Alice@AcmeBank") AssetFungible_Split with
+      depositCid = assetDepositMap ! "Alice@AcmeBank:USD:0:1000"
+      quantities = [100.0, 200.0, 700.0]
+
+  deposit4Cid <- submit (partyMap ! "Alice") do
+    exercise (assetFungibleMap ! "Alice@AcmeBank") AssetFungible_Merge with
+      depositCids = [deposit1Cid, deposit2Cid]
+
+  matchAssetDeposit m deposit3Cid "AcmeBank" "Alice" "USD" 0 700.0
+  matchAssetDeposit m deposit4Cid "AcmeBank" "Alice" "USD" 0 300.0
+
+  submitMustFail (partyMap ! "Alice") do fetch $ assetDepositMap ! "Alice@AcmeBank:USD:0:1000"
+  submitMustFail (partyMap ! "Alice") do fetch deposit1Cid
+  submitMustFail (partyMap ! "Alice") do fetch deposit2Cid
+
+  submitMustFail (partyMap ! "Alice") do
+    exercise (assetFungibleMap ! "Alice@AcmeBank") AssetFungible_Split with
+      depositCid = deposit3Cid
+      quantities = [500.0, 500.0]
+
+
+testAssetSettlement m@MarketSetup_Process_Result{..} : Scenario (ContractId AssetDeposit) = scenario do
+
+  depositTemp <- submit (partyMap ! "Alice") do
+    exercise (assetSettlementMap ! "Alice@AcmeBank") AssetSettlement_Credit with
+      depositCid = assetDepositMap ! "Alice@AcmeBank:USD:0:1000"
+  
+  depositTempCid <- submit (partyMap ! "AcmeBank") do
+    exercise (assetSettlementMap ! "Alice@AcmeBank") AssetSettlement_Debit with
+      asset = depositTemp
+
+  depositCid <- submit (partyMap ! "Alice") do
+    exercise (assetSettlementMap ! "Alice@AcmeBank") AssetSettlement_Transfer with
+      receiver = partyMap ! "Bob"
+      depositCid = depositTempCid
+      debitSettlementCid = assetSettlementMap ! "Bob@AcmeBank"
+
+  matchAssetDeposit m depositCid "AcmeBank" "Bob" "USD" 0 1000.0
+
+  submitMustFail (partyMap ! "Alice") do fetch $ assetDepositMap ! "Alice@AcmeBank:USD:1000"
+  submitMustFail (partyMap ! "Alice") do fetch $ depositTempCid
+
+  return depositCid
+
+
+testAssetSettlementBilateral = scenario do
+  m@MarketSetup_Process_Result{..} <- initMarket marketTrustModelBilateral
+  depositCid <- testAssetSettlement m
+
+  submit (partyMap ! "Bob") do
+    deposit <- fetch depositCid
+    deposit.account.id.signatories === fromList [partyMap ! "AcmeBank", partyMap ! "Bob"]
+
+
+testAssetSettlementUnilateralAccount = scenario do
+  m@MarketSetup_Process_Result{..} <- initMarket marketTrustModelUnilateralAccount
+  depositCid <- testAssetSettlement m
+
+  submit (partyMap ! "Bob") do
+    deposit <- fetch depositCid
+    deposit.account.id.signatories === fromList [partyMap ! "AcmeBank"]
+
+
+testAssetSettlementAgent = scenario do
+  m@MarketSetup_Process_Result{..} <- initMarket marketTrustModelAgent
+  depositCid <- testAssetSettlement m
+
+  submit (partyMap ! "Bob") do
+    deposit <- fetch depositCid
+    deposit.account.id.signatories === fromList [partyMap ! "Agent"]
+

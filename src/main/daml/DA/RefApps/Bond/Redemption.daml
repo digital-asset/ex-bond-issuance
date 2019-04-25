@@ -10,7 +10,7 @@ import DA.Date
 import DA.List
 import DA.Optional
 
-import DA.Finance.Types
+import DA.Finance.OldTypes
 import DA.Finance.Account.Fact
 import DA.Finance.Asset.Fact
 import DA.Finance.Asset.Lock

@@ -6,7 +6,7 @@
 daml 1.2
 module DA.Finance.Asset.Fact where
 
-import DA.Finance.Types
+import DA.Finance.OldTypes
 
 -- AssetFact
 -- Represents a deposit of a generic asset. It is linked to an account and

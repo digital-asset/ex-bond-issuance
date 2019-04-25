@@ -1,0 +1,27 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module DA.Finance.Fact.Instrument.Entitlement where
+
+import DA.Set
+
+import DA.Finance.Types
+
+-- | Reference data describing an asset that entitles the owner to receive the
+-- underlying asset at the settlement date. Can be used to lifecycle asset
+-- deposits, trades or dependent instruments.
+template Entitlement
+  with
+    id : Id
+      -- ^ The asset id of the entitlement. Depending on the trust model the
+      -- signatories might be the issuer or a third party reference data provider
+      -- such as Reuters.
+    settlementDate : Date
+      -- ^ The date on which the underlying asset gets paid.
+    underlyingId : Id
+      -- ^ The id of the underlying asset that gets paid.
+    observers : Set Party
+  where
+    signatory id.signatories
+    observer observers

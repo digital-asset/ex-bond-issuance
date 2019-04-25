@@ -1,0 +1,218 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module DA.Finance.Rule.Asset where
+
+import DA.Action
+import DA.Assert
+import DA.Either
+import DA.List
+import DA.Optional
+import DA.Set
+
+import DA.Finance.Fact.Asset
+import DA.Finance.Types
+import DA.Finance.Utils
+
+-- | Rule that allows to split and merge asset deposits in the specified account.
+template AssetFungible
+  with
+    account : Account
+      -- ^ The account for which the rule can be used.
+    observers : Set Party
+  where
+    signatory account.id.signatories
+    observer insert account.provider observers
+
+    controller account.owner can
+      nonconsuming AssetFungible_Split : [ContractId AssetDeposit]
+        -- ^ Splits an asset deposit according to the provided list of quantities.
+        with
+          depositCid : ContractId AssetDeposit
+            -- ^ The asset deposit that will be consumed.
+          quantities : [Decimal]
+            -- ^ The quantities of the newly created asset deposits. The total quantity
+            -- needs to match the quantity of the provided asset.
+        do
+          deposit <- fetchAndArchive depositCid
+          deposit.account === account
+          foldl (+) 0.0 quantities === deposit.asset.quantity
+          mapA (\q -> create (deposit & update (assetL ~>> quantityL) q)) quantities
+
+      nonconsuming AssetFungible_Merge : ContractId AssetDeposit
+        -- ^ Merges a list of asset deposits into one.
+        with 
+          depositCids : [ContractId AssetDeposit]
+            -- ^ The asset deposits that will be consumed. All fields except for the quantity
+            -- need to match.
+        do
+          depositHead <- fetchAndArchive $ head depositCids
+          depositHead.account === account
+          deposit <- foldlA
+            (\acc cid -> do
+              c <- fetchAndArchive cid
+              c === (acc & update (assetL ~>> quantityL) c.asset.quantity)
+              return (acc & update (assetL ~>> quantityL) (acc.asset.quantity + c.asset.quantity)))
+            depositHead (tail depositCids)
+          create deposit
+
+
+-- | Rule that allows to credit, debit or transfer asset deposits in the specified account.
+template AssetSettlement
+  with
+    account : Account
+      -- ^ The account for which the rule can be used.
+    observers : Set Party
+  where
+    signatory account.id.signatories
+    observer observers
+
+    controller account.owner can
+      nonconsuming AssetSettlement_Credit : Asset
+        -- ^ Gives the owner the right to archive an asset deposit.
+        with
+          depositCid : ContractId AssetDeposit
+            -- ^ The asset deposit that will be consumed.
+        do
+          deposit <- fetchAndArchive depositCid
+          deposit.account === account
+          return deposit.asset
+
+      nonconsuming AssetSettlement_Transfer : ContractId AssetDeposit
+        -- ^ Gives the owner the right to transfer an asset deposit to a new owner.
+        with
+          receiver : Party
+            -- ^ The party to which the asset deposit will be transferred to.
+          depositCid : ContractId AssetDeposit
+            -- ^ The asset deposit that will be consumed.
+          debitSettlementCid : ContractId AssetSettlement
+            -- ^ The settlement rule that allows to debit the new asset deposit
+            -- in the receiver's account.
+        do
+          debitSettlement <- fetch debitSettlementCid
+          debitSettlement.account.provider === account.provider
+          debitSettlement.account.owner === receiver
+          asset <- exercise self AssetSettlement_Credit with depositCid
+          if member account.provider account.id.signatories
+          then exercise debitSettlementCid AssetSettlement_Debit with asset
+          else exercise debitSettlementCid AssetSettlement_Debit_Signatories with asset
+
+      AssetSettlement_SetObservers : ContractId AssetSettlement
+        with newObservers : Set Party
+        do create this with observers = newObservers
+
+    controller account.provider can
+      nonconsuming AssetSettlement_Debit : ContractId AssetDeposit
+        -- ^ Gives the provider the right to create an asset deposit signed by the
+        -- account.id.signatories.
+        with 
+          asset : Asset
+            -- ^ The asset id and amount to be created.
+        do
+          create AssetDeposit with account; asset; observers = empty
+
+    controller account.id.signatories can
+      nonconsuming AssetSettlement_Debit_Signatories : ContractId AssetDeposit
+        -- ^ Helper functions for the account.id.signatories to create an asset deposit
+        -- signed by them.
+        with
+          asset : Asset
+            -- ^ The asset id and amount to be created.
+        do
+          create AssetDeposit with account; asset; observers = empty
+
+
+-- | Data describing a single step in a settlement chain.
+data AssetSettlementStep = AssetSettlementStep
+  with
+    sender : Party
+      -- ^ The sender of an asset deposit.
+    receiver : Party
+      -- ^ The receiver of an asset deposit.
+    depositCid : Optional (ContractId AssetDeposit)
+      -- ^ The allocated asset deposit.
+    creditSettlementCid : ContractId AssetSettlement
+      -- ^ The settlement rule that allows the asset deposit to be credited to the sender.
+    debitSettlementCid : ContractId AssetSettlement
+      -- ^ The settlement rule that allows the asset deposit to be debited to the receiver.
+  deriving (Eq, Show)
+
+
+-- | Helper contract that allows to allocate assets to and settle a chain
+-- of transfer instructions.
+template AssetSettlementChain
+  with
+    masterAgreement : MasterAgreement
+      -- ^ The master agreement to which the settlement chain applies.
+    tradeId : Id
+      -- ^ The trade under the master agreement to which the settlement chain applies.
+    asset : Asset
+      -- ^ The id and amount of the asset to be settled.
+    steps : [AssetSettlementStep]
+      -- ^ The steps in the settlement chain.
+    observers : Set Party
+  where
+    signatory union masterAgreement.id.signatories $ fromList sendersDone
+    observer insert masterAgreement.party1 $ insert masterAgreement.party2 
+      $ union observers $ fromList sendersPending
+    ensure length steps > 0 && asset.quantity > 0.0
+      && all (\(s1,s2) -> s1.receiver == s2.sender) (zip steps $ tail steps)
+
+    let (sendersDone, sendersPending) = partitionEithers $ 
+          map (\x -> if isSome x.depositCid then Left x.sender else Right x.sender) steps
+
+    controller head $ sendersPending ++ sendersDone can
+      AssetSettlementChain_AllocateNext : ContractId AssetSettlementChain
+        -- ^ Allocates an asset deposit to the next step of the settlement chain.
+        with
+          depositCid : ContractId AssetDeposit
+            -- ^ Specifies the asset deposit contract to be allocated.
+        do
+          deposit <- fetch depositCid
+          let (done, curr :: next) = break (\x -> isNone x.depositCid) steps
+          deposit.account.owner === curr.sender
+          deposit.asset === asset
+          let currNew = curr with depositCid = Some depositCid
+          create this with steps = done ++ currNew :: next
+
+    controller masterAgreement.id.signatories can 
+      AssetSettlementChain_Process : [ContractId AssetDeposit]
+        -- ^ Processes a settlement chain by transferring all allocated asset deposits.
+        do 
+          steps & mapA (\x -> do
+            exercise x.creditSettlementCid AssetSettlement_Transfer with
+              receiver = x.receiver; depositCid = fromSome x.depositCid; debitSettlementCid = x.debitSettlementCid)
+
+      AssetTransferAllocation_Archive : () do return ()
+
+
+-- | Rule that allows to lifecycle asset deposits in the specified account according to
+-- the provided asset decomposition data.
+template AssetLifecycle
+  with
+    account : Account
+      -- ^ The account for which the rule can be used.
+    observers : Set Party
+  where
+    signatory account.id.signatories
+    observer insert account.provider observers
+
+    controller account.owner can
+      nonconsuming AssetLifecycle_Process : [ContractId AssetDeposit]
+        -- ^ Allows the owner to lifecycle an asset deposit according to an asset
+        -- decomposition published by the deposit.asset.id.signatories.
+        with
+          depositCid : ContractId AssetDeposit
+            -- ^ Asset deposit to be lifecycled.
+          decompositionCid : ContractId AssetDecomposition
+            -- ^ Asset decomposition describing the lifecycle effects.
+        do
+          deposit <- fetchAndArchive depositCid
+          decomposition <- fetch decompositionCid
+          
+          deposit.account === account
+          deposit.asset.id === decomposition.id
+
+          decomposition.factors & mapA (\factor -> 
+            create deposit with asset = factor & over quantityL (*deposit.asset.quantity))

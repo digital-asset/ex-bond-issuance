@@ -1,0 +1,130 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module DA.Finance.Rule.Trade.Dvp where
+
+import DA.Assert
+import DA.List
+import DA.Optional
+import DA.Set
+
+import DA.Finance.Fact.Asset
+import DA.Finance.Fact.Trade.Dvp
+import DA.Finance.Rule.Asset
+import DA.Finance.Types
+import DA.Finance.Utils
+
+
+-- | The input parameters of the DvpSettlement_Process choices.
+data DvpSettlement_Process_Param = DvpSettlement_Process_Param
+  with
+    dvpCid : ContractId Dvp
+      -- ^ Dvp trade to be settled
+    paymentChainCids : [ContractId AssetSettlementChain]
+      -- ^ Fully allocated settlement chain for each payment asset
+    deliveryChainCids : [ContractId AssetSettlementChain]
+      -- ^ Fully allocated settlement chain for each delivery asset
+  deriving (Eq, Show)
+
+-- | The outputs of the DvpSettlement_Process choices.
+data DvpSettlement_Process_Result = DvpSettlement_Process_Result
+  with
+    dvpCid : ContractId Dvp
+      -- ^ Settled Dvp trade
+    paymentDepositCids : [[ContractId AssetDeposit]]
+      -- ^ Transferred asset deposits for each payment obligation
+    deliveryDepositCids : [[ContractId AssetDeposit]]
+      -- ^ Transferred asset deposits for each delivery obligation
+  deriving (Eq, Show)
+
+-- | Rule that allows to settle a Dvp under the specified master agreement by providing
+-- fully allocated settlement chains for each payment and delivery obligation.
+template DvpSettlement
+  with
+    masterAgreement : MasterAgreement
+      -- ^ The master agreement for which the rule can be used.
+    observers : Set Party
+  where
+    signatory masterAgreement.id.signatories
+    observer observers
+
+    let process (param : DvpSettlement_Process_Param) = do
+          dvp <- fetchAndArchive param.dvpCid
+          dvp.masterAgreement === masterAgreement
+          dvp.status === SettlementStatus_Instructed
+          whenSome dvp.settlementDate (\d -> assertOnOrAfterDateMsg "expects settlementDate <= now" d)
+          
+          let seller = if dvp.buyer == masterAgreement.party1 then masterAgreement.party2 else masterAgreement.party1
+
+          let work sender receiver ((asset, settlementChainCid) : (Asset, ContractId AssetSettlementChain)) = do
+                settlementChain <- fetch settlementChainCid
+                settlementChain.masterAgreement === dvp.masterAgreement
+                settlementChain.tradeId === dvp.tradeId
+                settlementChain.asset === asset
+                (head settlementChain.steps).sender === sender
+                (last settlementChain.steps).receiver === receiver
+                exercise settlementChainCid AssetSettlementChain_Process
+
+          dvpNewCid <- create dvp with status = SettlementStatus_Settled
+          paymentDepositCids <- mapA (work dvp.buyer seller) $ zipChecked dvp.payments param.paymentChainCids
+          deliveryDepositCids <- mapA (work seller dvp.buyer) $ zipChecked dvp.deliveries param.deliveryChainCids
+          
+          return DvpSettlement_Process_Result with dvpCid = dvpNewCid; paymentDepositCids; deliveryDepositCids
+
+    controller masterAgreement.party1 can
+      nonconsuming DvpSettlement_Process1 : DvpSettlement_Process_Result
+        with param : DvpSettlement_Process_Param
+        do process param
+
+    controller masterAgreement.party2 can
+      nonconsuming DvpSettlement_Process2 : DvpSettlement_Process_Result
+        with param : DvpSettlement_Process_Param
+        do process param
+
+
+-- | The input parameters of the DvpLifecycle_Process choices.
+data DvpLifecycle_Process_Param = DvpLifecycle_Process_Param
+  with
+    dvpCid : ContractId Dvp
+      -- ^ Dvp trade to be lifecycled.
+    decompositionCid : ContractId AssetDecomposition
+      -- ^ Asset decomposition describing the lifecycle effects.
+  deriving (Eq, Show)
+
+
+-- | Rule that allows to lifecycle a Dvp trade under the specified master agreement
+-- according to the provided asset decomposition.
+template DvpLifecycle
+  with
+    masterAgreement : MasterAgreement
+      -- ^ The master agreement for which the rule can be used.
+    observers : Set Party
+  where
+    signatory masterAgreement.id.signatories
+    observer observers
+
+    let lifecycle (param : DvpLifecycle_Process_Param) = do
+          dvp <- fetchAndArchive param.dvpCid
+          decomposition <- fetch param.decompositionCid
+          dvp.masterAgreement === masterAgreement
+
+          let work (asset : Asset) =
+                if asset.id == decomposition.id
+                then decomposition.factors & map (over quantityL (*asset.quantity))
+                else [asset]
+
+          create dvp with 
+            tradeId = dvp.tradeId with version = dvp.tradeId.version + 1
+            payments = concatMap work dvp.payments
+            deliveries = concatMap work dvp.deliveries
+
+    controller masterAgreement.party1 can
+      nonconsuming DvpLifecycle_Process1 : ContractId Dvp
+        with param : DvpLifecycle_Process_Param
+        do lifecycle param
+
+    controller masterAgreement.party2 can
+      nonconsuming DvpLifecycle_Process2 : ContractId Dvp
+        with param : DvpLifecycle_Process_Param
+        do lifecycle param

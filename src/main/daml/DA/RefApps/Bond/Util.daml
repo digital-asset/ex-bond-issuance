@@ -6,11 +6,14 @@
 daml 1.2
 module DA.RefApps.Bond.Util where
 
+import DA.Finance.Fact.Asset
+import DA.Finance.Rule.Asset
+
 import DA.Finance.Asset.Fact
 import DA.Finance.Asset.Lock
 import DA.Finance.Asset.SplitAndMerge
 import DA.Finance.Asset.Transfer.Bilateral
-import DA.Finance.Types
+import DA.Finance.OldTypes
 import DA.List
 
 currencyInstrumentId currency
@@ -19,10 +22,10 @@ currencyInstrumentId currency
         version = 0
 
 data BondBundleData = BondBundleData {
-  assetFactCid: ContractId AssetFact
-, assetSplitAndMergeRuleCid: ContractId AssetSplitAndMergeRule
+  assetDepositCid: ContractId AssetDeposit
+, assetFungibleCid: ContractId AssetFungible
 , assetLockRuleCid: ContractId AssetLockRule
-, assetTransferRuleCid: ContractId AssetTransferRule
+, assetSettlementCid: ContractId AssetSettlement
 , assetLabel: Text
 } deriving (Eq, Show)
 

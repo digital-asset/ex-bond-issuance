@@ -6,7 +6,7 @@
 daml 1.2
 module DA.RefApps.Bond.Settlement where
 
-import DA.Finance.Types
+import DA.Finance.OldTypes
 import DA.Finance.Dvp.Fact
 import DA.Finance.Asset.Fact
 import DA.Finance.Asset.Lock

@@ -1,0 +1,112 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module Test.Finance.Rule.Instrument.Equity where
+
+import DA.Assert
+import DA.Date
+import DA.List
+import DA.Set
+
+import DA.Finance.Fact.Instrument.Equity
+import DA.Finance.Rule.Asset
+import DA.Finance.Rule.Instrument.Entitlement
+import DA.Finance.Rule.Instrument.Equity
+import DA.Finance.Rule.Trade.Dvp
+import DA.Finance.Utils
+
+import Test.Finance.Helpers
+import Test.Finance.Market
+import Test.Finance.Rule.Asset
+
+
+testEquityCashDividend = scenario do
+  m@MarketSetup_Process_Result{..} <- initMarket marketTrustModelBilateral
+  
+  dividendCid <- submit (partyMap ! "Reuters") do
+    create EquityCashDividend with 
+      id = initAssetId partyMap "DAH" 0
+      exDate = date 2019 Mar 1
+      settlementDate = date 2019 Mar 5
+      perShare = initAsset partyMap "USD" 0 0.4
+      observers = fromList $ elems partyMap
+
+  -- Process equity cash dividend corporate action.
+  EquityCashDividendLifecycle_Process_Result {entitlementCid; decompositionCid} <-
+    submit (partyMap ! "Reuters") do
+      exercise (equityCashDividendLifecycleMap ! "DAH") EquityCashDividendLifecycle_Process with
+        dividendCid; entitlementIdLabel = "CashDividend:DAH:USD"
+  
+  [assetDepositCid, entitlementDepositCid] <- submit (partyMap ! "Alice") do
+    exercise (assetLifecycleMap ! "Alice@AcmeBank") AssetLifecycle_Process with
+      depositCid = assetDepositMap ! "Alice@AcmeBank:DAH:0:50"; decompositionCid
+
+  dvp1Cid <- submit (partyMap ! "Alice") do
+    exercise (dvpLifecycleMap ! "Alice&Bob") DvpLifecycle_Process1 with
+      param = DvpLifecycle_Process_Param with dvpCid = dvpMap ! "Alice&Bob:Dvp:0"; decompositionCid
+
+  matchAssetDeposit m assetDepositCid "AcmeBank" "Alice" "DAH" 1 50.0
+  matchAssetDeposit m entitlementDepositCid "AcmeBank" "Alice" "CashDividend:DAH:USD" 0 20.0
+  submitMustFail (partyMap ! "Alice") do fetch $ assetDepositMap ! "Alice@AcmeBank:DAH:0:50"
+  submitMustFail (partyMap ! "Alice") do fetch $ dvpMap ! "Alice&Bob:Dvp:0"
+
+  submit (partyMap ! "Alice") do
+    dvp1 <- fetch dvp1Cid
+    dvp1.tradeId.version === 1
+    dvp1.deliveries !! 0 === initAsset partyMap "DAH" 1 50.0
+    dvp1.deliveries !! 1 === initAsset partyMap "CashDividend:DAH:USD" 0 20.0
+
+  passToDate $ date 2019 Mar 5
+
+  -- Process settlement of dividend payment entitlement.
+  decompositionCid <- submit (partyMap ! "Reuters") do
+    exercise (entitlementLifecycleMap ! "") EntitlementLifecycle_Process with entitlementCid
+
+  [cashDepositCid] <- submit (partyMap ! "Alice") do
+    exercise (assetLifecycleMap ! "Alice@AcmeBank") AssetLifecycle_Process with
+      depositCid = entitlementDepositCid; decompositionCid
+
+  dvp2Cid <- submit (partyMap ! "Alice") do
+    exercise (dvpLifecycleMap ! "Alice&Bob") DvpLifecycle_Process1 with
+      param = DvpLifecycle_Process_Param with dvpCid = dvp1Cid; decompositionCid
+
+  matchAssetDeposit m cashDepositCid "AcmeBank" "Alice" "USD" 0 20.0
+  submitMustFail (partyMap ! "Alice") do fetch $ entitlementDepositCid
+  submitMustFail (partyMap ! "Alice") do fetch $ dvp1Cid
+
+  submit (partyMap ! "Alice") do
+    dvp2 <- fetch dvp2Cid
+    dvp2.tradeId.version === 2
+    dvp2.deliveries !! 1 === initAsset partyMap "USD" 0 20.0
+  
+
+testEquityStockSplit = scenario do
+  m@MarketSetup_Process_Result{..} <- initMarket marketTrustModelBilateral
+  
+  stockSplitCid <- submit (partyMap ! "Reuters") do
+    create EquityStockSplit with 
+      id = initAssetId partyMap "DAH" 0
+      exDate = date 2019 Mar 1
+      rFactor = 0.5
+      observers = fromList $ elems partyMap
+
+  decompositionCid <- submit (partyMap ! "Reuters") do
+    exercise (equityStockSplitLifecycleMap ! "DAH") EquityStockSplitLifecycle_Process with stockSplitCid
+  
+  [depositCid] <- submit (partyMap ! "Alice") do
+    exercise (assetLifecycleMap ! "Alice@AcmeBank") AssetLifecycle_Process with
+      depositCid = assetDepositMap ! "Alice@AcmeBank:DAH:0:50"; decompositionCid
+
+  dvpCid <- submit (partyMap ! "Alice") do
+    exercise (dvpLifecycleMap ! "Alice&Bob") DvpLifecycle_Process1 with
+      param = DvpLifecycle_Process_Param with dvpCid = dvpMap ! "Alice&Bob:Dvp:0"; decompositionCid
+
+  matchAssetDeposit m depositCid "AcmeBank" "Alice" "DAH" 1 100.0
+  submitMustFail (partyMap ! "Alice") do fetch $ assetDepositMap ! "Alice@AcmeBank:DAH:0:50"
+  submitMustFail (partyMap ! "Alice") do fetch $ dvpMap ! "Alice&Bob:Dvp:0"
+
+  submit (partyMap ! "Alice") do
+    dvp <- fetch dvpCid
+    dvp.tradeId.version === 1
+    dvp.deliveries !! 0 === initAsset partyMap "DAH" 1 100.0

@@ -6,7 +6,7 @@
 daml 1.2
 module DA.RefApps.Bond.Roles.CsdRole where
 
-import DA.Finance.Types
+import DA.Finance.OldTypes
 import DA.Finance.Account.Fact
 
 -- Role contract invitation for CSD role.

@@ -1,0 +1,90 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+{-# LANGUAGE FlexibleContexts #-}
+
+daml 1.2
+module DA.Finance.Utils where
+
+import DA.Date
+import DA.Map as M
+import DA.Optional
+import DA.Record
+
+infixl 1 &
+-- | `&` is a reverse application operator. This provides notational convenience.
+-- Its precedence is one higher than that of the forward application operator `$`,
+-- which allows `&` to be nested in `$`.
+(&) : a -> (a -> b) -> b
+x & f = f x
+
+-- | Fetches a contract, archives it and returns its value.
+fetchAndArchive : Template a => ContractId a -> Update a
+fetchAndArchive cid = do
+  c <- fetch cid
+  exercise cid Archive
+  return c
+
+-- | Checks that the ledger time is on or after the provided date.
+assertOnOrAfterDateMsg : (CanAbort m, HasTime m) => Text -> Date -> m ()
+assertOnOrAfterDateMsg msg date = do
+  now <- getTime
+  assertMsg msg $ date <= toDateUTC now
+
+-- | Replaces the first element of a list for which the provided function returns Some x.
+mapOnce : (a -> Optional a) -> [a] -> [a]
+mapOnce _ []     = []
+mapOnce f (x::xs) = case f x of
+        None   -> x :: mapOnce f xs
+        Some y -> y :: xs
+
+-- | Like zip but fails if the list lengths don't match
+zipChecked : [a] -> [b] -> [(a, b)]
+zipChecked xs ys
+    | length xs /= length ys  = error "zipChecked: length mismatch"
+    | otherwise               = zip xs ys
+
+-- | Return all keys of the map in ascending order.
+keys : Map k v -> [k]
+keys m = map fst $ toList m
+
+-- | Return all elements of the map in the ascending order of their keys.
+elems : Map k v -> [v]
+elems m = map snd $ toList m
+
+infixl 9 !
+-- | Find the value at a key. Calls error when the element can not be found.
+(!) : (Eq k, Ord k) => Map k v -> k -> v
+(!) m x = fromSome $ M.lookup x m
+
+-- | Like map insert but takes an Action as value and returns the modified map as action.
+insertA : (Action m, Ord k) => Map k v -> k -> m v -> m (Map k v)
+insertA m k mv = do v <- mv; return $ M.insert k v m
+
+-- | Hand-crafted lens functionality to view, update and modify nested record fields.
+type Lens s a = (s -> a, a -> s -> s)
+view (g, _) = g
+update (_, s) = s
+over (g, s) f x = s (f (g x)) x
+
+-- | Lens composition.
+(~>>) : Lens a b -> Lens b c -> Lens a c
+(gb, sb) ~>> (gc, sc) = (g, s)
+  where
+    g = gc . gb
+    s c a = sb (sc c (gb a)) a
+
+-- | HIDE
+versionL : (HasField "version" a b) => Lens a b
+versionL = (getField @"version", setField @"version")
+
+-- | HIDE
+idL : (HasField "id" a b) => Lens a b
+idL = (getField @"id", setField @"id")
+
+-- | HIDE
+quantityL : (HasField "quantity" a b) => Lens a b
+quantityL = (getField @"quantity", setField @"quantity")
+
+-- | HIDE
+assetL : (HasField "asset" a b) => Lens a b
+assetL = (getField @"asset", setField @"asset")

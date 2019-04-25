@@ -1,0 +1,162 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module Test.Finance.Rule.Trade.Dvp where
+
+import DA.Assert
+import DA.List
+import DA.Set
+
+import DA.Finance.Rule.Asset
+import DA.Finance.Rule.Trade.Dvp
+import DA.Finance.Utils
+
+import Test.Finance.Helpers
+import Test.Finance.Market
+import Test.Finance.Rule.Asset
+
+
+initPaymentStep MarketSetup_Process_Result{..} provider sender receiver =
+  AssetSettlementStep with
+    sender = partyMap ! sender
+    receiver = partyMap ! receiver
+    depositCid = None
+    creditSettlementCid = assetSettlementMap ! (sender <> "@" <> provider)
+    debitSettlementCid = assetSettlementMap ! (receiver <> "@" <> provider)
+
+submitAllocateNext MarketSetup_Process_Result{..} (cid : ContractId AssetSettlementChain) owner deposit =
+  submit (partyMap ! owner) do
+    exercise cid AssetSettlementChain_AllocateNext with
+      depositCid = assetDepositMap ! deposit
+
+
+testDvpSettlementBilateral = scenario do
+  m@MarketSetup_Process_Result{..} <- initMarket marketTrustModelBilateral
+
+  result <- submit (partyMap ! "Alice") do
+    exercise (dvpInstructionMap ! "Alice&Bob") DvpInstruction_Process1 with
+      param = DvpInstruction_Process_Param with
+        dvpCid = dvpMap ! "Alice&Bob:Dvp:0"
+        paymentSteps = [[initPaymentStep m "AcmeBank" "Alice" "Bob"]]
+        deliverySteps = [[initPaymentStep m "AcmeBank" "Bob" "Alice"]]
+
+  paymentChainCid <- submitAllocateNext m (result.paymentChainCids !! 0) "Alice" "Alice@AcmeBank:USD:0:1000"
+  deliveryChainCid <- submitAllocateNext m (result.deliveryChainCids !! 0) "Bob" "Bob@AcmeBank:DAH:0:50"
+  
+  result <- submit (partyMap ! "Alice") do
+    exercise (dvpSettlementMap ! "Alice&Bob") DvpSettlement_Process1 with
+      param = DvpSettlement_Process_Param with
+        dvpCid = result.dvpCid
+        paymentChainCids = [paymentChainCid]
+        deliveryChainCids = [deliveryChainCid]
+
+  matchAssetDeposit m (result.paymentDepositCids !! 0 !! 0) "AcmeBank" "Bob" "USD" 0 1000.0
+  matchAssetDeposit m (result.deliveryDepositCids !! 0 !! 0) "AcmeBank" "Alice" "DAH" 0 50.0
+
+  submitMustFail (partyMap ! "Alice") do fetch $ assetDepositMap ! "Alice@AcmeBank:USD:0:1000"
+  submitMustFail (partyMap ! "Bob") do fetch $ assetDepositMap ! "Bob@AcmeBank:DAH:0:50"
+
+
+testDvpSettlementChain m@MarketSetup_Process_Result{..} : Scenario DvpSettlement_Process_Result = scenario do
+
+  result <- submit (partyMap ! "Charlie") do
+    exercise (dvpInstructionMap ! "Charlie&Alice") DvpInstruction_Process1 with
+      param = DvpInstruction_Process_Param with
+        dvpCid = dvpMap ! "Charlie&Alice:Dvp:0"
+        paymentSteps =
+          [[
+            initPaymentStep m "GencoBank" "Charlie" "GencoBank",
+            initPaymentStep m "CB" "GencoBank" "AcmeBank",
+            initPaymentStep m "AcmeBank" "AcmeBank" "Alice"
+          ]]
+        deliverySteps = 
+          [[
+            initPaymentStep m "AcmeBank" "Alice" "AcmeBank",
+            initPaymentStep m "CSD" "AcmeBank" "GencoBank",
+            initPaymentStep m "GencoBank" "GencoBank" "Charlie"
+          ]]
+
+  let paymentChainCid = result.paymentChainCids !! 0
+  paymentChainCid <- submitAllocateNext m paymentChainCid "Charlie" "Charlie@GencoBank:USD:0:1000"
+  paymentChainCid <- submitAllocateNext m paymentChainCid "GencoBank" "GencoBank@CB:USD:0:1000"
+  paymentChainCid <- submitAllocateNext m paymentChainCid "AcmeBank" "AcmeBank@AcmeBank:USD:0:1000"
+
+  let deliveryChainCid = result.deliveryChainCids !! 0
+  deliveryChainCid <- submitAllocateNext m deliveryChainCid "Alice" "Alice@AcmeBank:DAH:0:50"
+  deliveryChainCid <- submitAllocateNext m deliveryChainCid "AcmeBank" "AcmeBank@CSD:DAH:0:50"
+  deliveryChainCid <- submitAllocateNext m deliveryChainCid "GencoBank" "GencoBank@GencoBank:DAH:0:50"
+  
+  result <- submit (partyMap ! "Charlie") do
+    exercise (dvpSettlementMap ! "Charlie&Alice") DvpSettlement_Process1 with
+      param = DvpSettlement_Process_Param with
+        dvpCid = result.dvpCid
+        paymentChainCids = [paymentChainCid]
+        deliveryChainCids = [deliveryChainCid]
+
+  matchAssetDeposit m (result.paymentDepositCids !! 0 !! 0) "GencoBank" "GencoBank" "USD" 0 1000.0
+  matchAssetDeposit m (result.paymentDepositCids !! 0 !! 1) "CB" "AcmeBank" "USD" 0 1000.0
+  matchAssetDeposit m (result.paymentDepositCids !! 0 !! 2) "AcmeBank" "Alice" "USD" 0 1000.0
+  matchAssetDeposit m (result.deliveryDepositCids !! 0 !! 0) "AcmeBank" "AcmeBank" "DAH" 0 50.0
+  matchAssetDeposit m (result.deliveryDepositCids !! 0 !! 1) "CSD" "GencoBank" "DAH" 0 50.0
+  matchAssetDeposit m (result.deliveryDepositCids !! 0 !! 2) "GencoBank" "Charlie" "DAH" 0 50.0
+
+  submitMustFail (partyMap ! "Charlie") do fetch $ assetDepositMap ! "Charlie@GencoBank:USD:0:1000"
+  submitMustFail (partyMap ! "Charlie") do fetch $ assetDepositMap ! "GencoBank@CB:USD:0:1000"
+  submitMustFail (partyMap ! "Charlie") do fetch $ assetDepositMap ! "AcmeBank@AcmeBank:USD:0:1000"
+  submitMustFail (partyMap ! "Alice") do fetch $ assetDepositMap ! "Alice@AcmeBank:DAH:0:50"
+  submitMustFail (partyMap ! "Alice") do fetch $ assetDepositMap ! "AcmeBank@CSD:DAH:0:50"
+  submitMustFail (partyMap ! "Alice") do fetch $ assetDepositMap ! "GencoBank@GencoBank:DAH:0:50"
+  
+  return result
+
+
+testDvpSettlementChainBilateral = scenario do
+  m@MarketSetup_Process_Result{..} <- initMarket marketTrustModelBilateral
+  result <- testDvpSettlementChain m
+  
+  submit (partyMap ! "Charlie") do
+    c <- fetch $ result.dvpCid
+    c.masterAgreement.id.signatories === fromList [partyMap ! "Charlie", partyMap ! "Alice"]
+
+  submit (partyMap ! "Charlie") do
+    c <- fetch $ result.deliveryDepositCids !! 0 !! 2
+    c.account.id.signatories === fromList [partyMap ! "GencoBank", partyMap ! "Charlie"]
+
+  submit (partyMap ! "Alice") do
+    c <- fetch $ result.paymentDepositCids !! 0 !! 2
+    c.account.id.signatories === fromList [partyMap ! "AcmeBank", partyMap ! "Alice"]
+
+
+testDvpSettlementChainUnilateral = scenario do
+  m@MarketSetup_Process_Result{..} <- initMarket marketTrustModelUnilateralAccount
+  result <- testDvpSettlementChain m
+  
+  submit (partyMap ! "Charlie") do
+    c <- fetch $ result.dvpCid
+    c.masterAgreement.id.signatories === fromList [partyMap ! "Charlie", partyMap ! "Alice"]
+
+  submit (partyMap ! "Charlie") do
+    c <- fetch $ result.deliveryDepositCids !! 0 !! 2
+    c.account.id.signatories === fromList [partyMap ! "GencoBank"]
+
+  submit (partyMap ! "Alice") do
+    c <- fetch $ result.paymentDepositCids !! 0 !! 2
+    c.account.id.signatories === fromList [partyMap ! "AcmeBank"]
+
+
+testDvpSettlementChainAgent = scenario do
+  m@MarketSetup_Process_Result{..} <- initMarket marketTrustModelAgent
+  result <- testDvpSettlementChain m
+  
+  submit (partyMap ! "Charlie") do
+    c <- fetch $ result.dvpCid
+    c.masterAgreement.id.signatories === fromList [partyMap ! "Agent"]
+
+  submit (partyMap ! "Charlie") do
+    c <- fetch $ result.deliveryDepositCids !! 0 !! 2
+    c.account.id.signatories === fromList [partyMap ! "Agent"]
+
+  submit (partyMap ! "Alice") do
+    c <- fetch $ result.paymentDepositCids !! 0 !! 2
+    c.account.id.signatories === fromList [partyMap ! "Agent"]

@@ -1,0 +1,51 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module DA.Finance.Fact.Asset where
+
+import DA.Set
+
+import DA.Finance.Types
+
+-- | Represents a deposit of an asset in an account. The `account.id` and `asset.id` fields
+-- can be used to link the contract to other contracts that provide further information
+-- such as the type of the asset or reference data for it. This allows new asset classes
+-- to be added without having to modify business processes that operate on generic
+-- asset deposits.
+template AssetDeposit
+  with
+    account : Account
+      -- ^ A deposit is allocated to an account and backed by the account.id.signatories.
+      -- Depending on the desired trust model this might be (i) both the provider and the
+      -- owner, (ii) just the provider or (iii) a third party agent.
+    asset : Asset
+      -- ^ Specifies the id and the amount of assets deposited. The asset.id.signatories
+      -- are the parties that publish reference data and hence the details for how to
+      -- lifecycle the asset.
+    observers : Set Party
+  where
+    signatory account.id.signatories
+    observer insert account.provider $ insert account.owner observers
+    ensure asset.quantity > 0.0
+
+    controller account.owner can
+      AssetDeposit_SetObservers : ContractId AssetDeposit
+        with newObservers : Set Party
+        do create this with observers = newObservers
+
+-- | Describes a decomposition of one asset into n other assets and the corresponding
+-- scaling factors. Can be used to process corporate actions such as an equity cash
+-- dividend that increases the asset's version number and creates a separate entitlement.
+template AssetDecomposition
+  with
+    id : Id
+      -- ^ The id of the asset to be decomposed.
+    factors : [Asset]
+      -- ^ The ids and amounts of assets to be created when decomposing one unit
+      -- of the specified asset id.
+    observers : Set Party
+  where
+    signatory id.signatories
+    observer observers
+    ensure all (\a -> a.quantity > 0.0) factors

@@ -1,0 +1,26 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module Test.Finance.Main where
+
+import Test.Finance.Rule.Instrument.Equity
+import Test.Finance.Rule.Trade.Dvp
+import Test.Finance.Rule.Asset
+import Test.Finance.Helpers
+import Test.Finance.Market
+
+startup = scenario do
+  scenario do initMarket marketTrustModelBilateral
+
+all = scenario do
+  Test.Finance.Rule.Asset.testAssetFungible
+  Test.Finance.Rule.Asset.testAssetSettlementBilateral
+  Test.Finance.Rule.Asset.testAssetSettlementUnilateralAccount
+  Test.Finance.Rule.Asset.testAssetSettlementAgent
+  Test.Finance.Rule.Trade.Dvp.testDvpSettlementBilateral
+  Test.Finance.Rule.Trade.Dvp.testDvpSettlementChainBilateral
+  Test.Finance.Rule.Trade.Dvp.testDvpSettlementChainUnilateral
+  Test.Finance.Rule.Trade.Dvp.testDvpSettlementChainAgent
+  Test.Finance.Rule.Instrument.Equity.testEquityCashDividend
+  Test.Finance.Rule.Instrument.Equity.testEquityStockSplit

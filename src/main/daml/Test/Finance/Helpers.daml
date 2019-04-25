@@ -1,0 +1,70 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module Test.Finance.Helpers where
+
+import DA.Assert
+import DA.Optional
+import DA.Set
+
+import DA.Finance.Fact.Trade.Dvp
+import DA.Finance.Rule.Asset
+import DA.Finance.Types
+import DA.Finance.Utils
+
+
+initAssetId partyMap label version = 
+  Id with signatories = singleton $ partyMap ! "Reuters"; label; version
+
+initAsset partyMap label version quantity =
+  Asset with id = initAssetId partyMap label version; quantity
+
+
+data DvpInstruction_Process_Param = DvpInstruction_Process_Param
+  with
+    dvpCid : ContractId Dvp
+    paymentSteps : [[AssetSettlementStep]]
+    deliverySteps : [[AssetSettlementStep]]
+  deriving (Eq, Show)
+
+data DvpInstruction_Process_Result = DvpInstruction_Process_Result
+  with
+    dvpCid : ContractId Dvp
+    paymentChainCids : [ContractId AssetSettlementChain]
+    deliveryChainCids : [ContractId AssetSettlementChain]
+  deriving (Eq, Show)
+
+template DvpInstruction
+  with
+    masterAgreement : MasterAgreement
+    observers : Set Party
+  where
+    signatory masterAgreement.id.signatories
+    observer observers
+
+    let process (param : DvpInstruction_Process_Param) = do
+          dvp <- fetchAndArchive param.dvpCid
+          dvp.masterAgreement === masterAgreement
+          dvp.status === SettlementStatus_Pending
+          whenSome dvp.settlementDate (\d -> assertOnOrAfterDateMsg "expects settlementDate <= now" d)
+          
+          let work ((asset, steps) : (Asset, [AssetSettlementStep])) = do
+                create AssetSettlementChain with masterAgreement; tradeId = dvp.tradeId; asset; steps; observers = empty
+
+          dvpNewCid <- create dvp with status = SettlementStatus_Instructed
+          paymentChainCids <- mapA work $ zipChecked dvp.payments param.paymentSteps
+          deliveryChainCids <- mapA work $ zipChecked dvp.deliveries param.deliverySteps
+          
+          return DvpInstruction_Process_Result with
+            dvpCid = dvpNewCid; paymentChainCids; deliveryChainCids
+
+    controller masterAgreement.party1 can
+      nonconsuming DvpInstruction_Process1 : DvpInstruction_Process_Result
+        with param : DvpInstruction_Process_Param
+        do process param
+
+    controller masterAgreement.party2 can
+      nonconsuming DvpInstruction_Process2 : DvpInstruction_Process_Result
+        with param : DvpInstruction_Process_Param
+        do process param

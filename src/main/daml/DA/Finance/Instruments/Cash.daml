@@ -6,7 +6,7 @@
 daml 1.2
 module DA.Finance.Instruments.Cash where
 
-import DA.Finance.Types
+import DA.Finance.OldTypes
 
 -- CashFact
 -- CashFact is instrument reference data for a Cash IOU.

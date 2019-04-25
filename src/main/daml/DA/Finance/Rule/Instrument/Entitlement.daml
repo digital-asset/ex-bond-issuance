@@ -1,0 +1,41 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module DA.Finance.Rule.Instrument.Entitlement where
+
+import DA.Assert
+import DA.Set
+
+import DA.Finance.Fact.Asset
+import DA.Finance.Fact.Instrument.Entitlement
+import DA.Finance.Types
+import DA.Finance.Utils
+
+
+-- | Rule that helps with processing entitlements.
+template EntitlementLifecycle
+  with
+    signatories : Set Party
+      -- ^ Publishers of the entitlement reference data.
+    observers : Set Party
+  where
+    signatory signatories
+    observer observers
+    
+    controller signatories can
+      nonconsuming EntitlementLifecycle_Process : ContractId AssetDecomposition
+        -- ^ Allows the entitlement.id.signatories to create an asset decomposition
+        -- contract from the entitlement reference data.
+        with 
+          entitlementCid : ContractId Entitlement
+            -- ^ The provided entitlement reference data.
+        do
+          entitlement <- fetch entitlementCid
+          entitlement.id.signatories === signatories
+          assertOnOrAfterDateMsg "expects settlementDate <= now" $ entitlement.settlementDate
+
+          create AssetDecomposition with 
+            id = entitlement.id
+            factors = [ Asset with id = entitlement.underlyingId; quantity = 1.0 ]
+            observers = entitlement.observers

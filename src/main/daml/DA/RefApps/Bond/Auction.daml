@@ -6,7 +6,10 @@
 daml 1.2
 module DA.RefApps.Bond.Auction where
 
-import DA.Finance.Types
+import DA.Finance.Fact.Asset
+import DA.Finance.Rule.Asset
+
+import DA.Finance.OldTypes
 import DA.Finance.Dvp.Fact
 import DA.Finance.Asset.Fact
 import DA.Finance.Asset.Lock
@@ -83,7 +86,7 @@ data TransferData = TransferData
 data BidWithAssetData = BidWithAssetData
   { bidData: BidData
   , auctionBidCid: ContractId AuctionBid
-  , bondAssetFactCid: ContractId AssetFact
+  , bondAssetDepositCid: ContractId AssetDeposit
   }
 
 --- helper functions ---
@@ -112,14 +115,14 @@ calcAuctionResult details@(AuctionData auctionSize limitPrice) (x::xs) (ResultDa
         newResult = ResultData x.bidData.price (remainder + allocatedQuantity) (splitBid :: awardedBids) invalidBids
     calcAuctionResult details xs newResult
 
-splitAsset: BondBundleData -> (ContractId AssetFact) -> [SortableBidData] -> [BidWithAssetData] -> Update ([BidWithAssetData], Optional (ContractId AssetFact))
+splitAsset: BondBundleData -> (ContractId AssetDeposit) -> [SortableBidData] -> [BidWithAssetData] -> Update ([BidWithAssetData], Optional (ContractId AssetDeposit))
 splitAsset bondBundleData remainedFactCid (awardedBid :: awardedBids) bidWithAssets = do
   remainedFact <- fetch remainedFactCid
-  if (remainedFact.quantity == intToDecimal awardedBid.bidData.quantity) then do
+  if (remainedFact.asset.quantity == intToDecimal awardedBid.bidData.quantity) then do
     let bidWithAsset = BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid remainedFactCid
     return (bidWithAsset :: bidWithAssets, None)
   else do
-    (fragment, newRemainder) <- exercise (bondBundleData.assetSplitAndMergeRuleCid) $ AssetSplitAndMergeRule_Split remainedFactCid (intToDecimal awardedBid.bidData.quantity)
+    fragment :: newRemainder :: [] <- exercise (bondBundleData.assetFungibleCid) $ AssetFungible_Split remainedFactCid [(intToDecimal awardedBid.bidData.quantity)]
     let bidWithAsset = BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid fragment
     splitAsset bondBundleData newRemainder awardedBids (bidWithAsset :: bidWithAssets)
 splitAsset bondBundleData remainedFactCid [] bidWithAssets = do
@@ -278,7 +281,7 @@ template AuctionFinalizeBotTrigger
 
     controller auctionAgent can
       AuctionFinalizeBotTrigger_AllocateBond:
-        ([ContractId AuctionParticipantSettleRequest], Optional (ContractId AssetFact))
+        ([ContractId AuctionParticipantSettleRequest], Optional (ContractId AssetDeposit))
         with
           participationCids: [ContractId BidderParticipation]
           bidCids: [ContractId AuctionBid]
@@ -309,16 +312,16 @@ template AuctionFinalizeBotTrigger
           -- sort bids
           assetFact <- fetch bondBundleData.assetFactCid
           let sortedBids = sortBy cmpBids bids
-              bondInstrumentKey = InstrumentKey assetFact.accountId.provider assetFact.assetId.instrumentId
+              -- bondInstrumentKey = InstrumentKey assetFact.accountId.provider assetFact.assetId.instrumentId
               -- calculate auction result, if successful the clearing price and quantities --
               auctionData = AuctionData {auctionSize=size; limitPrice=minPrice}
               auctionResult = calcAuctionResult auctionData sortedBids (ResultData 0.0 0 [] [])
               -- turn bids into notifications --
-              transferData = TransferData with
-                issuer = issuer
-                cashInstrumentKey = cashInstrumentKey
-                bondInstrumentKey = bondInstrumentKey
-                issuerCashAccountCid = issuerCashAccountCid
+              -- transferData = TransferData with
+              --   issuer = issuer
+              --   cashInstrumentKey = cashInstrumentKey
+              --   bondInstrumentKey = bondInstrumentKey
+              --   issuerCashAccountCid = issuerCashAccountCid
           -- split the asset --
           (bidWithAssets, remainedAssetFact) <- splitAsset bondBundleData (bondBundleData.assetFactCid) (auctionResult.awardedBids) []
 
@@ -330,7 +333,7 @@ template AuctionFinalizeBotTrigger
               actor2 = auctionBid.bidder
               observers = []
             request <- exercise bidWithAsset.auctionBidCid
-              (AuctionBid_AllocateBond bondBundleData bidWithAsset.bondAssetFactCid transferData
+              (AuctionBid_AllocateBond bondBundleData bidWithAsset.bondAssetFactCid -- transferData
                 bidWithAsset.bidData.quantity auctionResult.price bondBundleData.assetTransferRuleCid dvpRuleRequest)
             return (auctionBid.bidder, request)
 
@@ -490,7 +493,7 @@ template AuctionBid
         with
           bondBundleData: BondBundleData
           bondAssetFactCid: ContractId AssetFact
-          transferData: TransferData
+          -- transferData: TransferData
           quantity: Int
           price: Decimal
           bondTransferRule: ContractId AssetTransferRule

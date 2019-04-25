@@ -1,0 +1,97 @@
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+daml 1.2
+module DA.Finance.Rule.Instrument.Equity where
+
+import DA.Assert
+import DA.Set
+
+import DA.Finance.Fact.Asset
+import DA.Finance.Fact.Instrument.Entitlement
+import DA.Finance.Fact.Instrument.Equity
+import DA.Finance.Types
+import DA.Finance.Utils
+
+
+-- | The outputs of the EquityCashDividendLifecycle_Process choice.
+data EquityCashDividendLifecycle_Process_Result = EquityCashDividendLifecycle_Process_Result
+  with
+    entitlementCid : ContractId Entitlement
+      -- ^ Entitlement instrument describing the upcoming dividend payment.
+    decompositionCid : ContractId AssetDecomposition
+      -- ^ Asset decomposition describing the increase of the asset's version
+      -- number and the creation of a separate dividend entitlement.
+  deriving (Eq, Show)
+
+
+-- | Rule that helps with processing equity cash dividends.
+template EquityCashDividendLifecycle
+  with
+    signatories : Set Party
+      -- ^ Publishers of the dividend reference data.
+    observers : Set Party
+  where
+    signatory signatories
+    observer observers
+    
+    controller signatories can
+      nonconsuming EquityCashDividendLifecycle_Process : EquityCashDividendLifecycle_Process_Result
+        -- ^ Allows the dividend.id.signatories to create an entitlement instrument
+        -- and an asset decomposition contract from the dividend reference data.
+        with
+          dividendCid : ContractId EquityCashDividend
+            -- ^ The provided dividend reference data.
+          entitlementIdLabel : Text
+            -- ^ A label for the entitlement instrument describing the dividend payment.
+        do
+          dividend <- fetch dividendCid
+          dividend.id.signatories === signatories
+          assertOnOrAfterDateMsg "expects exDate <= now" $ dividend.exDate
+          let entitlementId = Id with signatories; label = entitlementIdLabel; version = 0
+
+          entitlementCid <-
+            create Entitlement with
+              id = entitlementId
+              settlementDate = dividend.settlementDate
+              underlyingId = dividend.perShare.id
+              observers = dividend.observers
+
+          decompositionCid <-
+            create AssetDecomposition with 
+              id = dividend.id
+              factors = 
+                [ Asset with id = dividend.id & over versionL (+1); quantity = 1.0
+                , Asset with id = entitlementId; quantity = dividend.perShare.quantity
+                ]
+              observers = dividend.observers
+
+          return EquityCashDividendLifecycle_Process_Result with entitlementCid; decompositionCid
+
+
+-- | Rule that helps with processing equity stock splits.
+template EquityStockSplitLifecycle
+  with
+    signatories : Set Party
+      -- ^ Publishers of the stock split reference data.
+    observers : Set Party
+  where
+    signatory signatories
+    observer observers
+    
+    controller signatories can
+      nonconsuming EquityStockSplitLifecycle_Process : ContractId AssetDecomposition
+        -- ^ Allows the stockSplit.id.signatories to create an asset decomposition
+        -- contract from the stock split reference data.
+        with 
+          stockSplitCid : ContractId EquityStockSplit
+            -- ^ The provided stock split reference data. 
+        do
+          stockSplit <- fetch stockSplitCid
+          stockSplit.id.signatories === signatories
+          assertOnOrAfterDateMsg "expects exDate <= now" $ stockSplit.exDate
+
+          create AssetDecomposition with 
+            id = stockSplit.id
+            factors = [ Asset with id = stockSplit.id & over versionL (+1); quantity = 1.0 / stockSplit.rFactor ]
+            observers = stockSplit.observers

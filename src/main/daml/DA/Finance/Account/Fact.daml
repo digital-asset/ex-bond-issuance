@@ -6,7 +6,7 @@
 daml 1.2
 module DA.Finance.Account.Fact where
 
-import DA.Finance.Types
+import DA.Finance.OldTypes
 
 
 -- AccountFact
