@@ -11,6 +11,7 @@ import DA.Set
 
 import DA.Finance.Types
 import DA.Finance.Fact.Asset
+import DA.Finance.Rule.Asset
 
 import DA.Finance.OldTypes
 import DA.Finance.Asset.Fact
@@ -20,9 +21,9 @@ import DA.Finance.Asset.Transfer.Bilateral
 import DA.Finance.Account.Fact
 import DA.Finance.Instruments.FixedRateBond
 
--- import DA.RefApps.Bond.Auction
+import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Util
--- import DA.RefApps.Bond.Redemption
+import DA.RefApps.Bond.Redemption
 
 -- Role contract invitation for bond Issuer role.
 template IssuerRoleInvitation
@@ -97,6 +98,7 @@ template IssuerRole
           endDate: Date
           minPrice: Decimal
           size: Int
+          cashAssetId: Id
         do
           assertMsg "Minimum price should be positive" $ minPrice > 0.0
           assertMsg "Size price should be positive" $ size > 0
@@ -120,21 +122,22 @@ template IssuerRole
             endDate = endDate
             minPrice = minPrice
             size = size
+            cashAssetId = cashAssetId
 
-      -- nonconsuming IssuerRole_Redeem: ContractId RedemptionRequest
-      --   with
-      --     fixedRateBondFactCid: ContractId FixedRateBondFact
-      --   do
-      --     now <- getTime
-      --     let today = toDateUTC now
-      --     fact <- fetch fixedRateBondFactCid
-      --     assertMsg ("Redemption should happen at maturity date: " <> show fact.maturityDate) $ fact.maturityDate == today
-      --     create RedemptionRequest with
-      --       provider = fact.provider
-      --       issuer = issuer
-      --       bondInstrumentId = fact.instrumentId
-      --       fixedRateBondFactCid = fixedRateBondFactCid
-      --       regulators = regulators
+      nonconsuming IssuerRole_Redeem: ContractId RedemptionRequest
+        with
+          fixedRateBondFactCid: ContractId FixedRateBondFact
+        do
+          now <- getTime
+          let today = toDateUTC now
+          fact <- fetch fixedRateBondFactCid
+          assertMsg ("Redemption should happen at maturity date: " <> show fact.maturityDate) $ fact.maturityDate == today
+          create RedemptionRequest with
+            provider = fact.provider
+            issuer = issuer
+            bondInstrumentId = fact.instrumentId
+            fixedRateBondFactCid = fixedRateBondFactCid
+            regulators = regulators
 
 -- Triggers the commission bot, which is responsible to provide the FixedRateBond
 -- and rule contracts required for the allocation and settlement after the successful
@@ -152,46 +155,50 @@ template CommissionBotTrigger
     endDate: Date
     minPrice: Decimal
     size: Int
+    cashAssetId: Id
   where
     signatory issuer, operator
     observer regulators
 
-    -- controller issuer can
-    --   CommissionBotTrigger_InviteAgent: (ContractId AuctionInvitation, Optional (ContractId AssetFact))
-    --     with
-    --       bondSplitAndMergeRuleCid: ContractId AssetSplitAndMergeRule
-    --       bondLockRuleCid: ContractId AssetLockRule
-    --       bondTransferRuleCid: ContractId AssetTransferRule
-    --       fixedRateBondFactCid: ContractId FixedRateBondFact
-    --     do
-    --       assetFact <- fetch bondAssetFactCid
-    --       -- Splitting the asset if needed
-    --       splitFactPair <- if (assetFact.quantity > intToDecimal size) then do
-    --              (first, second) <- exercise bondSplitAndMergeRuleCid $ AssetSplitAndMergeRule_Split bondAssetFactCid $ intToDecimal size
-    --              return (first, Some second)
-    --             else return (bondAssetFactCid, None)
-    --       let splitFactCid = fst splitFactPair
-    --       observedAssetFactCid <- exercise splitFactCid $ AssetFact_SetObservers (auctionAgent :: assetFact.observers)
-    --       fixedRateBondFact <- fetch fixedRateBondFactCid
-    --       let auction = Auction with
-    --             auctionAgent = auctionAgent
-    --             issuer = issuer
-    --             operator = operator
-    --             bondAccountProvider = bondAccountProvider
-    --             regulators = regulators
-    --             startDate = startDate
-    --             endDate = endDate
-    --             minPrice = minPrice
-    --             size = size
-    --             cashInstrumentKey = cashInstrumentKey
-    --             issuerCashAccountCid = cashAccount
-    --             bondBundleData = BondBundleData observedAssetFactCid bondSplitAndMergeRuleCid bondLockRuleCid bondTransferRuleCid assetFact.assetId.instrumentId.label
-    --             invitedBidders = []
-    --             auctionName = ""
-    --             fixedRateBondFact = fixedRateBondFact
+    controller issuer can
+      CommissionBotTrigger_InviteAgent: (ContractId AuctionInvitation,  [ContractId AssetDeposit])
+        with
+          bondAssetFungibleCid: ContractId AssetFungible
+          bondLockRuleCid: ContractId AssetLockRule
+          bondAssetSettlementCid: ContractId AssetSettlement
+          fixedRateBondFactCid: ContractId FixedRateBondFact
+          issuerCashAccount: Account
+        do
+          bondAssetDeposit <- fetch bondAssetDepositCid
+          -- Splitting the asset if needed
+          splitFactPair <- if (bondAssetDeposit.asset.quantity > intToDecimal size) then do
+                 first :: remaining <- exercise bondAssetFungibleCid $ AssetFungible_Split bondAssetDepositCid [intToDecimal size]
+                 return (first, remaining)
+                else return (bondAssetDepositCid, [])
+          let splitFactCid = fst splitFactPair
+          observedBondAssetDepositCid <- exercise splitFactCid $ AssetDeposit_SetObservers (insert auctionAgent bondAssetDeposit.observers)
+          observedBondAssetDeposit <- fetch observedBondAssetDepositCid
+          fixedRateBondFact <- fetch fixedRateBondFactCid
+          let auction = Auction with
+                auctionAgent = auctionAgent
+                issuer = issuer
+                operator = operator
+                bondAccountProvider = bondAccountProvider
+                regulators = regulators
+                startDate = startDate
+                endDate = endDate
+                minPrice = minPrice
+                size = size
+                fixedRateBondFact = fixedRateBondFact
+                cashAssetId = cashAssetId
+                issuerCashAccount = issuerCashAccount
+                bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetFungibleCid bondLockRuleCid bondAssetSettlementCid observedBondAssetDeposit.asset.id.label
+                invitedBidders = []
+                auctionName = ""
 
-    --       invitation <- create AuctionInvitation with auction
-    --       return (invitation, snd splitFactPair)
+
+          invitation <- create AuctionInvitation with auction
+          return (invitation, snd splitFactPair)
 
 -- Using this template the issuer can request approval of the CSD for a bond
 -- issuance initiated by the `IssuerRole_Issuance` choice.

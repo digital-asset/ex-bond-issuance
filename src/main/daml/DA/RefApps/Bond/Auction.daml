@@ -152,7 +152,7 @@ template Auction
     minPrice: Decimal
     size: Int
     fixedRateBondFact: FixedRateBondFact
-    cashInstrumentKey: InstrumentKey
+    cashAssetId: Id
     issuerCashAccount: Account
     bondBundleData: BondBundleData
     invitedBidders: [Party]
@@ -182,7 +182,7 @@ template Auction
                     endDate = endDate
                     size = size
                     fixedRateBondFact = fixedRateBondFact
-                    cashInstrumentKey = cashInstrumentKey
+                    cashAssetId = cashAssetId
                     auctionName = auctionName
           auction' <- create this with invitedBidders = bidders <> invitedBidders
           return (auction', participations)
@@ -271,7 +271,7 @@ template AuctionFinalizeBotTrigger
               auctionName = auctionName
               issuerCashAccount = issuerCashAccount
               issuerBondAssetDepositCid = bidWithAsset.bondAssetDepositCid
-              cashAmountToPay = auctionResult.price * bidWithAsset.bidData.quantity
+              cashAmountToPay = auctionResult.price * intToDecimal bidWithAsset.bidData.quantity
               regulators = regulators
 
 
@@ -318,7 +318,7 @@ template BidderParticipation
     endDate: Date
     size: Int
     fixedRateBondFact: FixedRateBondFact
-    cashInstrumentKey: InstrumentKey
+    cashAssetId: Id
     auctionName: Text
   where
     signatory issuer, auctionAgent
@@ -348,7 +348,7 @@ template BidderParticipation
                     regulators = regulators
           create PlaceBidBotTrigger with
             auctionBid = auctionBid
-            cashInstrumentKey = cashInstrumentKey
+            cashAssetId = cashAssetId
             regulators = regulators
       nonconsuming AuctionBidderParticipantion_RevokeLockedBid: ContractId AssetFact
         with
@@ -371,7 +371,7 @@ template BidderParticipation
 template PlaceBidBotTrigger
   with
     auctionBid: AuctionBid
-    cashInstrumentKey: InstrumentKey
+    cashAssetId: Id
     regulators: [Party]
   where
     signatory auctionBid.auctionAgent, auctionBid.bidder
@@ -398,11 +398,13 @@ template PlaceBidBotTrigger
               return (Left notification)
             Some (mergedFactCid, rest) -> do
               lockedAsset <- exercise cashLockRuleCid $ AssetLockRule_Lock mergedFactCid auctionBid.issuer None
+              mergedFact <- fetch mergedFactCid
+              archive mergedFactCid
               lock <- create AuctionLockedCash with
                 owner = auctionBid.bidder
                 auctionAgent = auctionBid.auctionAgent
                 auctionName = auctionBid.auctionName
-                lockedCashAssetCid = lockedAsset
+                lockedCashAssetDeposit = mergedFact
                 regulators = regulators
               bid <- create auctionBid
               return (Right (lock, bid, rest))

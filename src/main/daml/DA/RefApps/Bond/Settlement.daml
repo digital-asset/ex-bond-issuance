@@ -78,7 +78,7 @@ template InvestorSettlementBotTrigger
           --   return unlocked
 
           -- process all settle requests
-          (_, payoutInfos) <- foldlA (\(remaining, results) settleRequestCid -> do
+          (_, payoutInfos) <- foldlA (\(remaining, redemptionPayouts) settleRequestCid -> do
 
           -- create DvP
             settleRequest <- fetch $ head settleRequestCids -- TODO
@@ -177,7 +177,7 @@ template InvestorSettlementBotTrigger
                   issuer = issuer
                   investor = investor
                   bondAccountProvider = bondAssetDeposit.account.provider
-                  investorCashAccount = investorCashAccount
+                  investorCashAccount = firstCashAsset.account
                   settlementResult = result
                   investorCashAssetSettlementCid = investorCashSettlement
                   regulators = regulators
@@ -199,7 +199,7 @@ template AuctionLockedCash
     owner: Party
     auctionAgent: Party
     auctionName: Text
-    lockedCashAssetCid: ContractId AssetLockedFact
+    lockedCashAssetDeposit: AssetDeposit
     regulators: [Party]
   where
     signatory owner
