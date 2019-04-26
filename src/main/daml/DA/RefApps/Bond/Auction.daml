@@ -258,6 +258,7 @@ template AuctionFinalizeBotTrigger
           -- allocate --
           settleRequestsWithBidder <- forA bidWithAssets $ \bidWithAsset -> do
             auctionBid <- fetch bidWithAsset.auctionBidCid
+            issuerBondAssetDeposit <- fetch bidWithAsset.bondAssetDepositCid
             request <- create AuctionSettleRequest with
               investor = auctionBid.bidder
               issuer = issuer
@@ -265,11 +266,9 @@ template AuctionFinalizeBotTrigger
               auctionName = auctionName
               issuerCashAccount = issuerCashAccount
               issuerBondAssetDepositCid = bidWithAsset.bondAssetDepositCid
+              issuerBondAssetDeposit = issuerBondAssetDeposit
               cashAmountToPay = auctionResult.price * intToDecimal bidWithAsset.bidData.quantity
               regulators = regulators
-
-
-
             return (auctionBid.bidder, request)
 
           -- notify about invalid bids

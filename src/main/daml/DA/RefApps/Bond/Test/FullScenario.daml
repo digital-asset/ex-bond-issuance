@@ -49,7 +49,7 @@ data TestIssuance = TestIssuance {
 , bondBundleData: BondBundleData
 -- , cashInstrumentKey: InstrumentKey
 , cashAccounts: Accounts
--- , bondAccounts: Accounts
+, bondAccounts: Accounts
 , cashAssets: CashAssets
 , rules: Rules
 , cashAssetId: Id
@@ -89,12 +89,12 @@ data AuctionProgress = AuctionProgress {
 , bank1OtherLocks: [ContractId AuctionLockedCash]
 }
 
--- data SettleRequests = SettleRequests {
---   bank1SettleReqCid: ContractId AuctionParticipantSettleRequest
--- , bank2SettleReqCid: ContractId AuctionParticipantSettleRequest
--- , bank3SettleReqCid: ContractId AuctionParticipantSettleRequest
--- , otherSettleReqCid: ContractId AuctionParticipantSettleRequest
--- }
+data SettleRequests = SettleRequests {
+  bank1SettleReqCid: ContractId AuctionParticipantSettleRequest
+, bank2SettleReqCid: ContractId AuctionParticipantSettleRequest
+, bank3SettleReqCid: ContractId AuctionParticipantSettleRequest
+, otherSettleReqCid: ContractId AuctionParticipantSettleRequest
+}
 
 -- data AssetsForRedemption = AssetsForRedemption {
 --   bank1BondAssetCid: ContractId AssetFact
@@ -231,6 +231,9 @@ setupIssuance: Scenario TestIssuance = scenario do
       bank2CashAccount = createAccount bank2 centralBank "Bank2CashAccount"
       bank3CashAccount = createAccount bank3 centralBank "Bank3CashAccount"
       issuerBondAccount = createAccount issuer csd "IssuerBondAccount"
+      bank1BondAccount = createAccount bank1 csd "Bank1BondAccount"
+      bank2BondAccount = createAccount bank2 csd "Bank2BondAccount"
+      bank3BondAccount = createAccount bank3 csd "Bank3BondAccount"
 
   -- Rules and cash
   (bank1Settlement, bank1Fungible, bank1Lock, bank1CashAsset) <- submit centralBank do
@@ -289,7 +292,7 @@ setupIssuance: Scenario TestIssuance = scenario do
     exercise accProviderApprovalReqCid IssuanceRequest_Accept with isin = bondIsin
 
   let cashAccounts = Accounts issuerCashAccount bank1CashAccount bank2CashAccount bank3CashAccount
-  -- let bondAccounts = Accounts issuerAssetAccount bank1AssetAccount bank2AssetAccount bank3AssetAccount
+  let bondAccounts = Accounts issuerBondAccount bank1BondAccount bank2BondAccount bank3BondAccount
   let cashAssets = CashAssets issuerCashAsset bank1CashAsset bank2CashAsset bank3CashAsset
   let rules = Rules issuerSettlement bank1Settlement bank2Settlement bank3Settlement bank1Fungible bank2Fungible bank3Fungible bank1Lock bank2Lock bank3Lock
 
@@ -304,20 +307,11 @@ setupIssuance: Scenario TestIssuance = scenario do
   , fixedRateBondFactCid = fixedRateBondFactCid
   , bondBundleData = bondBundleData
   , cashAccounts
+  , bondAccounts
   , cashAssets
   , rules
   , cashAssetId
   }
-
--- checkPayment (dvp: DvpFact) (price: Decimal) (quantity: Decimal) = do
---   (DA.Map.size dvp.paymentLegs) === 1
---   (DA.Map.size dvp.deliveryLegs) === 1
---   let payment = head (toList dvp.paymentLegs)
---       delivery = head (toList dvp.deliveryLegs)
---   (fst payment).instrumentId.label === bondIsin
---   snd payment === quantity
---   (fst delivery).instrumentId.label === scenarioCurrency
---   snd delivery === price * quantity
 
 {-
   Example scenario
@@ -514,104 +508,99 @@ startAuction = \(issuance: TestIssuance) -> scenario do
     [bank1Lock2]
 
 
--- finalizeAuction = \(auctionProgress: AuctionProgress) -> scenario do
---   auctionAgent <- getParty "AuctionAgent"
---   issuer <- getParty "Issuer"
---   bank1 <- getParty "Bank1"
---   bank2 <- getParty "Bank2"
---   bank3 <- getParty "Bank3"
+finalizeAuction = \(auctionProgress: AuctionProgress) -> scenario do
+  auctionAgent <- getParty "AuctionAgent"
+  issuer <- getParty "Issuer"
+  bank1 <- getParty "Bank1"
+  bank2 <- getParty "Bank2"
+  bank3 <- getParty "Bank3"
 
---   -- Finalization ------------------------
+  -- Finalization ------------------------
 
---   passToDate $ auctionEndDate
+  passToDate $ auctionEndDate
 
---   ([bank1SettleReq, bank2SettleReq, bank3SettleReq], _)  <- submit auctionAgent do
---     auctionFinalizeBotTrigger <- exercise auctionProgress.auction Auction_Finalize
---     exercise auctionFinalizeBotTrigger AuctionFinalizeBotTrigger_AllocateBond with
---       participationCids = [auctionProgress.bidderParticipationCid1, auctionProgress.bidderParticipationCid2, auctionProgress.bidderParticipationCid3]
---       bidCids = [auctionProgress.bidCid1_1, auctionProgress.bidCid2_1, auctionProgress.bidCid2_2, auctionProgress.bidCid3_1]
+  ([bank1SettleReq, bank2SettleReq, bank3SettleReq], _)  <- submit auctionAgent do
+    auctionFinalizeBotTrigger <- exercise auctionProgress.auction Auction_Finalize
+    exercise auctionFinalizeBotTrigger AuctionFinalizeBotTrigger_AllocateBond with
+      participationCids = [auctionProgress.bidderParticipationCid1, auctionProgress.bidderParticipationCid2, auctionProgress.bidderParticipationCid3]
+      bidCids = [auctionProgress.bidCid1_1, auctionProgress.bidCid2_1, auctionProgress.bidCid2_2, auctionProgress.bidCid3_1]
 
---   -- Finalization of the other auction ------------------------
+  -- Finalization of the other auction ------------------------
 
---   ([otherSettleReq], Some remainedAssetFact)  <- submit auctionAgent do
---     otherAuctionFinalizeBotTrigger <- exercise auctionProgress.otherAuction Auction_Finalize
---     exercise otherAuctionFinalizeBotTrigger AuctionFinalizeBotTrigger_AllocateBond with
---       participationCids = [auctionProgress.otherBidderParticipationCid1]
---       bidCids = [auctionProgress.otherBidCid1_1]
+  ([otherSettleReq], Some remainedAssetFact)  <- submit auctionAgent do
+    otherAuctionFinalizeBotTrigger <- exercise auctionProgress.otherAuction Auction_Finalize
+    exercise otherAuctionFinalizeBotTrigger AuctionFinalizeBotTrigger_AllocateBond with
+      participationCids = [auctionProgress.otherBidderParticipationCid1]
+      bidCids = [auctionProgress.otherBidCid1_1]
 
---   -- Checking result ----------------------
+  -- Checking result ----------------------
 
---   submit bank1 do
---     participantReq <- fetch bank1SettleReq
---     settleReq <- fetch $ head participantReq.settleRequestCids
---     dvp2 <- fetch settleReq.allocationResultData.dvpFactCid
---     dvp2.buyer === issuer
---     dvp2.seller === bank1
---     checkPayment dvp2 42.0 200000.0
+  submit bank1 do
+    participantReq <- fetch bank1SettleReq
+    settleReq <- fetch $ head participantReq.settleRequestCids
+    settleReq.investor === bank1
+    settleReq.cashAmountToPay === 42.0 * 200000.0
 
---   submit bank2 do
---     participantReq <- fetch bank2SettleReq
---     settleReq <- fetch $ head participantReq.settleRequestCids
---     dvp3 <- fetch settleReq.allocationResultData.dvpFactCid
---     dvp3.buyer === issuer
---     dvp3.seller === bank2
---     checkPayment dvp3 42.0 400000.0
---     tooLow <- fetch $ head participantReq.invalidBidNotificationCids
---     tooLow.bid.bidder === bank2
---     tooLow.bid.bidData.price === 25.0
---     tooLow.reason === "The offered amount didn't reach the limit price"
+  submit bank2 do
+    participantReq <- fetch bank2SettleReq
+    settleReq <- fetch $ head participantReq.settleRequestCids
+    settleReq.investor === bank2
+    settleReq.cashAmountToPay === 42.0 * 400000.0
+    tooLow <- fetch $ head participantReq.invalidBidNotificationCids
+    tooLow.bid.bidder === bank2
+    tooLow.bid.bidData.price === 25.0
+    tooLow.reason === "The offered amount didn't reach the limit price"
 
---   submit bank3 do
---     participantReq <- fetch bank3SettleReq
---     settleReq <- fetch $ head participantReq.settleRequestCids
---     dvp1 <- fetch settleReq.allocationResultData.dvpFactCid
---     dvp1.buyer === issuer
---     dvp1.seller === bank3
---     checkPayment dvp1 42.0 400000.0
+  submit bank3 do
+    participantReq <- fetch bank3SettleReq
+    settleReq <- fetch $ head participantReq.settleRequestCids
+    settleReq.investor === bank3
+    settleReq.cashAmountToPay === 42.0 * 400000.0
 
 
---   -- Checking result for the other auction ----------------------
+  -- Checking result for the other auction ----------------------
 
---   submit bank1 do
---     participantReq <- fetch otherSettleReq
---     settleReq <- fetch $ head participantReq.settleRequestCids
---     otherDvp <- fetch settleReq.allocationResultData.dvpFactCid
---     otherDvp.buyer === issuer
---     otherDvp.seller === bank1
---     checkPayment otherDvp 50.0 500000.0
+  submit bank1 do
+    participantReq <- fetch otherSettleReq
+    settleReq <- fetch $ head participantReq.settleRequestCids
+    settleReq.investor === bank1
+    settleReq.cashAmountToPay === 50.0 * 500000.0
 
---   return (SettleRequests with
---       bank1SettleReqCid = bank1SettleReq
---       bank2SettleReqCid = bank2SettleReq
---       bank3SettleReqCid = bank3SettleReq
---       otherSettleReqCid = otherSettleReq
---     , remainedAssetFact)
+  return (SettleRequests with
+      bank1SettleReqCid = bank1SettleReq
+      bank2SettleReqCid = bank2SettleReq
+      bank3SettleReqCid = bank3SettleReq
+      otherSettleReqCid = otherSettleReq
+    , remainedAssetFact)
 
--- doSettlement = \(issuance: TestIssuance)
---                 (settleRequests: SettleRequests)
---                 (auctionProgress: AuctionProgress) -> scenario do
---   centralBank <- getParty "CentralBank"
---   bank1 <- getParty "Bank1"
---   bank2 <- getParty "Bank2"
---   bank3 <- getParty "Bank3"
---   issuer <- getParty "Issuer"
---   csd <- getParty "CSD"
+doSettlement = \(issuance: TestIssuance)
+                (settleRequests: SettleRequests)
+                (auctionProgress: AuctionProgress) -> scenario do
+  centralBank <- getParty "CentralBank"
+  bank1 <- getParty "Bank1"
+  bank2 <- getParty "Bank2"
+  bank3 <- getParty "Bank3"
+  issuer <- getParty "Issuer"
+  csd <- getParty "CSD"
 
---   -- settle and verify the bonds are transferred to the investors' accounts
+  -- settle and verify the bonds are transferred to the investors' accounts
 
---   (assetCid1, paymentCid1, rdmpAct1) <- submit bank1 do
---     settlementStarted <- exercise settleRequests.bank1SettleReqCid AuctionParticipantSettleRequest_Settle
---     [(assetCid, paymentCid, rdmpAct)] <- exercise settlementStarted InvestorSettlementBotTrigger_Finalize with
---       deliveryTransferRuleCid = issuance.rules.bank1TransferRuleCid
---       deliverySplitAndMergeRuleCid = issuance.rules.bank1SplitAndMergeRuleCid
---       auctionLockedCashCids = auctionProgress.bank1Locks
---       assetTargetAccountFactCid = issuance.bondAccounts.bank1AccountCid
---       cashAccountCid = issuance.cashAccounts.bank1AccountCid
---     asset <- fetch assetCid
---     asset.quantity === 200000.0
---     asset.assetId.instrumentId.label === "BOND-007"
---     asset.accountId.owner === bank1
---     return (assetCid, paymentCid, rdmpAct)
+  (assetCid1, paymentCid1, rdmpAct1) <- submit bank1 do
+    settlementStarted <- exercise settleRequests.bank1SettleReqCid AuctionParticipantSettleRequest_Settle
+    [rdmpPayoutInfoCid] <- exercise settlementStarted InvestorSettlementBotTrigger_Finalize with
+      bondAccount = issuance.bondAccounts.bank1Account
+      cashAssetFungible = issuance.rules.bank1AssetFungibleCid
+      auctionLockedCashCids = auctionProgress.bank1Locks
+    rdmpPayoutInfo <- fetch rdmpPayoutInfoCid
+    let deliveryDepositCid = head $ head rdmpPayoutInfo.settlementResult.deliveryDepositCids
+        paymentDepositCid = head $ head rdmpPayoutInfo.settlementResult.paymentDepositCids
+    deposit <- fetch deliveryDepositCid
+    deposit.asset.quantity === 200000.0
+    deposit.asset.id.label === "BOND-007"
+    deposit.account.owner === bank1
+    return (deliveryDepositCid, paymentDepositCid, rdmpPayoutInfoCid)
+
+  return ()
 
 --   (assetCid2, paymentCid2, rdmpAct2) <- submit bank2 do
 --     settlementStarted <- exercise settleRequests.bank2SettleReqCid AuctionParticipantSettleRequest_Settle
@@ -736,7 +725,8 @@ testFullScenario = scenario do
   passToDate $ date 2020 Jan 01
   issuance <- setupIssuance
   progress <- startAuction issuance
-  -- (settleRequests, remainedBond) <- finalizeAuction progress
-  -- assetsForRedemption <- doSettlement issuance settleRequests progress
+  (settleRequests, remainedBond) <- finalizeAuction progress
+  -- assetsForRedemption <-
+  -- doSettlement issuance settleRequests progress
   -- redemption issuance assetsForRedemption remainedBond settleRequests
   return ()

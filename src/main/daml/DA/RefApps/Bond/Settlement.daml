@@ -32,11 +32,12 @@ template AuctionSettleRequest
     auctionName: Text
     issuerCashAccount: Account
     issuerBondAssetDepositCid: ContractId AssetDeposit
+    issuerBondAssetDeposit: AssetDeposit
     cashAmountToPay: Decimal
     regulators: [Party]
   where
-    signatory investor, issuer
-    observer regulators
+    signatory issuer
+    observer investor :: regulators
 
 -- Triggers the settlement bot which settles all the DvPs on behalf an investor party.
 -- It unlocks all the previously locked cash, executes the payment, receives the bonds and
@@ -73,8 +74,7 @@ template InvestorSettlementBotTrigger
           (_, payoutInfos) <- foldlA (\(remaining, redemptionPayouts) settleRequestCid -> do
 
           -- create DvP
-            settleRequest <- fetch $ head settleRequestCids -- TODO
-            bondAssetDeposit <- fetch settleRequest.issuerBondAssetDepositCid
+            settleRequest <- fetch $ head settleRequestCids
             let firstCashAssetCid = head remaining
             firstCashAsset <- fetch firstCashAssetCid
             mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail remaining) settleRequest.cashAmountToPay cashAssetFungible
@@ -92,7 +92,7 @@ template InvestorSettlementBotTrigger
                   signatories = Set.fromList [investor, issuer]
                   label = "DvPMasterSettleAuctionTrade"
                   version = 0
-                delivery = bondAssetDeposit.asset
+                delivery = settleRequest.issuerBondAssetDeposit.asset
                 payment = cashMergedForQuantity.asset
 
             dvpCid <- create Dvp with
@@ -106,7 +106,7 @@ template InvestorSettlementBotTrigger
               observers = Set.fromList regulators
 
             issuerBondSettlement <- create AssetSettlement with
-              account = bondAssetDeposit.account
+              account = settleRequest.issuerBondAssetDeposit.account
               observers = Set.fromList regulators
 
             issuerCashSettlement <- create AssetSettlement with
@@ -138,7 +138,7 @@ template InvestorSettlementBotTrigger
             bondChain <- create AssetSettlementChain with
               masterAgreement = masterAgreement
               tradeId = tradeId
-              asset = bondAssetDeposit.asset
+              asset = settleRequest.issuerBondAssetDeposit.asset
               steps = [bondSettlementStep]
               observers = Set.fromList regulators
 
@@ -168,7 +168,7 @@ template InvestorSettlementBotTrigger
             redemptionPayout <- create RedemptionPayoutInfo with
                   issuer = issuer
                   investor = investor
-                  bondAccountProvider = bondAssetDeposit.account.provider
+                  bondAccountProvider = settleRequest.issuerBondAssetDeposit.account.provider
                   investorCashAccount = firstCashAsset.account
                   settlementResult = result
                   investorCashAssetSettlementCid = investorCashSettlement
