@@ -1,0 +1,53 @@
+daml 1.2
+module DA.RefApps.Bond.Lock where
+
+import DA.Finance.Types
+import DA.Finance.Fact.Asset
+
+import DA.Set
+
+template AssetLockRule
+  with
+    account : Account
+    observers : Set Party
+  where
+    signatory account.id.signatories
+    observer insert account.provider observers
+
+    controller account.owner can
+      nonconsuming AssetLockRule_Lock: ContractId AuctionLockedCash
+        with
+          assetDepositCid: ContractId AssetDeposit
+          auctionName: Text
+          auctionAgent: Party
+          regulators: [Party]
+        do
+          assetDeposit <- fetch assetDepositCid
+          archive assetDepositCid
+          create AuctionLockedCash with
+            owner = account.owner
+            auctionAgent = auctionAgent
+            auctionName = auctionName
+            lockedCashAssetDeposit = assetDeposit
+            account = account
+            regulators = regulators
+
+
+-- A marker template which assigns a `AssetLockedFact` to an auction, so the
+-- settlement bot can collect the relevant locked cash assets to settle the outstanding DvPs.
+template AuctionLockedCash
+  with
+    owner: Party
+    auctionAgent: Party
+    auctionName: Text
+    lockedCashAssetDeposit: AssetDeposit
+    account : Account
+    regulators: [Party]
+  where
+    signatory account.id.signatories
+    observer regulators
+
+    controller [owner, auctionAgent] can
+      AuctionLockedCash_Unlock: ContractId AssetDeposit
+        do
+          create lockedCashAssetDeposit

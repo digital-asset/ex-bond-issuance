@@ -14,6 +14,7 @@ import DA.Finance.OldTypes
 import DA.Finance.Instruments.FixedRateBond
 
 import DA.RefApps.Bond.Settlement
+import DA.RefApps.Bond.Lock
 import DA.Date
 import DA.List as List
 import DA.RefApps.Bond.Util
@@ -108,7 +109,9 @@ splitAsset bondBundleData remainedFactCid (awardedBid :: awardedBids) bidWithAss
     let bidWithAsset = BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid remainedFactCid
     return (bidWithAsset :: bidWithAssets, None)
   else do
-    fragment :: newRemainder :: [] <- exercise (bondBundleData.assetFungibleCid) $ AssetFungible_Split remainedFactCid [(intToDecimal awardedBid.bidData.quantity)]
+    let neededQuantity = intToDecimal awardedBid.bidData.quantity
+        rest = remainedFact.asset.quantity - neededQuantity
+    fragment :: newRemainder :: [] <- exercise (bondBundleData.assetFungibleCid) $ AssetFungible_Split remainedFactCid [neededQuantity, rest]
     let bidWithAsset = BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid fragment
     splitAsset bondBundleData newRemainder awardedBids (bidWithAsset :: bidWithAssets)
 splitAsset bondBundleData remainedFactCid [] bidWithAssets = do
@@ -372,6 +375,7 @@ template PlaceBidBotTrigger
         with
           cashDepositCids: [ContractId AssetDeposit]
           cashAssetFungibleCid: ContractId AssetFungible
+          lockRuleCid: ContractId AssetLockRule
         do
           assertMsg "The cashAssets should not be empty" $ length cashDepositCids > 0
           let firstCashAssetCid = head cashDepositCids
@@ -386,14 +390,10 @@ template PlaceBidBotTrigger
                 regulators = regulators
               return (Left notification)
             Some (mergedFactCid, rest) -> do
-              -- lockedAsset <- exercise cashLockRuleCid $ AssetLockRule_Lock mergedFactCid auctionBid.issuer None
-              mergedFact <- fetch mergedFactCid
-              archive mergedFactCid
-              lock <- create AuctionLockedCash with
-                owner = auctionBid.bidder
-                auctionAgent = auctionBid.auctionAgent
+              lock <- exercise lockRuleCid AssetLockRule_Lock with
+                assetDepositCid = mergedFactCid
                 auctionName = auctionBid.auctionName
-                lockedCashAssetDeposit = mergedFact
+                auctionAgent = auctionBid.auctionAgent
                 regulators = regulators
               bid <- create auctionBid
               return (Right (lock, bid, rest))

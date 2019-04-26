@@ -9,7 +9,6 @@ module DA.RefApps.Bond.Util where
 import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 
-import DA.Finance.Asset.Lock
 import DA.Finance.OldTypes
 import DA.List
 
@@ -21,7 +20,6 @@ currencyInstrumentId currency
 data BondBundleData = BondBundleData {
   assetDepositCid: ContractId AssetDeposit
 , assetFungibleCid: ContractId AssetFungible
-, assetLockRuleCid: ContractId AssetLockRule
 , assetSettlementCid: ContractId AssetSettlement
 , assetLabel: Text
 } deriving (Eq, Show)
@@ -37,7 +35,8 @@ mergeForQuantity: ContractId AssetDeposit ->
 mergeForQuantity firstAssetCid firstAsset otherAssets requiredQuantity assetFungible
   | firstAsset.asset.quantity == requiredQuantity = do return (Some (firstAssetCid, otherAssets))
   | firstAsset.asset.quantity > requiredQuantity = do
-    withRequiredQuantity :: remainder <- exercise assetFungible $ AssetFungible_Split firstAssetCid [requiredQuantity]
+    let rest = firstAsset.asset.quantity - requiredQuantity
+    withRequiredQuantity :: remainder <- exercise assetFungible $ AssetFungible_Split firstAssetCid [requiredQuantity, rest]
     return (Some (withRequiredQuantity, remainder <> otherAssets))
   | otherwise =
     if length otherAssets <= 0 then

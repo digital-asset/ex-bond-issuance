@@ -14,8 +14,9 @@ import DA.Finance.Rule.Asset
 
 import DA.Finance.Account.Fact
 import DA.Finance.Asset.Fact
-import DA.Finance.Asset.Lock
 import DA.Finance.Asset.Transfer.Immediate as Immediate
+
+import DA.RefApps.Bond.Lock
 
 -- Role contract invitation for Central Bank (cash issuer) role.
 template CentralBankRoleInvitation
@@ -90,11 +91,11 @@ template CentralBankRole
       nonconsuming CentralBankRole_CreateLockRule: ContractId AssetLockRule
         with
           owner: Party
+          account: Account
         do
           create AssetLockRule with
-            provider = centralBank
-            owner = owner
-            observers = []
+            account = account
+            observers = empty
 
 -- Request contract to establish a cash accpimt associated with an initial
 -- balance (given as `assetFactCid`)

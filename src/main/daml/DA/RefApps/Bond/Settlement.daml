@@ -14,6 +14,7 @@ import DA.Finance.Rule.Asset
 
 
 import DA.RefApps.Bond.Redemption
+import DA.RefApps.Bond.Lock
 import DA.List
 import DA.Set as Set
 import DA.Optional
@@ -37,6 +38,9 @@ template AuctionSettleRequest
     signatory investor, issuer
     observer regulators
 
+-- Triggers the settlement bot which settles all the DvPs on behalf an investor party.
+-- It unlocks all the previously locked cash, executes the payment, receives the bonds and
+-- releases the remaining cash to the investor's account.
 template InvestorSettlementBotTrigger
   with
     investor: Party
@@ -175,25 +179,3 @@ template InvestorSettlementBotTrigger
 
           forA settleRequestCids \sr -> archive sr
           return payoutInfos
-
--- Triggers the settlement bot which settles all the DvPs on behalf an investor party.
--- It unlocks all the previously locked cash, executes the payment, receives the bonds and
--- releases the remaining cash to the investor's account.
-
--- A marker template which assigns a `AssetLockedFact` to an auction, so the
--- settlement bot can collect the relevant locked cash assets to settle the outstanding DvPs.
-template AuctionLockedCash
-  with
-    owner: Party
-    auctionAgent: Party
-    auctionName: Text
-    lockedCashAssetDeposit: AssetDeposit
-    regulators: [Party]
-  where
-    signatory owner
-    observer regulators
-
-    controller [owner, auctionAgent] can
-      AuctionLockedCash_Unlock: ContractId AssetDeposit
-        do
-          create lockedCashAssetDeposit
