@@ -16,7 +16,6 @@ import DA.Finance.Rule.Asset
 import DA.Finance.Fact.Asset
 
 import DA.Finance.OldTypes
-import DA.Finance.Asset.Fact
 import DA.Finance.Asset.Lock
 import DA.Finance.Instruments.FixedRateBond
 
@@ -85,7 +84,7 @@ template RedemptionRequest
   with
     issuer: Party
     provider: Party
-    bondInstrumentId: InstrumentId
+    bondAssetId: Id
     fixedRateBondFactCid: ContractId FixedRateBondFact
     regulators: [Party]
   where
@@ -100,7 +99,7 @@ template RedemptionRequest
               issuer = issuer
               provider = provider
               fixedRateBondFactCid = fixedRateBondFactCid
-              bondInstrumentId = bond.instrumentId
+              bondAssetId = bond.instrumentId
               regulators = regulators
 
 -- Triggers the redemption calculation bot. The bot collects the relevant bond assets
@@ -113,7 +112,7 @@ template RedemptionCalculationBotTrigger
     issuer: Party
     provider: Party
     fixedRateBondFactCid: ContractId FixedRateBondFact
-    bondInstrumentId: InstrumentId
+    bondAssetId: Id
     regulators: [Party]
   where
     signatory issuer, provider
@@ -123,20 +122,20 @@ template RedemptionCalculationBotTrigger
       RedemptionCalculationBotTrigger_Start: (ContractId RedemptionFinalizeBotTrigger, [ContractId LockedBondArchivalRequest])
         with
           redemptionPayoutInfos: [ContractId RedemptionPayoutInfo]
-          bondsAtIssuer: [ContractId AssetFact]
+          bondsAtIssuer: [ContractId AssetDeposit]
           lockedAssets: [ContractId AssetLockedFact]
         do
           fixedRateBond <- fetch fixedRateBondFactCid
 
           -- archive the bonds left at issuer
-          forA bondsAtIssuer \factCid -> do
-            fact <- fetch factCid
-            assertMsg ("Account owner of bondsAtIssuer should be " <> show issuer) $ fact.accountId.owner == issuer
-            let factInstrumentId = fact.assetId.instrumentId
+          forA bondsAtIssuer \assetDepositCid -> do
+            assetDeposit <- fetch assetDepositCid
+            assertMsg ("Account owner of bondsAtIssuer should be " <> show issuer) $ assetDeposit.account.owner == issuer
+            let depositInstrumentId = assetDeposit.asset.id
             let bondInstrumentId = fixedRateBond.instrumentId
-            assertMsg ("Identifier of the asset [" <> show factInstrumentId <> "] should match the bond [" <> show bondInstrumentId) $
-              factInstrumentId == bondInstrumentId
-            archive factCid
+            assertMsg ("Identifier of the asset [" <> show depositInstrumentId <> "] should match the bond [" <> show bondInstrumentId) $
+              depositInstrumentId == bondInstrumentId
+            archive assetDepositCid
 
           -- request archival of locked assets
           lockRequests <- forA lockedAssets \lockedCid -> do
@@ -172,7 +171,7 @@ template RedemptionCalculationBotTrigger
                     provider = provider
                     investor = payoutInfo.investor
                     payment = payment
-                    bondInstrumentId = fixedRateBond.instrumentId
+                    bondAssetId = fixedRateBond.instrumentId
                     cashInstrumentId = fixedRateBond.cashInstrumentId
                     bondAssetDepositCid = bondAssetDepositCid
                     redemptionPayoutInfoCid = redemptionPayoutInfoCid
@@ -196,7 +195,7 @@ data RedemptionInstruction = RedemptionInstruction
     provider: Party
     investor: Party
     payment: Decimal
-    bondInstrumentId: InstrumentId
+    bondAssetId: Id
     cashInstrumentId: InstrumentId
     bondAssetDepositCid: ContractId AssetDeposit
     redemptionPayoutInfoCid: ContractId RedemptionPayoutInfo

@@ -9,18 +9,24 @@ import static org.junit.Assert.assertTrue;
 
 import com.daml.ledger.javaapi.data.Command;
 import com.daml.ledger.javaapi.data.ExerciseCommand;
+import com.daml.ledger.javaapi.data.Party;
+import com.daml.ledger.javaapi.data.Value;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.util.TimeManager;
 import da.finance.asset.fact.AssetFact;
-import da.finance.types.AccountId;
-import da.finance.types.AssetId;
-import da.finance.types.InstrumentId;
-import da.finance.types.InstrumentKey;
+import da.finance.oldtypes.AccountId;
+import da.finance.oldtypes.AssetId;
+import da.finance.oldtypes.InstrumentId;
+import da.finance.oldtypes.InstrumentKey;
+import da.finance.types.Id;
+import da.set.Set;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class BotTestUtils {
   public static final String APP_ID = "appId";
@@ -39,7 +45,9 @@ public class BotTestUtils {
   public static final InstrumentId USD_INSTRUMENT_ID = new InstrumentId("USD", 0L);
   public static final InstrumentKey USD_INSTRUMENT_KEY =
       new InstrumentKey(CENTRAL_BANK, USD_INSTRUMENT_ID);
-  public static final InstrumentId BOND_INSTRUMENT_ID = new InstrumentId("BOND-007", 0L);
+  public static final Id BOND_ID = new Id(null, "BOND-007", 0L);
+  public static final Id CASH_ID = new Id(null, "USD", 0L);
+  public static final Id ISSUER_CASH_ACCOUNT_ID = new Id(null, "IssuerCashAccount", 0L);
 
   public static AssetFact addUsdIntoNewAccount(
       BigDecimal initialAmount, String accountOwnerName, String accountName) {

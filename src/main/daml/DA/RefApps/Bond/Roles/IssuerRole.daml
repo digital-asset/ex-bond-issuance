@@ -13,7 +13,6 @@ import DA.Finance.Types
 import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 
-import DA.Finance.OldTypes
 import DA.Finance.Instruments.FixedRateBond
 
 import DA.RefApps.Bond.Auction
@@ -85,6 +84,7 @@ template IssuerRole
           endDate: Date
           minPrice: Decimal
           size: Int
+          cashAccount: Account
           cashAssetId: Id
         do
           assertMsg "Minimum price should be positive" $ minPrice > 0.0
@@ -109,6 +109,7 @@ template IssuerRole
             endDate = endDate
             minPrice = minPrice
             size = size
+            cashAccount = cashAccount
             cashAssetId = cashAssetId
 
       nonconsuming IssuerRole_Redeem: ContractId RedemptionRequest
@@ -122,7 +123,7 @@ template IssuerRole
           create RedemptionRequest with
             provider = fact.provider
             issuer = issuer
-            bondInstrumentId = fact.instrumentId
+            bondAssetId = fact.instrumentId
             fixedRateBondFactCid = fixedRateBondFactCid
             regulators = regulators
 
@@ -142,6 +143,7 @@ template CommissionBotTrigger
     endDate: Date
     minPrice: Decimal
     size: Int
+    cashAccount: Account
     cashAssetId: Id
   where
     signatory issuer, operator
@@ -153,7 +155,6 @@ template CommissionBotTrigger
           bondAssetFungibleCid: ContractId AssetFungible
           bondAssetSettlementCid: ContractId AssetSettlement
           fixedRateBondFactCid: ContractId FixedRateBondFact
-          issuerCashAccount: Account
         do
           bondAssetDeposit <- fetch bondAssetDepositCid
           let decimalSize = intToDecimal size
@@ -179,7 +180,7 @@ template CommissionBotTrigger
                 size = size
                 fixedRateBondFact = fixedRateBondFact
                 cashAssetId = cashAssetId
-                issuerCashAccount = issuerCashAccount
+                issuerCashAccount = cashAccount
                 bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetFungibleCid bondAssetSettlementCid observedBondAssetDeposit.asset.id.label
                 invitedBidders = []
                 auctionName = ""
@@ -212,9 +213,10 @@ template IssuanceRequest
         with
           isin: Text
         do
-          let bondId = InstrumentId with
-                        label = isin
-                        version = 0
+          let bondId = Id with
+                signatories = fromList [bondAccount.provider]
+                label = isin
+                version = 0
               cashId = currencyInstrumentId currency
               id = Id with
                 signatories = bondAccount.id.signatories

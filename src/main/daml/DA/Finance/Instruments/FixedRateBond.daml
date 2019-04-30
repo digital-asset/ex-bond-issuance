@@ -7,6 +7,7 @@ daml 1.2
 module DA.Finance.Instruments.FixedRateBond where
 
 import DA.Finance.OldTypes
+import DA.Finance.Types
 
 -- FixedRateBondFact
 -- FixedRateBondFact is instrument reference data for a bond.
@@ -15,7 +16,7 @@ template FixedRateBondFact
   with
     -- general
     provider : Party
-    instrumentId : InstrumentId
+    instrumentId : Id
     observers : [Party]
     -- specific
     isin : Text

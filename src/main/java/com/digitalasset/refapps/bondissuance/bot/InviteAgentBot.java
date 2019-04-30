@@ -16,9 +16,9 @@ import com.daml.ledger.rxjava.components.helpers.CreatedContract;
 import com.digitalasset.refapps.bondissuance.util.*;
 import com.google.common.collect.Sets;
 import da.finance.asset.lock.AssetLockRule;
-import da.finance.asset.splitandmerge.AssetSplitAndMergeRule;
-import da.finance.asset.transfer.bilateral.AssetTransferRule;
 import da.finance.instruments.fixedratebond.FixedRateBondFact;
+import da.finance.rule.asset.AssetFungible;
+import da.finance.rule.asset.AssetSettlement;
 import da.refapps.bond.roles.issuerrole.CommissionBotTrigger;
 import io.reactivex.Flowable;
 import java.util.Collections;
@@ -31,8 +31,7 @@ import org.slf4j.Logger;
 /**
  * An automation bot to exercise the <i>CommissionBotTrigger_InviteAgent</i> choice when
  * <i>CommissionBotTrigger</i> contracts created on the ledger. It accumulates and filters the
- * necessary parameters: - bondSplitAndMergeRuleCid - bondLockRuleCid - bondTransferRuleCid -
- * fixedRateBondFactCid
+ * necessary parameters.
  */
 public class InviteAgentBot {
 
@@ -51,9 +50,8 @@ public class InviteAgentBot {
             Sets.newHashSet(
                 CommissionBotTrigger.TEMPLATE_ID,
                 FixedRateBondFact.TEMPLATE_ID,
-                AssetLockRule.TEMPLATE_ID,
-                AssetTransferRule.TEMPLATE_ID,
-                AssetSplitAndMergeRule.TEMPLATE_ID));
+                AssetSettlement.TEMPLATE_ID,
+                AssetFungible.TEMPLATE_ID));
 
     this.transactionFilter = new FiltersByParty(Collections.singletonMap(partyName, messageFilter));
 
@@ -72,21 +70,16 @@ public class InviteAgentBot {
         BotUtil.filterTemplates(
             FixedRateBondFact.class, ledgerView.getContracts(FixedRateBondFact.TEMPLATE_ID));
 
-    // collecting lock rule contracts from the ledger
-    Map<String, AssetLockRule> lockCids =
+    // collecting settlement contracts from the ledger
+    Map<String, AssetSettlement> settlementCids =
         BotUtil.filterTemplates(
-            AssetLockRule.class, ledgerView.getContracts(AssetLockRule.TEMPLATE_ID));
+            AssetSettlement.class, ledgerView.getContracts(AssetSettlement.TEMPLATE_ID));
 
-    // collecting transfer rule contracts from the ledger
-    Map<String, AssetTransferRule> transferCids =
+    // collecting AssetFungible contracts from the ledger
+    Map<String, AssetFungible> fungibleCids =
         BotUtil.filterTemplates(
-            AssetTransferRule.class, ledgerView.getContracts(AssetTransferRule.TEMPLATE_ID));
-
-    // collecting splitAndMergeRule contracts from the ledger
-    Map<String, AssetSplitAndMergeRule> splitCids =
-        BotUtil.filterTemplates(
-            AssetSplitAndMergeRule.class,
-            ledgerView.getContracts(AssetSplitAndMergeRule.TEMPLATE_ID));
+            AssetFungible.class,
+            ledgerView.getContracts(AssetFungible.TEMPLATE_ID));
 
     if (commissionBotTriggerCids.size() > 0) {
       logger.info(
@@ -101,13 +94,12 @@ public class InviteAgentBot {
           new CommissionBotTrigger.ContractId(trigger.getKey());
 
       // pick rule contracts
-      AssetLockRule.ContractId lockCid =
-          AssetUtil.findLockRule(lockCids, trigger.getValue().bondAccountProvider, logger);
-      AssetTransferRule.ContractId transferCid =
-          AssetUtil.findTransferRule(transferCids, trigger.getValue().bondAccountProvider, logger);
-      AssetSplitAndMergeRule.ContractId splitCid =
-          AssetUtil.findSplitAndMergeRule(
-              splitCids, trigger.getValue().bondAccountProvider, logger);
+     AssetSettlement.ContractId settlementCid =
+          AssetUtil.findAssetSettlement(settlementCids, trigger.getValue().bondAccountProvider, logger);
+      
+      AssetFungible.ContractId assetFungibleCid =
+          AssetUtil.findAssetFungible(
+              fungibleCids, trigger.getValue().bondAccountProvider, logger);
 
       // find the bond refdata contract
       List<FixedRateBondFact.ContractId> fixedRateBondCids =
@@ -117,13 +109,13 @@ public class InviteAgentBot {
                       cidWithBond
                           .getValue()
                           .instrumentId
-                          .equals(trigger.getValue().bondInstrumentId))
+                          .equals(trigger.getValue().bondAssetId))
               .map(cidWithBond -> new FixedRateBondFact.ContractId(cidWithBond.getKey()))
               .collect(Collectors.toList());
 
       if (fixedRateBondCids.size() < 1) {
         logger.error(
-            "Can't find fixed rate bond for instrumentId: " + trigger.getValue().bondInstrumentId);
+            "Can't find fixed rate bond for instrumentId: " + trigger.getValue().bondAssetId);
         throw new IllegalStateException("Can't find fixed rate bond");
       }
       FixedRateBondFact.ContractId fixedRateBondCid = fixedRateBondCids.iterator().next();
@@ -131,7 +123,7 @@ public class InviteAgentBot {
       // exercise choice
       builder.addCommand(
           triggerCid.exerciseCommissionBotTrigger_InviteAgent(
-              splitCid, lockCid, transferCid, fixedRateBondCid));
+              assetFungibleCid, settlementCid, fixedRateBondCid));
     }
     return builder.buildFlowable();
   }
@@ -142,12 +134,10 @@ public class InviteAgentBot {
       return CommissionBotTrigger.fromValue(args);
     } else if (createdContract.getTemplateId().equals(FixedRateBondFact.TEMPLATE_ID)) {
       return FixedRateBondFact.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AssetLockRule.TEMPLATE_ID)) {
-      return AssetLockRule.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AssetTransferRule.TEMPLATE_ID)) {
-      return AssetTransferRule.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AssetSplitAndMergeRule.TEMPLATE_ID)) {
-      return AssetSplitAndMergeRule.fromValue(args);
+    } else if (createdContract.getTemplateId().equals(AssetSettlement.TEMPLATE_ID)) {
+      return AssetSettlement.fromValue(args);
+    } else if (createdContract.getTemplateId().equals(AssetFungible.TEMPLATE_ID)) {
+      return AssetFungible.fromValue(args);
     } else {
       String msg =
           "Invite Agent Bot encountered an unknown contract of type "

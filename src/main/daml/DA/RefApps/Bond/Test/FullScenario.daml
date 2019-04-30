@@ -14,12 +14,7 @@ import DA.Time
 import DA.Optional
 import DA.Assert
 import DA.Finance.OldTypes
-import DA.Finance.Asset.Fact
-import DA.Finance.Asset.SplitAndMerge
-import DA.Finance.Asset.Transfer.Bilateral
-import DA.Finance.Account.Fact
 import DA.Finance.Instruments.FixedRateBond
-import DA.Finance.Dvp.Fact
 
 import DA.Finance.Types
 import DA.Finance.Fact.Asset
@@ -33,7 +28,6 @@ import DA.RefApps.Bond.Roles.AuctionAgentRole
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.Roles.BankRole
 import DA.RefApps.Bond.Auction
-import DA.RefApps.Bond.Redemption
 import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Util
 
@@ -362,12 +356,12 @@ startAuction = \(issuance: TestIssuance) -> scenario do
       minPrice = 40.0
       size = 1000000
       cashAssetId = issuance.cashAssetId
+      cashAccount = issuance.cashAccounts.issuerAccount
 
     exercise commissionedCid CommissionBotTrigger_InviteAgent with
       bondAssetFungibleCid = issuance.bondBundleData.assetFungibleCid
       bondAssetSettlementCid = issuance.bondBundleData.assetSettlementCid
       fixedRateBondFactCid = issuance.fixedRateBondFactCid
-      issuerCashAccount = issuance.cashAccounts.issuerAccount
 
   (auction', [bidderParticipationCid1, bidderParticipationCid2, bidderParticipationCid3]) <- submit auctionAgent do
     auctionCid <- exercise auctionInvitationCid AuctionInvitation_Accept with
@@ -387,13 +381,13 @@ startAuction = \(issuance: TestIssuance) -> scenario do
       endDate = auctionEndDate
       minPrice = 50.0
       size = 2000000
+      cashAccount = issuance.cashAccounts.issuerAccount
       cashAssetId = issuance.cashAssetId
 
     exercise otherCommissionedCid CommissionBotTrigger_InviteAgent with
       bondAssetFungibleCid = issuance.bondBundleData.assetFungibleCid
       bondAssetSettlementCid = issuance.bondBundleData.assetSettlementCid
       fixedRateBondFactCid = issuance.fixedRateBondFactCid
-      issuerCashAccount = issuance.cashAccounts.issuerAccount
 
   (otherAuction', [otherBidderParticipationCid1, otherBidderParticipationCid2, otherBidderParticipationCid3]) <- submit auctionAgent do
     otherAuctionCid <- exercise otherAuctionInvitation AuctionInvitation_Accept with

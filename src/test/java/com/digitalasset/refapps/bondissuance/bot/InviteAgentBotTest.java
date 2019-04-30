@@ -4,26 +4,18 @@
  */
 package com.digitalasset.refapps.bondissuance.bot;
 
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.APP_ID;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.AUCTION_AGENT;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.BOND_INSTRUMENT_ID;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CSD;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.ISSUER;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.OPERATOR;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.TIME_MANAGER;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.USD_INSTRUMENT_ID;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.USD_INSTRUMENT_KEY;
+import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.*;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSingleExercise;
 
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
-import da.finance.account.fact.AccountFact;
-import da.finance.asset.fact.AssetFact;
-import da.finance.asset.lock.AssetLockRule;
-import da.finance.asset.splitandmerge.AssetSplitAndMergeRule;
-import da.finance.asset.transfer.bilateral.AssetTransferRule;
+import da.finance.fact.asset.AssetDeposit;
 import da.finance.instruments.fixedratebond.FixedRateBondFact;
+import da.finance.rule.asset.AssetFungible;
+import da.finance.rule.asset.AssetSettlement;
+import da.finance.types.Account;
+import da.finance.types.Id;
 import da.refapps.bond.roles.issuerrole.CommissionBotTrigger;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
@@ -60,13 +52,14 @@ public class InviteAgentBotTest {
     List<LocalDate> couponDatesTriggered = Collections.emptyList();
     LocalDate issueDate = TIME_MANAGER.getLocalDate();
     LocalDate maturityDate = TIME_MANAGER.getLocalDate();
+    Account bondAccount = new Account(new Id(null, "IssuerBondAccount", 0L), CSD, ISSUER);
 
     ledgerView.addActiveContract(
         FixedRateBondFact.TEMPLATE_ID,
         "fixedRateBondCid",
         new FixedRateBondFact(
             CSD,
-            BOND_INSTRUMENT_ID,
+            BOND_ID,
             Collections.emptyList(),
             isin,
             USD_INSTRUMENT_ID,
@@ -78,21 +71,17 @@ public class InviteAgentBotTest {
             issueDate,
             maturityDate));
     ledgerView.addActiveContract(
-        AssetLockRule.TEMPLATE_ID,
-        "assetLockRuleCid",
-        new AssetLockRule(CSD, ISSUER, Collections.emptyList()));
+        AssetSettlement.TEMPLATE_ID,
+        "assetSettlementCid",
+        new AssetSettlement(bondAccount, null));
     ledgerView.addActiveContract(
-        AssetTransferRule.TEMPLATE_ID,
-        "assetTransferRuleCid",
-        new AssetTransferRule(CSD, ISSUER, Collections.emptyList()));
-    ledgerView.addActiveContract(
-        AssetSplitAndMergeRule.TEMPLATE_ID,
-        "assetSplitAndMergeRuleCid",
-        new AssetSplitAndMergeRule(CSD, ISSUER, Collections.emptyList()));
+        AssetFungible.TEMPLATE_ID,
+        "assetFungibleCid",
+        new AssetFungible(bondAccount, null));
     String commissionBotTriggerCid = "commissionBotTriggerCid";
-    AssetFact.ContractId bondAssetFactCid = new AssetFact.ContractId("cid-1");
+    AssetDeposit.ContractId bondAssetDepositCid = new AssetDeposit.ContractId("cid-1");
     BigDecimal minPrice = BigDecimal.valueOf(0.98);
-    AccountFact.ContractId cashAccount = new AccountFact.ContractId("cid-2");
+    Account cashAccount = new Account(ISSUER_CASH_ACCOUNT_ID, CENTRAL_BANK, ISSUER);
     ledgerView.addActiveContract(
         CommissionBotTrigger.TEMPLATE_ID,
         commissionBotTriggerCid,
@@ -101,15 +90,15 @@ public class InviteAgentBotTest {
             OPERATOR,
             CSD,
             Collections.emptyList(),
-            bondAssetFactCid,
-            BOND_INSTRUMENT_ID,
+            bondAssetDepositCid,
+            BOND_ID,
             AUCTION_AGENT,
             startDate,
             endDate,
             minPrice,
             size,
-            USD_INSTRUMENT_KEY,
-            cashAccount));
+            cashAccount,
+            CASH_ID));
 
     CommandsAndPendingSet cmds =
         bot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();

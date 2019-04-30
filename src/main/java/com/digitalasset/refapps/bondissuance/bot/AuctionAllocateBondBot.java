@@ -35,109 +35,109 @@ import org.slf4j.Logger;
  * necessary parameters: - participationCids - bidCids
  */
 public class AuctionAllocateBondBot {
-  public final TransactionFilter transactionFilter;
-  private final Logger logger;
-  private final CommandsAndPendingSetBuilder commandBuilder;
-
-  public AuctionAllocateBondBot(TimeManager timeManager, String appId, String partyName) {
-    String workflowId =
-        "WORKFLOW-" + partyName + "-AuctionAllocateBondBot-" + UUID.randomUUID().toString();
-    logger = BotLogger.getLogger(AuctionAllocateBondBot.class, workflowId);
-
-    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
-
-    Filter messageFilter =
-        new InclusiveFilter(
-            Sets.newHashSet(
-                BidderParticipation.TEMPLATE_ID,
-                AuctionBid.TEMPLATE_ID,
-                AuctionFinalizeBotTrigger.TEMPLATE_ID));
-
-    this.transactionFilter = new FiltersByParty(Collections.singletonMap(partyName, messageFilter));
-
-    logger.info("Startup completed");
-  }
-
-  public Flowable<CommandsAndPendingSet> calculateCommands(
-      LedgerViewFlowable.LedgerView<Template> ledgerView) {
-    // collecting participation contracts from the ledger
-    Map<String, BidderParticipation> participationContracts =
-        BotUtil.filterTemplates(
-            BidderParticipation.class, ledgerView.getContracts(BidderParticipation.TEMPLATE_ID));
-
-    // collecting AuctionBid contracts from the ledger
-    Map<String, AuctionBid> bidContracts =
-        BotUtil.filterTemplates(AuctionBid.class, ledgerView.getContracts(AuctionBid.TEMPLATE_ID));
-
-    // collecting the trigger contracts from the ledger
-    Map<String, AuctionFinalizeBotTrigger> triggerContracts =
-        BotUtil.filterTemplates(
-            AuctionFinalizeBotTrigger.class,
-            ledgerView.getContracts(AuctionFinalizeBotTrigger.TEMPLATE_ID));
-
-    if (triggerContracts.size() > 0) {
-      logger.info("Processing, number of triggerContracts: " + triggerContracts.size());
-    }
-
-    CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
-    for (Map.Entry<String, AuctionFinalizeBotTrigger> e : triggerContracts.entrySet()) {
-      AuctionFinalizeBotTrigger.ContractId triggerCid =
-          new AuctionFinalizeBotTrigger.ContractId(e.getKey());
-      String auctionAgent = e.getValue().auctionAgent;
-      String auctionName = e.getValue().auctionName;
-
-      // for all trigger contract we need to find the corresponding participation and bid contracts
-      List<BidderParticipation.ContractId> matchingParticipationCids =
-          getMatchingParticipationCids(participationContracts, auctionAgent, auctionName);
-      List<AuctionBid.ContractId> matchingBidCids =
-          getMatchingBidCids(bidContracts, auctionAgent, auctionName);
-
-      // Exercise allocate bond for the participation
-      builder.addCommand(
-          triggerCid.exerciseAuctionFinalizeBotTrigger_AllocateBond(
-              matchingParticipationCids, matchingBidCids));
-    }
-    return builder.buildFlowable();
-  }
-
-  private List<AuctionBid.ContractId> getMatchingBidCids(
-      Map<String, AuctionBid> bidContracts, String auctionAgent, String auctionName) {
-    return bidContracts.entrySet().stream()
-        .filter(
-            entry ->
-                auctionName.equals(entry.getValue().auctionName)
-                    && auctionAgent.equals(entry.getValue().auctionAgent))
-        .map(e -> new AuctionBid.ContractId(e.getKey()))
-        .collect(Collectors.toList());
-  }
-
-  private List<BidderParticipation.ContractId> getMatchingParticipationCids(
-      Map<String, BidderParticipation> participationContracts,
-      String auctionAgent,
-      String auctionName) {
-    return participationContracts.entrySet().stream()
-        .filter(
-            entry ->
-                auctionName.equals(entry.getValue().auctionName)
-                    && auctionAgent.equals(entry.getValue().auctionAgent))
-        .map(e -> new BidderParticipation.ContractId(e.getKey()))
-        .collect(Collectors.toList());
-  }
-
-  public Template getContractInfo(CreatedContract createdContract) {
-    Value args = createdContract.getCreateArguments();
-    if (createdContract.getTemplateId().equals(AuctionFinalizeBotTrigger.TEMPLATE_ID)) {
-      return AuctionFinalizeBotTrigger.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(BidderParticipation.TEMPLATE_ID)) {
-      return BidderParticipation.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AuctionBid.TEMPLATE_ID)) {
-      return AuctionBid.fromValue(args);
-    } else {
-      String msg =
-          "Auction Allocate Bond Bot encountered an unknown contract of type "
-              + createdContract.getTemplateId();
-      logger.error(msg);
-      throw new IllegalStateException(msg);
-    }
-  }
+//  public final TransactionFilter transactionFilter;
+//  private final Logger logger;
+//  private final CommandsAndPendingSetBuilder commandBuilder;
+//
+//  public AuctionAllocateBondBot(TimeManager timeManager, String appId, String partyName) {
+//    String workflowId =
+//        "WORKFLOW-" + partyName + "-AuctionAllocateBondBot-" + UUID.randomUUID().toString();
+//    logger = BotLogger.getLogger(AuctionAllocateBondBot.class, workflowId);
+//
+//    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
+//
+//    Filter messageFilter =
+//        new InclusiveFilter(
+//            Sets.newHashSet(
+//                BidderParticipation.TEMPLATE_ID,
+//                AuctionBid.TEMPLATE_ID,
+//                AuctionFinalizeBotTrigger.TEMPLATE_ID));
+//
+//    this.transactionFilter = new FiltersByParty(Collections.singletonMap(partyName, messageFilter));
+//
+//    logger.info("Startup completed");
+//  }
+//
+//  public Flowable<CommandsAndPendingSet> calculateCommands(
+//      LedgerViewFlowable.LedgerView<Template> ledgerView) {
+//    // collecting participation contracts from the ledger
+//    Map<String, BidderParticipation> participationContracts =
+//        BotUtil.filterTemplates(
+//            BidderParticipation.class, ledgerView.getContracts(BidderParticipation.TEMPLATE_ID));
+//
+//    // collecting AuctionBid contracts from the ledger
+//    Map<String, AuctionBid> bidContracts =
+//        BotUtil.filterTemplates(AuctionBid.class, ledgerView.getContracts(AuctionBid.TEMPLATE_ID));
+//
+//    // collecting the trigger contracts from the ledger
+//    Map<String, AuctionFinalizeBotTrigger> triggerContracts =
+//        BotUtil.filterTemplates(
+//            AuctionFinalizeBotTrigger.class,
+//            ledgerView.getContracts(AuctionFinalizeBotTrigger.TEMPLATE_ID));
+//
+//    if (triggerContracts.size() > 0) {
+//      logger.info("Processing, number of triggerContracts: " + triggerContracts.size());
+//    }
+//
+//    CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
+//    for (Map.Entry<String, AuctionFinalizeBotTrigger> e : triggerContracts.entrySet()) {
+//      AuctionFinalizeBotTrigger.ContractId triggerCid =
+//          new AuctionFinalizeBotTrigger.ContractId(e.getKey());
+//      String auctionAgent = e.getValue().auctionAgent;
+//      String auctionName = e.getValue().auctionName;
+//
+//      // for all trigger contract we need to find the corresponding participation and bid contracts
+//      List<BidderParticipation.ContractId> matchingParticipationCids =
+//          getMatchingParticipationCids(participationContracts, auctionAgent, auctionName);
+//      List<AuctionBid.ContractId> matchingBidCids =
+//          getMatchingBidCids(bidContracts, auctionAgent, auctionName);
+//
+//      // Exercise allocate bond for the participation
+//      builder.addCommand(
+//          triggerCid.exerciseAuctionFinalizeBotTrigger_AllocateBond(
+//              matchingParticipationCids, matchingBidCids));
+//    }
+//    return builder.buildFlowable();
+//  }
+//
+//  private List<AuctionBid.ContractId> getMatchingBidCids(
+//      Map<String, AuctionBid> bidContracts, String auctionAgent, String auctionName) {
+//    return bidContracts.entrySet().stream()
+//        .filter(
+//            entry ->
+//                auctionName.equals(entry.getValue().auctionName)
+//                    && auctionAgent.equals(entry.getValue().auctionAgent))
+//        .map(e -> new AuctionBid.ContractId(e.getKey()))
+//        .collect(Collectors.toList());
+//  }
+//
+//  private List<BidderParticipation.ContractId> getMatchingParticipationCids(
+//      Map<String, BidderParticipation> participationContracts,
+//      String auctionAgent,
+//      String auctionName) {
+//    return participationContracts.entrySet().stream()
+//        .filter(
+//            entry ->
+//                auctionName.equals(entry.getValue().auctionName)
+//                    && auctionAgent.equals(entry.getValue().auctionAgent))
+//        .map(e -> new BidderParticipation.ContractId(e.getKey()))
+//        .collect(Collectors.toList());
+//  }
+//
+//  public Template getContractInfo(CreatedContract createdContract) {
+//    Value args = createdContract.getCreateArguments();
+//    if (createdContract.getTemplateId().equals(AuctionFinalizeBotTrigger.TEMPLATE_ID)) {
+//      return AuctionFinalizeBotTrigger.fromValue(args);
+//    } else if (createdContract.getTemplateId().equals(BidderParticipation.TEMPLATE_ID)) {
+//      return BidderParticipation.fromValue(args);
+//    } else if (createdContract.getTemplateId().equals(AuctionBid.TEMPLATE_ID)) {
+//      return AuctionBid.fromValue(args);
+//    } else {
+//      String msg =
+//          "Auction Allocate Bond Bot encountered an unknown contract of type "
+//              + createdContract.getTemplateId();
+//      logger.error(msg);
+//      throw new IllegalStateException(msg);
+//    }
+//  }
 }

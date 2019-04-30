@@ -10,7 +10,6 @@ import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 import DA.Finance.Types
 
-import DA.Finance.OldTypes
 import DA.Finance.Instruments.FixedRateBond
 
 import DA.RefApps.Bond.Settlement
@@ -177,6 +176,7 @@ template Auction
                     size = size
                     fixedRateBondFact = fixedRateBondFact
                     cashAssetId = cashAssetId
+                    issuerCashAccount = issuerCashAccount
                     auctionName = auctionName
           auction' <- create this with invitedBidders = bidders <> invitedBidders
           return (auction', participations)
@@ -312,6 +312,7 @@ template BidderParticipation
     size: Int
     fixedRateBondFact: FixedRateBondFact
     cashAssetId: Id
+    issuerCashAccount: Account
     auctionName: Text
   where
     signatory issuer, auctionAgent
@@ -337,11 +338,12 @@ template BidderParticipation
                     bondAccountProvider = bondAccountProvider
                     bidData = bidData
                     auctionName = auctionName
-                    bondInstrumentId = fixedRateBondFact.instrumentId
+                    bondAssetId = fixedRateBondFact.instrumentId
                     regulators = regulators
           create PlaceBidBotTrigger with
             auctionBid = auctionBid
             cashAssetId = cashAssetId
+            issuerCashAccount = issuerCashAccount
             regulators = regulators
 
       nonconsuming AuctionBidderParticipantion_RevokeLockedBid: ContractId AssetDeposit
@@ -364,6 +366,7 @@ template PlaceBidBotTrigger
   with
     auctionBid: AuctionBid
     cashAssetId: Id
+    issuerCashAccount: Account
     regulators: [Party]
   where
     signatory auctionBid.auctionAgent, auctionBid.bidder
@@ -411,7 +414,7 @@ template AuctionBid
     bondAccountProvider: Party
     bidData: BidData
     auctionName: Text
-    bondInstrumentId: InstrumentId
+    bondAssetId: Id
     regulators: [Party]
   where
     signatory auctionAgent, bidder
