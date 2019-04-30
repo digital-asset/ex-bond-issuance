@@ -6,8 +6,6 @@
 daml 1.2
 module DA.RefApps.Bond.Roles.CsdRole where
 
-import DA.Finance.OldTypes
-import DA.Finance.Account.Fact
 
 -- Role contract invitation for CSD role.
 template CsdRoleInvitation
@@ -43,17 +41,3 @@ template CsdRole
   where
     signatory operator, csd
     observer regulators
-
-    controller csd can
-      nonconsuming CsdRole_RequestAccount: ContractId AccountRequest
-        with
-          owner: Party
-          accountName: Text
-        do
-          create AccountRequest with
-            accountId = AccountId with
-              provider = csd
-              identifier = accountName
-              owner = owner
-            observers = owner :: regulators
-            operator = operator
