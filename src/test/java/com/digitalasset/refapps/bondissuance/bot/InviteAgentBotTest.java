@@ -8,6 +8,7 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.*;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSingleExercise;
 
 import com.daml.ledger.javaapi.data.Template;
+import com.daml.ledger.javaapi.data.Variant;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
 import da.finance.fact.asset.AssetDeposit;
@@ -52,7 +53,8 @@ public class InviteAgentBotTest {
     List<LocalDate> couponDatesTriggered = Collections.emptyList();
     LocalDate issueDate = TIME_MANAGER.getLocalDate();
     LocalDate maturityDate = TIME_MANAGER.getLocalDate();
-    Account bondAccount = new Account(new Id(null, "IssuerBondAccount", 0L), CSD, ISSUER);
+    Account bondAccount = new Account(ISSUER_BOND_ACCOUNT_ID, CSD, ISSUER);
+    Account cashAccount = new Account(ISSUER_CASH_ACCOUNT_ID, CENTRAL_BANK, ISSUER);
 
     ledgerView.addActiveContract(
         FixedRateBondFact.TEMPLATE_ID,
@@ -72,8 +74,12 @@ public class InviteAgentBotTest {
             maturityDate));
     ledgerView.addActiveContract(
         AssetSettlement.TEMPLATE_ID,
-        "assetSettlementCid",
+        "assetSettlementCid1",
         new AssetSettlement(bondAccount, null));
+    ledgerView.addActiveContract(
+        AssetSettlement.TEMPLATE_ID,
+        "assetSettlementCid2",
+        new AssetSettlement(cashAccount, null));
     ledgerView.addActiveContract(
         AssetFungible.TEMPLATE_ID,
         "assetFungibleCid",
@@ -81,16 +87,15 @@ public class InviteAgentBotTest {
     String commissionBotTriggerCid = "commissionBotTriggerCid";
     AssetDeposit.ContractId bondAssetDepositCid = new AssetDeposit.ContractId("cid-1");
     BigDecimal minPrice = BigDecimal.valueOf(0.98);
-    Account cashAccount = new Account(ISSUER_CASH_ACCOUNT_ID, CENTRAL_BANK, ISSUER);
     ledgerView.addActiveContract(
         CommissionBotTrigger.TEMPLATE_ID,
         commissionBotTriggerCid,
         new CommissionBotTrigger(
             ISSUER,
             OPERATOR,
-            CSD,
             Collections.emptyList(),
             bondAssetDepositCid,
+            bondAccount,
             BOND_ID,
             AUCTION_AGENT,
             startDate,
@@ -102,7 +107,6 @@ public class InviteAgentBotTest {
 
     CommandsAndPendingSet cmds =
         bot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
-
     assertHasSingleExercise(cmds, commissionBotTriggerCid, "CommissionBotTrigger_InviteAgent");
   }
 }

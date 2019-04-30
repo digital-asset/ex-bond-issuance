@@ -11,6 +11,7 @@ import com.daml.ledger.javaapi.data.Command;
 import com.daml.ledger.javaapi.data.ExerciseCommand;
 import com.daml.ledger.javaapi.data.Party;
 import com.daml.ledger.javaapi.data.Value;
+import com.daml.ledger.javaapi.data.Variant;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.util.TimeManager;
 import da.finance.asset.fact.AssetFact;
@@ -47,6 +48,7 @@ public class BotTestUtils {
       new InstrumentKey(CENTRAL_BANK, USD_INSTRUMENT_ID);
   public static final Id BOND_ID = new Id(null, "BOND-007", 0L);
   public static final Id CASH_ID = new Id(null, "USD", 0L);
+  public static final Id ISSUER_BOND_ACCOUNT_ID = new Id(null, "IssuerBondAccount", 0L);
   public static final Id ISSUER_CASH_ACCOUNT_ID = new Id(null, "IssuerCashAccount", 0L);
 
   public static AssetFact addUsdIntoNewAccount(

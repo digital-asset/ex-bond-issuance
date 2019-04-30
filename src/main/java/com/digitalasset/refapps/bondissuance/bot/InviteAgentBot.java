@@ -93,13 +93,15 @@ public class InviteAgentBot {
       CommissionBotTrigger.ContractId triggerCid =
           new CommissionBotTrigger.ContractId(trigger.getKey());
 
-      // pick rule contracts
-     AssetSettlement.ContractId settlementCid =
-          AssetUtil.findAssetSettlement(settlementCids, trigger.getValue().bondAccountProvider, logger);
+     AssetSettlement.ContractId bondSettlementCid =
+          AssetUtil.findAssetSettlement(settlementCids, trigger.getValue().bondAccount, logger);
+
+      AssetSettlement.ContractId cashSettlementCid =
+          AssetUtil.findAssetSettlement(settlementCids, trigger.getValue().cashAccount, logger);
       
-      AssetFungible.ContractId assetFungibleCid =
+      AssetFungible.ContractId bondAssetFungibleCid =
           AssetUtil.findAssetFungible(
-              fungibleCids, trigger.getValue().bondAccountProvider, logger);
+              fungibleCids, trigger.getValue().bondAccount, logger);
 
       // find the bond refdata contract
       List<FixedRateBondFact.ContractId> fixedRateBondCids =
@@ -123,7 +125,7 @@ public class InviteAgentBot {
       // exercise choice
       builder.addCommand(
           triggerCid.exerciseCommissionBotTrigger_InviteAgent(
-              assetFungibleCid, settlementCid, fixedRateBondCid));
+              bondAssetFungibleCid, bondSettlementCid, cashSettlementCid, fixedRateBondCid));
     }
     return builder.buildFlowable();
   }

@@ -16,6 +16,7 @@ import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Lock
 import DA.Date
 import DA.List as List
+import DA.Set as Set
 import DA.RefApps.Bond.Util
 
 
@@ -138,7 +139,7 @@ template Auction
     auctionAgent: Party
     issuer: Party
     operator: Party
-    bondAccountProvider: Party
+    bondAccount: Account
     regulators: [Party]
     startDate: Date
     endDate: Date
@@ -169,7 +170,7 @@ template Auction
                     auctionAgent = auctionAgent
                     issuer = issuer
                     operator = operator
-                    bondAccountProvider = bondAccountProvider
+                    bondAccount = bondAccount
                     regulators = regulators
                     startDate = startDate
                     endDate = endDate
@@ -236,7 +237,6 @@ template AuctionFinalizeBotTrigger
           let bidders = sort $ map (\p -> (p.bidder)) participationsOfThisAuction
           assertMsg ("Only invited bidders should participate. Bidders: " <> (show bidders) <> "\ninvited bidders: " <> (show invitedBidders)) $ isSubset bidders invitedBidders
 
-
           -- fetching bids and asserting validity
           bids
             <- forA bidCids $ \bidCid -> do
@@ -259,6 +259,33 @@ template AuctionFinalizeBotTrigger
           settleRequestsWithBidder <- forA bidWithAssets $ \bidWithAsset -> do
             auctionBid <- fetch bidWithAsset.auctionBidCid
             issuerBondAssetDeposit <- fetch bidWithAsset.bondAssetDepositCid
+
+            let bondSettlementStep = AssetSettlementStep with
+                    sender = issuer
+                    receiver = auctionBid.bidder
+                    depositCid = None
+                    creditSettlementCid = bondBundleData.bondSettlementCid
+                    debitSettlementCid = auctionBid.investorBondAssetSettlementCid
+                masterAgreement = MasterAgreement with
+                  id = Id with
+                    signatories = Set.fromList [auctionAgent]
+                    label = "DvPMasterSettleAuctionMaster"
+                    version = 0
+                  party1 = auctionBid.bidder
+                  party2 = issuer
+                tradeId = Id with
+                  signatories = Set.fromList [auctionBid.bidder, issuer]
+                  label = "DvPMasterSettleAuctionTrade"
+                  version = 0
+
+            bondChain <- create AssetSettlementChain with
+              masterAgreement = masterAgreement
+              tradeId = tradeId
+              asset = issuerBondAssetDeposit.asset
+              steps = [bondSettlementStep]
+              observers = Set.fromList regulators
+
+            allocatedBondChain <- exercise bondChain $ AssetSettlementChain_AllocateNext bidWithAsset.bondAssetDepositCid
             request <- create AuctionSettleRequest with
               investor = auctionBid.bidder
               issuer = issuer
@@ -268,6 +295,8 @@ template AuctionFinalizeBotTrigger
               issuerBondAssetDepositCid = bidWithAsset.bondAssetDepositCid
               issuerBondAssetDeposit = issuerBondAssetDeposit
               cashAmountToPay = auctionResult.price * intToDecimal bidWithAsset.bidData.quantity
+              bondSettlementChainCid = allocatedBondChain
+              issuerCashSettlementCid = bondBundleData.cashSettlementCid
               regulators = regulators
             return (auctionBid.bidder, request)
 
@@ -305,7 +334,7 @@ template BidderParticipation
     auctionAgent: Party
     issuer: Party
     operator: Party
-    bondAccountProvider: Party
+    bondAccount: Account
     regulators: [Party]
     startDate: Date
     endDate: Date
@@ -331,19 +360,15 @@ template BidderParticipation
           assertMsg "Price should be positive" $ price > 0.0
           assertMsg "Quantity should be positive" $ quantity > 0
           let bidData = BidData price quantity now
-          let auctionBid = AuctionBid with
-                    bidder = bidder
-                    auctionAgent = auctionAgent
-                    issuer = issuer
-                    bondAccountProvider = bondAccountProvider
-                    bidData = bidData
-                    auctionName = auctionName
-                    bondAssetId = fixedRateBondFact.instrumentId
-                    regulators = regulators
           create PlaceBidBotTrigger with
-            auctionBid = auctionBid
             cashAssetId = cashAssetId
-            issuerCashAccount = issuerCashAccount
+            bidder = bidder
+            auctionAgent = auctionAgent
+            issuer = issuer
+            bondAccount = bondAccount
+            bidData = bidData
+            auctionName = auctionName
+            bondAssetId = fixedRateBondFact.instrumentId
             regulators = regulators
 
       nonconsuming AuctionBidderParticipantion_RevokeLockedBid: ContractId AssetDeposit
@@ -364,41 +389,48 @@ template BidderParticipation
 -- cash assets and creates the bid.
 template PlaceBidBotTrigger
   with
-    auctionBid: AuctionBid
     cashAssetId: Id
-    issuerCashAccount: Account
+    bidder: Party
+    auctionAgent: Party
+    issuer: Party
+    bondAccount: Account
+    bidData: BidData
+    auctionName: Text
+    bondAssetId: Id
     regulators: [Party]
   where
-    signatory auctionBid.auctionAgent, auctionBid.bidder
+    signatory auctionAgent, bidder
     observer regulators
 
-    controller auctionBid.bidder can
+    controller bidder can
       PlaceBidBotTrigger_LockCash: Either (ContractId InvalidBidNotification) (ContractId AuctionLockedCash, ContractId AuctionBid, [ContractId AssetDeposit])
         with
           cashDepositCids: [ContractId AssetDeposit]
           cashAssetFungibleCid: ContractId AssetFungible
           lockRuleCid: ContractId AssetLockRule
+          investorBondAssetSettlementCid: ContractId AssetSettlement
         do
           assertMsg "The cashAssets should not be empty" $ length cashDepositCids > 0
           let firstCashAssetCid = head cashDepositCids
-              requiredQuantity = auctionBid.bidData.price * intToDecimal auctionBid.bidData.quantity
+              requiredQuantity = bidData.price * intToDecimal bidData.quantity
           firstCashAsset <- fetch firstCashAssetCid
           mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail cashDepositCids) requiredQuantity cashAssetFungibleCid
+          auctionBidCid <- create AuctionBid with ..
           case mergeResult of
             None -> do
+              bid <- fetch auctionBidCid
               notification <- create InvalidBidNotification with
-                bid = auctionBid
+                bid = bid
                 reason = "Insufficient funds on cash account when placing bid"
                 regulators = regulators
               return (Left notification)
             Some (mergedFactCid, rest) -> do
               lock <- exercise lockRuleCid AssetLockRule_Lock with
                 assetDepositCid = mergedFactCid
-                auctionName = auctionBid.auctionName
-                auctionAgent = auctionBid.auctionAgent
+                auctionName = auctionName
+                auctionAgent = auctionAgent
                 regulators = regulators
-              bid <- create auctionBid
-              return (Right (lock, bid, rest))
+              return (Right (lock, auctionBidCid, rest))
 
       PlaceBidBotTrigger_Revoke: ()
         do return ()
@@ -411,10 +443,11 @@ template AuctionBid
     bidder: Party
     auctionAgent: Party
     issuer: Party
-    bondAccountProvider: Party
+    bondAccount: Account
     bidData: BidData
     auctionName: Text
     bondAssetId: Id
+    investorBondAssetSettlementCid: ContractId AssetSettlement
     regulators: [Party]
   where
     signatory auctionAgent, bidder
@@ -469,7 +502,7 @@ template AuctionParticipantSettleRequest
     invalidBidNotificationCids: [ContractId InvalidBidNotification]
     regulators: [Party]
   where
-    signatory issuer
+    signatory issuer, auctionAgent
     observer regulators
 
     controller investor can

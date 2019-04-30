@@ -20,7 +20,8 @@ currencyInstrumentId currency
 data BondBundleData = BondBundleData {
   assetDepositCid: ContractId AssetDeposit
 , assetFungibleCid: ContractId AssetFungible
-, assetSettlementCid: ContractId AssetSettlement
+, bondSettlementCid: ContractId AssetSettlement
+, cashSettlementCid: ContractId AssetSettlement
 , assetLabel: Text
 } deriving (Eq, Show)
 

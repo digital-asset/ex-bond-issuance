@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;
+import da.finance.types.Account;
 import org.slf4j.Logger;
 
 /** Various asset contract handling utility functions. */
@@ -24,8 +25,8 @@ public class AssetUtil {
       Map<String, AssetTransferRule> assetTransferRules, String provider, Logger logger) {
     List<AssetTransferRule.ContractId> transferRules =
         assetTransferRules.entrySet().stream()
-            .filter(cidWithRule -> cidWithRule.getValue().provider.equals(provider))
-            .map(cidWithRule -> new AssetTransferRule.ContractId(cidWithRule.getKey()))
+            .filter(cidWithContract -> cidWithContract.getValue().provider.equals(provider))
+            .map(cidWithContract -> new AssetTransferRule.ContractId(cidWithContract.getKey()))
             .collect(Collectors.toList());
     if (transferRules.size() < 1) {
       String msg = "Can't find any Transfer rule";
@@ -35,12 +36,34 @@ public class AssetUtil {
     return transferRules.iterator().next();
   }
 
+  public static AssetFungible.ContractId findAssetFungible(
+      Map<String, AssetFungible> assetFungibles, Account account, Logger logger) {
+    List<AssetFungible.ContractId> filteredFungibles =
+        assetFungibles.entrySet().stream()
+            .filter(cidWithContract -> 
+                cidWithContract.getValue().account.owner.equals(account.owner) &&
+                cidWithContract.getValue().account.provider.equals(account.provider) &&
+                cidWithContract.getValue().account.id.label.equals(account.id.label))
+            .map(cidWithContract -> new AssetFungible.ContractId(cidWithContract.getKey()))
+            .collect(Collectors.toList());
+    if (filteredFungibles.size() < 1) {
+      String msg = "Can't find any AssetFungible contract";
+      logger.error(msg);
+      throw new IllegalStateException(msg);
+    }
+    return filteredFungibles.iterator().next();
+  }
+
   public static AssetSettlement.ContractId findAssetSettlement(
-      Map<String, AssetSettlement> assetSettlements, String provider, Logger logger) {
+      Map<String, AssetSettlement> assetSettlements, Account account, Logger logger) {
     List<AssetSettlement.ContractId> filteredSettlements =
         assetSettlements.entrySet().stream()
-            .filter(cidWithRule -> cidWithRule.getValue().account.provider.equals(provider))
-            .map(cidWithRule -> new AssetSettlement.ContractId(cidWithRule.getKey()))
+            .filter(cidWithContract -> 
+                cidWithContract.getValue().account.owner.equals(account.owner) &&
+                cidWithContract.getValue().account.provider.equals(account.provider) &&
+                cidWithContract.getValue().account.id.label.equals(account.id.label)
+            )
+            .map(cidWithContract -> new AssetSettlement.ContractId(cidWithContract.getKey()))
             .collect(Collectors.toList());
     if (filteredSettlements.size() < 1) {
       String msg = "Can't find any AssetSettlement contract";
@@ -54,8 +77,8 @@ public class AssetUtil {
       Map<String, AssetSplitAndMergeRule> assetSplitAndMergeRules, String provider, Logger logger) {
     List<AssetSplitAndMergeRule.ContractId> splitAndMergeRules =
         assetSplitAndMergeRules.entrySet().stream()
-            .filter(cidWithRule -> cidWithRule.getValue().provider.equals(provider))
-            .map(cidWithRule -> new AssetSplitAndMergeRule.ContractId(cidWithRule.getKey()))
+            .filter(cidWithContract -> cidWithContract.getValue().provider.equals(provider))
+            .map(cidWithContract -> new AssetSplitAndMergeRule.ContractId(cidWithContract.getKey()))
             .collect(Collectors.toList());
     if (splitAndMergeRules.size() < 1) {
       String msg = "Can't find any SplitAndMerge rule";
@@ -65,27 +88,12 @@ public class AssetUtil {
     return splitAndMergeRules.iterator().next();
   }
 
-  public static AssetFungible.ContractId findAssetFungible(
-      Map<String, AssetFungible> assetFungibles, String provider, Logger logger) {
-    List<AssetFungible.ContractId> filteredFungibles =
-        assetFungibles.entrySet().stream()
-            .filter(cidWithRule -> cidWithRule.getValue().account.provider.equals(provider))
-            .map(cidWithRule -> new AssetFungible.ContractId(cidWithRule.getKey()))
-            .collect(Collectors.toList());
-    if (filteredFungibles.size() < 1) {
-      String msg = "Can't find any AssetFungible contract";
-      logger.error(msg);
-      throw new IllegalStateException(msg);
-    }
-    return filteredFungibles.iterator().next();
-  }
-
   public static AssetLockRule.ContractId findLockRule(
       Map<String, AssetLockRule> assetLockRules, String provider, Logger logger) {
     List<AssetLockRule.ContractId> lockRules =
         assetLockRules.entrySet().stream()
-            .filter(cidWithRule -> cidWithRule.getValue().provider.equals(provider))
-            .map(cidWithRule -> new AssetLockRule.ContractId(cidWithRule.getKey()))
+            .filter(cidWithContract -> cidWithContract.getValue().provider.equals(provider))
+            .map(cidWithContract -> new AssetLockRule.ContractId(cidWithContract.getKey()))
             .collect(Collectors.toList());
     if (lockRules.size() < 1) {
       String msg = "Can't find any Lock rule";

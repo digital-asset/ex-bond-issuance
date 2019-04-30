@@ -100,9 +100,9 @@ template IssuerRole
           create CommissionBotTrigger with
             issuer = issuer
             operator = operator
-            bondAccountProvider = asset.account.provider
             regulators = regulators
             bondAssetDepositCid = bondAssetDepositCid
+            bondAccount = asset.account
             bondAssetId = asset.asset.id
             auctionAgent = auctionAgent
             startDate = startDate
@@ -134,9 +134,9 @@ template CommissionBotTrigger
   with
     issuer: Party
     operator: Party
-    bondAccountProvider: Party
     regulators: [Party]
     bondAssetDepositCid: ContractId AssetDeposit
+    bondAccount: Account
     bondAssetId: Id
     auctionAgent: Party
     startDate: Date
@@ -154,6 +154,7 @@ template CommissionBotTrigger
         with
           bondAssetFungibleCid: ContractId AssetFungible
           bondAssetSettlementCid: ContractId AssetSettlement
+          cashAssetSettlementCid: ContractId AssetSettlement
           fixedRateBondFactCid: ContractId FixedRateBondFact
         do
           bondAssetDeposit <- fetch bondAssetDepositCid
@@ -172,7 +173,7 @@ template CommissionBotTrigger
                 auctionAgent = auctionAgent
                 issuer = issuer
                 operator = operator
-                bondAccountProvider = bondAccountProvider
+                bondAccount = bondAccount
                 regulators = regulators
                 startDate = startDate
                 endDate = endDate
@@ -181,7 +182,7 @@ template CommissionBotTrigger
                 fixedRateBondFact = fixedRateBondFact
                 cashAssetId = cashAssetId
                 issuerCashAccount = cashAccount
-                bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetFungibleCid bondAssetSettlementCid observedBondAssetDeposit.asset.id.label
+                bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetFungibleCid bondAssetSettlementCid cashAssetSettlementCid observedBondAssetDeposit.asset.id.label
                 invitedBidders = []
                 auctionName = ""
 
