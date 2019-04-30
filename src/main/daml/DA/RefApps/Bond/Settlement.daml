@@ -34,6 +34,8 @@ template AuctionSettleRequest
     issuerBondAssetDepositCid: ContractId AssetDeposit
     issuerBondAssetDeposit: AssetDeposit
     cashAmountToPay: Decimal
+    bondSettlementChainCid: ContractId AssetSettlementChain
+    issuerCashSettlementCid: ContractId AssetSettlement
     regulators: [Party]
   where
     signatory issuer
@@ -51,7 +53,7 @@ template InvestorSettlementBotTrigger
     settleRequestCids: [ContractId AuctionSettleRequest]
     regulators: [Party]
   where
-    signatory investor, issuer
+    signatory investor, issuer, auctionAgent
     observer regulators
 
     controller investor can
@@ -60,6 +62,7 @@ template InvestorSettlementBotTrigger
           bondAccount: Account
           auctionLockedCashCids: [ContractId AuctionLockedCash]
           cashAssetFungible: ContractId AssetFungible
+          investorCashSettlementCid: ContractId AssetSettlement
         do
 
         -- unlock
@@ -73,7 +76,7 @@ template InvestorSettlementBotTrigger
           -- process all settle requests
           (_, payoutInfos) <- foldlA (\(remaining, redemptionPayouts) settleRequestCid -> do
 
-          -- create DvP
+            -- create DvP
             settleRequest <- fetch $ head settleRequestCids
             let firstCashAssetCid = head remaining
             firstCashAsset <- fetch firstCashAssetCid
@@ -81,85 +84,44 @@ template InvestorSettlementBotTrigger
             assertMsg "Locked cash should be sufficient to finalize settlement" $ isSome mergeResult
             let (cashMergedForQuantityCid, remainingNew)  = fromSome $ mergeResult
             cashMergedForQuantity <- fetch cashMergedForQuantityCid
-            let masterAgreement = MasterAgreement with
-                  id = Id with
-                    signatories = Set.fromList [investor, issuer]
-                    label = "DvPMasterSettleAuctionMaster"
-                    version = 0
-                  party1 = investor
-                  party2 = issuer
-                tradeId = Id with
-                  signatories = Set.fromList [investor, issuer]
-                  label = "DvPMasterSettleAuctionTrade"
-                  version = 0
-                delivery = settleRequest.issuerBondAssetDeposit.asset
+            let delivery = settleRequest.issuerBondAssetDeposit.asset
                 payment = cashMergedForQuantity.asset
 
+            bondChain <- fetch settleRequest.bondSettlementChainCid
+
             dvpCid <- create Dvp with
-              masterAgreement = masterAgreement
-              tradeId = tradeId
+              masterAgreement = bondChain.masterAgreement
+              tradeId = bondChain.tradeId
               buyer = investor
-              status = SettlementStatus_Pending
+              status = SettlementStatus_Instructed
               settlementDate = None
               payments = [payment]
               deliveries = [delivery]
               observers = Set.fromList regulators
 
-            issuerBondSettlement <- create AssetSettlement with
-              account = settleRequest.issuerBondAssetDeposit.account
-              observers = Set.fromList regulators
-
-            issuerCashSettlement <- create AssetSettlement with
-              account = settleRequest.issuerCashAccount
-              observers = Set.fromList regulators
-
-            investorCashSettlement <- create AssetSettlement with
-              account = cashMergedForQuantity.account
-              observers = Set.fromList regulators
-
-            investorBondSettlement <- create AssetSettlement with
-              account = bondAccount
-              observers = Set.fromList regulators
-
-            let bondSettlementStep = AssetSettlementStep with
-                    sender = issuer
-                    receiver = investor
-                    depositCid = None
-                    creditSettlementCid = issuerBondSettlement
-                    debitSettlementCid = investorBondSettlement
-
-                cashSettlementStep = AssetSettlementStep with
+            let cashSettlementStep = AssetSettlementStep with
                     sender = investor
                     receiver = issuer
                     depositCid = None
-                    creditSettlementCid = investorCashSettlement
-                    debitSettlementCid = issuerCashSettlement
-
-            bondChain <- create AssetSettlementChain with
-              masterAgreement = masterAgreement
-              tradeId = tradeId
-              asset = settleRequest.issuerBondAssetDeposit.asset
-              steps = [bondSettlementStep]
-              observers = Set.fromList regulators
+                    creditSettlementCid = investorCashSettlementCid
+                    debitSettlementCid = settleRequest.issuerCashSettlementCid
 
             cashChain <- create AssetSettlementChain with
-              masterAgreement = masterAgreement
-              tradeId = tradeId
+              masterAgreement = bondChain.masterAgreement
+              tradeId = bondChain.tradeId
               asset = cashMergedForQuantity.asset
               steps = [cashSettlementStep]
               observers = Set.fromList regulators
-
-            allocatedBondChain <- exercise bondChain $ AssetSettlementChain_AllocateNext settleRequest.issuerBondAssetDepositCid
 
             allocatedCashChain <- exercise cashChain $ AssetSettlementChain_AllocateNext cashMergedForQuantityCid
 
             let settleParam = DvpSettlement_Process_Param with
                   dvpCid = dvpCid
                   paymentChainCids = [allocatedCashChain]
-                  deliveryChainCids = [allocatedBondChain]
+                  deliveryChainCids = [settleRequest.bondSettlementChainCid]
 
             dvpSettlement <- create DvpSettlement with
-              masterAgreement = masterAgreement
+              masterAgreement = bondChain.masterAgreement
               observers = Set.fromList regulators
 
             result <- exercise dvpSettlement DvpSettlement_Process1 with
@@ -171,7 +133,7 @@ template InvestorSettlementBotTrigger
                   bondAccountProvider = settleRequest.issuerBondAssetDeposit.account.provider
                   investorCashAccount = firstCashAsset.account
                   settlementResult = result
-                  investorCashAssetSettlementCid = investorCashSettlement
+                  investorCashAssetSettlementCid = investorCashSettlementCid
                   regulators = regulators
 
             return (remainingNew, redemptionPayout :: redemptionPayouts)

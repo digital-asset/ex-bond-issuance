@@ -152,6 +152,7 @@ template CommissionBotTrigger
         with
           bondAssetFungibleCid: ContractId AssetFungible
           bondAssetSettlementCid: ContractId AssetSettlement
+          cashAssetSettlementCid: ContractId AssetSettlement
           fixedRateBondFactCid: ContractId FixedRateBondFact
           issuerCashAccount: Account
         do
@@ -180,7 +181,7 @@ template CommissionBotTrigger
                 fixedRateBondFact = fixedRateBondFact
                 cashAssetId = cashAssetId
                 issuerCashAccount = issuerCashAccount
-                bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetFungibleCid bondAssetSettlementCid observedBondAssetDeposit.asset.id.label
+                bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetFungibleCid bondAssetSettlementCid cashAssetSettlementCid observedBondAssetDeposit.asset.id.label
                 invitedBidders = []
                 auctionName = ""
 
