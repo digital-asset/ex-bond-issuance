@@ -1,0 +1,33 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.FixedRateBond where
+
+import DA.Finance.Types
+
+-- FixedRateBondFact
+-- FixedRateBondFact is instrument reference data for a bond.
+-- The link between the instrument reference data and the AssetFact is provided by the InstrumentId.
+template FixedRateBondFact
+  with
+    -- general
+    provider : Party
+    instrumentId : Id
+    observers : [Party]
+    -- specific
+    isin : Text
+    currency : Text
+    denomination : Decimal
+    rate : Decimal -- i.e., bullet cpn rate
+    paymentLag : Int
+    couponDates : [Date]
+    couponDatesTriggered : [Date]
+    issueDate : Date
+    maturityDate: Date
+  where
+    signatory provider
+    observer observers
+    ensure denomination > 0.0 && rate > 0.0 && length couponDates >= 0 && paymentLag >= 0

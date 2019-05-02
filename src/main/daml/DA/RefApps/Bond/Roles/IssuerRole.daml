@@ -13,8 +13,7 @@ import DA.Finance.Types
 import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 
-import DA.Finance.Instruments.FixedRateBond
-
+import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Util
 import DA.RefApps.Bond.Redemption
@@ -217,7 +216,6 @@ template IssuanceRequest
                 signatories = fromList [bondAccount.provider]
                 label = isin
                 version = 0
-              cashId = currencyInstrumentId currency
               id = Id with
                 signatories = bondAccount.id.signatories
                 label = isin
@@ -232,7 +230,7 @@ template IssuanceRequest
             provider = bondAccount.provider
             instrumentId = bondId
             isin = isin
-            cashInstrumentId = cashId
+            currency = currency
             rate = couponRate
             paymentLag = 0
             denomination = denomination

@@ -10,8 +10,7 @@ import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 import DA.Finance.Types
 
-import DA.Finance.Instruments.FixedRateBond
-
+import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Lock
 import DA.Date

@@ -13,14 +13,13 @@ import DA.List
 import DA.Time
 import DA.Optional
 import DA.Assert
-import DA.Finance.OldTypes
-import DA.Finance.Instruments.FixedRateBond
 
 import DA.Finance.Types
 import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 
 import DA.RefApps.Bond.Lock
+import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Roles.CentralBankRole
 import DA.RefApps.Bond.Roles.CsdRole
 import DA.RefApps.Bond.Roles.OperatorRole
@@ -42,7 +41,6 @@ data TestIssuance = TestIssuance {
   roles: TestRoles
 , fixedRateBondFactCid: ContractId FixedRateBondFact
 , bondBundleData: BondBundleData
--- , cashInstrumentKey: InstrumentKey
 , cashAccounts: Accounts
 , bondAccounts: Accounts
 , cashAssets: CashAssets
@@ -219,7 +217,6 @@ setupIssuance: Scenario TestIssuance = scenario do
   csd <- getParty "CSD"
 
   let cashAccountId = "cashaccount"
-      instrumentId = InstrumentId "USD" 0
 
       issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
       bank1CashAccount = createAccount bank1 centralBank "Bank1CashAccount"
@@ -386,7 +383,6 @@ startAuction = \(issuance: TestIssuance) -> scenario do
       bidders = [bank1, bank2, bank3]
 
   pass $ seconds 1
-  return ()
 
   -- An other parallel auction ----------------------------
   (otherAuctionInvitation, _) <- submit issuer do
@@ -702,7 +698,6 @@ redemption = \(issuance: TestIssuance)
   -- complete instructions
 
   payments <- submit issuer do
-    --transferRule <- exercise rawTransferRule $ AssetTransferRule_SetObservers [bank1, bank2, bank3]
     exercise redemptionFinalizer $ RedemptionFinalizeBotTrigger_Finalize with
       cashAssetDepositCids = [issuance.cashAssets.issuerCashDepositCid] --transferRule splitAndMergeRule
       cashAssetSettlementCid = issuance.rules.issuerCashSettlementCid

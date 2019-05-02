@@ -65,7 +65,7 @@ template InvestorSettlementBotTrigger
           investorCashSettlementCid: ContractId AssetSettlement
         do
 
-        -- unlock
+          -- unlock
           investorCashAssetDepositCids <- forA auctionLockedCashCids \lockCid -> do
             lock <- fetch lockCid
             assertMsg "Lock should be owned by the settling party" $ lock.owner == investor
@@ -130,6 +130,7 @@ template InvestorSettlementBotTrigger
             redemptionPayout <- create RedemptionPayoutInfo with
                   issuer = issuer
                   investor = investor
+                  bondInstrumentId = delivery.id
                   bondAccountProvider = settleRequest.issuerBondAssetDeposit.account.provider
                   investorCashAccount = firstCashAsset.account
                   settlementResult = result

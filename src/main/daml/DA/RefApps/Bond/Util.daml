@@ -9,13 +9,7 @@ module DA.RefApps.Bond.Util where
 import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 
-import DA.Finance.OldTypes
 import DA.List
-
-currencyInstrumentId currency
-    = InstrumentId with
-        label = currency
-        version = 0
 
 data BondBundleData = BondBundleData {
   assetDepositCid: ContractId AssetDeposit
