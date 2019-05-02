@@ -52,7 +52,6 @@ template CentralBankRole
     controller centralBank can
       nonconsuming CentralBankRole_IssueCash: ContractId AssetDeposit
         with
-          owner: Party
           account: Account
           currency: Text
           quantity: Decimal
