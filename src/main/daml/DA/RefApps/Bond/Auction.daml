@@ -362,6 +362,7 @@ template BidderParticipation
           let bidData = BidData price quantity now
           create PlaceBidBotTrigger with
             cashAssetId = cashAssetId
+            cashProvider = issuerCashAccount.provider
             bidder = bidder
             auctionAgent = auctionAgent
             issuer = issuer
@@ -390,6 +391,7 @@ template BidderParticipation
 template PlaceBidBotTrigger
   with
     cashAssetId: Id
+    cashProvider: Party
     bidder: Party
     auctionAgent: Party
     issuer: Party

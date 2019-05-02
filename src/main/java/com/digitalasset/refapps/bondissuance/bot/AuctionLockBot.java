@@ -19,10 +19,11 @@ import com.digitalasset.refapps.bondissuance.util.BotUtil;
 import com.digitalasset.refapps.bondissuance.util.CommandsAndPendingSetBuilder;
 import com.digitalasset.refapps.bondissuance.util.TimeManager;
 import com.google.common.collect.Sets;
-import da.finance.asset.fact.AssetFact;
-import da.finance.asset.lock.AssetLockRule;
-import da.finance.asset.splitandmerge.AssetSplitAndMergeRule;
+import da.finance.fact.asset.AssetDeposit;
+import da.finance.rule.asset.AssetFungible;
+import da.finance.rule.asset.AssetSettlement;
 import da.refapps.bond.auction.PlaceBidBotTrigger;
+import da.refapps.bond.lock.AssetLockRule;
 import io.reactivex.Flowable;
 import java.util.Collections;
 import java.util.List;
@@ -37,99 +38,113 @@ import org.slf4j.Logger;
  */
 public class AuctionLockBot {
 
-//  public final TransactionFilter transactionFilter;
-//  private final Logger logger;
-//  private final CommandsAndPendingSetBuilder commandBuilder;
-//
-//  public AuctionLockBot(TimeManager timeManager, String appId, String partyName) {
-//    String workflowId = "WORKFLOW-" + partyName + "-AuctionLockBot-" + UUID.randomUUID().toString();
-//    logger = BotLogger.getLogger(InviteAgentBot.class, workflowId);
-//    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
-//
-//    Filter messageFilter =
-//        new InclusiveFilter(
-//            Sets.newHashSet(
-//                AssetFact.TEMPLATE_ID,
-//                AssetLockRule.TEMPLATE_ID,
-//                AssetSplitAndMergeRule.TEMPLATE_ID,
-//                PlaceBidBotTrigger.TEMPLATE_ID));
-//
-//    transactionFilter = new FiltersByParty(Collections.singletonMap(partyName, messageFilter));
-//
-//    logger.info("Startup completed");
-//  }
-//
-//  public Flowable<CommandsAndPendingSet> calculateCommands(
-//      LedgerViewFlowable.LedgerView<Template> ledgerView) {
-//    // collecting the trigger contracts from the ledger
-//    Map<String, PlaceBidBotTrigger> lockRequests =
-//        BotUtil.filterTemplates(
-//            PlaceBidBotTrigger.class, ledgerView.getContracts(PlaceBidBotTrigger.TEMPLATE_ID));
-//
-//    // collecting AssetFact contracts from the ledger
-//    Map<String, AssetFact> assetFacts =
-//        BotUtil.filterTemplates(AssetFact.class, ledgerView.getContracts(AssetFact.TEMPLATE_ID));
-//
-//    // collecting splitAndMergeRule contracts from the ledger
-//    Map<String, AssetSplitAndMergeRule> assetSplitAndMergeRules =
-//        BotUtil.filterTemplates(
-//            AssetSplitAndMergeRule.class,
-//            ledgerView.getContracts(AssetSplitAndMergeRule.TEMPLATE_ID));
-//
-//    // collecting lockRule contracts from the ledger
-//    Map<String, AssetLockRule> assetLockRules =
-//        BotUtil.filterTemplates(
-//            AssetLockRule.class, ledgerView.getContracts(AssetLockRule.TEMPLATE_ID));
-//
-//    CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
-//
-//    if (lockRequests.size() > 0) {
-//      // Do one locking at a time as we consume the cash asset
-//      Map.Entry<String, PlaceBidBotTrigger> lockRequest = lockRequests.entrySet().iterator().next();
-//
-//      PlaceBidBotTrigger.ContractId triggerCid =
-//          new PlaceBidBotTrigger.ContractId(lockRequest.getKey());
-//
-//      // find relevant assets
-//      List<AssetFact.ContractId> cashAssets =
-//          AssetUtil.findAssetFactCids(
-//              assetFacts,
-//              lockRequest.getValue().cashInstrumentKey.provider,
-//              lockRequest.getValue().cashInstrumentKey.instrumentId);
-//
-//      // pick a lock rule
-//      AssetLockRule.ContractId lockRule =
-//          AssetUtil.findLockRule(
-//              assetLockRules, lockRequest.getValue().cashInstrumentKey.provider, logger);
-//
-//      // pick a splitAndMerge rule
-//      AssetSplitAndMergeRule.ContractId splitAndMergeRule =
-//          AssetUtil.findSplitAndMergeRule(
-//              assetSplitAndMergeRules, lockRequest.getValue().cashInstrumentKey.provider, logger);
-//
-//      // exercise the choice
-//      builder.addCommand(
-//          triggerCid.exercisePlaceBidBotTrigger_LockCash(cashAssets, splitAndMergeRule, lockRule));
-//    }
-//    return builder.buildFlowable();
-//  }
-//
-//  public Template getContractInfo(CreatedContract createdContract) {
-//    Value args = createdContract.getCreateArguments();
-//    if (createdContract.getTemplateId().equals(PlaceBidBotTrigger.TEMPLATE_ID)) {
-//      return PlaceBidBotTrigger.fromValue(args);
-//    } else if (createdContract.getTemplateId().equals(AssetFact.TEMPLATE_ID)) {
-//      return AssetFact.fromValue(args);
-//    } else if (createdContract.getTemplateId().equals(AssetLockRule.TEMPLATE_ID)) {
-//      return AssetLockRule.fromValue(args);
-//    } else if (createdContract.getTemplateId().equals(AssetSplitAndMergeRule.TEMPLATE_ID)) {
-//      return AssetSplitAndMergeRule.fromValue(args);
-//    } else {
-//      String msg =
-//          "AuctionLockBot encountered an unknown contract of type "
-//              + createdContract.getTemplateId();
-//      logger.error(msg);
-//      throw new IllegalStateException(msg);
-//    }
-//  }
+  public final TransactionFilter transactionFilter;
+  private final Logger logger;
+  private final CommandsAndPendingSetBuilder commandBuilder;
+
+  public AuctionLockBot(TimeManager timeManager, String appId, String partyName) {
+    String workflowId = "WORKFLOW-" + partyName + "-AuctionLockBot-" + UUID.randomUUID().toString();
+    logger = BotLogger.getLogger(InviteAgentBot.class, workflowId);
+    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
+
+    Filter messageFilter =
+        new InclusiveFilter(
+            Sets.newHashSet(
+                AssetDeposit.TEMPLATE_ID,
+                AssetLockRule.TEMPLATE_ID,
+                AssetFungible.TEMPLATE_ID,
+                AssetSettlement.TEMPLATE_ID,
+                PlaceBidBotTrigger.TEMPLATE_ID));
+
+    transactionFilter = new FiltersByParty(Collections.singletonMap(partyName, messageFilter));
+
+    logger.info("Startup completed");
+  }
+
+  public Flowable<CommandsAndPendingSet> calculateCommands(
+      LedgerViewFlowable.LedgerView<Template> ledgerView) {
+    // collecting the trigger contracts from the ledger
+    Map<String, PlaceBidBotTrigger> lockRequests =
+        BotUtil.filterTemplates(
+            PlaceBidBotTrigger.class, ledgerView.getContracts(PlaceBidBotTrigger.TEMPLATE_ID));
+
+    // collecting AssetDeposit contracts from the ledger
+    Map<String, AssetDeposit> assetDeposits =
+        BotUtil.filterTemplates(AssetDeposit.class, ledgerView.getContracts(AssetDeposit.TEMPLATE_ID));
+
+    // collecting AssetFungible contracts from the ledger
+    Map<String, AssetFungible> assetFungibles =
+        BotUtil.filterTemplates(
+            AssetFungible.class,
+            ledgerView.getContracts(AssetFungible.TEMPLATE_ID));
+
+    // collecting AssetSettlement contracts from the ledger
+    Map<String, AssetSettlement> assetSettlements =
+        BotUtil.filterTemplates(
+            AssetSettlement.class,
+            ledgerView.getContracts(AssetSettlement.TEMPLATE_ID));
+
+    // collecting lockRule contracts from the ledger
+    Map<String, AssetLockRule> assetLockRules =
+        BotUtil.filterTemplates(
+            AssetLockRule.class, ledgerView.getContracts(AssetLockRule.TEMPLATE_ID));
+
+    CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
+
+    if (lockRequests.size() > 0) {
+      // Do one locking at a time as we consume the cash asset
+      Map.Entry<String, PlaceBidBotTrigger> lockRequest = lockRequests.entrySet().iterator().next();
+
+      PlaceBidBotTrigger.ContractId triggerCid =
+          new PlaceBidBotTrigger.ContractId(lockRequest.getKey());
+
+      // find relevant assets
+      List<AssetDeposit.ContractId> cashAssets =
+          AssetUtil.findAssetDepositCids(
+              assetDeposits,
+              lockRequest.getValue().cashAssetId);
+
+      // pick a lock rule
+      AssetLockRule.ContractId lockRule =
+          AssetUtil.findLockRule(
+              assetLockRules, lockRequest.getValue().cashProvider, logger);
+
+      // pick a AssetFungible
+      AssetFungible.ContractId assetFungible =
+          AssetUtil.findAssetFungible(
+              assetFungibles, lockRequest.getValue().cashProvider, lockRequest.getValue().bidder, logger);
+
+      // pick a AssetSettlement
+      AssetSettlement.ContractId assetSettlement =
+          AssetUtil.findAssetSettlement(
+              assetSettlements, lockRequest.getValue().cashProvider, lockRequest.getValue().bidder, logger);
+
+
+      // exercise the choice
+      builder.addCommand(
+          triggerCid.exercisePlaceBidBotTrigger_LockCash(cashAssets, assetFungible, lockRule, assetSettlement));
+    }
+    return builder.buildFlowable();
+  }
+
+  public Template getContractInfo(CreatedContract createdContract) {
+    Value args = createdContract.getCreateArguments();
+    if (createdContract.getTemplateId().equals(PlaceBidBotTrigger.TEMPLATE_ID)) {
+      return PlaceBidBotTrigger.fromValue(args);
+    } else if (createdContract.getTemplateId().equals(AssetDeposit.TEMPLATE_ID)) {
+      return AssetDeposit.fromValue(args);
+    } else if (createdContract.getTemplateId().equals(AssetLockRule.TEMPLATE_ID)) {
+      return AssetLockRule.fromValue(args);
+    } else if (createdContract.getTemplateId().equals(AssetFungible.TEMPLATE_ID)) {
+      return AssetFungible.fromValue(args);
+    } else if (createdContract.getTemplateId().equals(AssetSettlement.TEMPLATE_ID)) {
+      return AssetSettlement.fromValue(args);
+    } else {
+      String msg =
+          "AuctionLockBot encountered an unknown contract of type "
+              + createdContract.getTemplateId();
+      logger.error(msg);
+      throw new IllegalStateException(msg);
+    }
+  }
 }
