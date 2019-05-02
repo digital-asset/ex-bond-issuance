@@ -101,16 +101,17 @@ data AssetsForRedemption = AssetsForRedemption {
 }
 
 data Rules = Rules {
-  issuerAssetSettlementCid: ContractId AssetSettlement
+  issuerCashSettlementCid: ContractId AssetSettlement
 , bank1BondSettlementCid: ContractId AssetSettlement
 , bank2BondSettlementCid: ContractId AssetSettlement
 , bank3BondSettlementCid: ContractId AssetSettlement
 , bank1CashSettlementCid: ContractId AssetSettlement
 , bank2CashSettlementCid: ContractId AssetSettlement
 , bank3CashSettlementCid: ContractId AssetSettlement
-, bank1AssetFungibleCid: ContractId AssetFungible
-, bank2AssetFungibleCid: ContractId AssetFungible
-, bank3AssetFungibleCid: ContractId AssetFungible
+, issuerCashFungibleCid: ContractId AssetFungible
+, bank1CashFungibleCid: ContractId AssetFungible
+, bank2CashFungibleCid: ContractId AssetFungible
+, bank3CashFungibleCid: ContractId AssetFungible
 , bank1LockRuleCid: ContractId AssetLockRule
 , bank2LockRuleCid: ContractId AssetLockRule
 , bank3LockRuleCid: ContractId AssetLockRule
@@ -249,13 +250,16 @@ setupIssuance: Scenario TestIssuance = scenario do
     bank3Lock <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank3 bank3CashAccount
     return (bank3Settlement, bank3Fungible, bank3Lock, bank3CashAsset)
 --FIXME: remove all CreateNNNRUle
-  (issuerCashAsset, issuerCashSettlement) <- submit centralBank do
+  (issuerCashAsset, issuerCashSettlement, issuerCashFungibleCid) <- submit centralBank do
     issuerCashAsset <- exercise testRoles.centralBankRoleCid $ CentralBankRole_IssueCash issuer issuerCashAccount "USD" 100000000.0
     issuerSettlement <- create AssetSettlement with
             account = issuerCashAccount
             observers = fromList [auctionAgent, bank1, bank2, bank3]
     -- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuer issuerCashAccount
-    return (issuerCashAsset, issuerSettlement)
+    issuerCashFungibleCid <- create AssetFungible with
+            account = issuerCashAccount
+            observers = empty
+    return (issuerCashAsset, issuerSettlement, issuerCashFungibleCid)
 
   (issuerFungibleRule, issuerBondSettlement) <- submit csd do
     issuerFungibleRule <- create AssetFungible with
@@ -300,13 +304,14 @@ setupIssuance: Scenario TestIssuance = scenario do
   let bondAccounts = Accounts issuerBondAccount bank1BondAccount bank2BondAccount bank3BondAccount
   let cashAssets = CashAssets issuerCashAsset bank1CashAsset bank2CashAsset bank3CashAsset
   let rules = Rules
-        issuerBondSettlement
+        issuerCashSettlement
         bank1BondSettlement
         bank2BondSettlement
         bank3BondSettlement
         bank1CashSettlement
         bank2CashSettlement
         bank3CashSettlement
+        issuerCashFungibleCid
         bank1Fungible
         bank2Fungible
         bank3Fungible
@@ -433,7 +438,7 @@ startAuction = \(issuance: TestIssuance) -> scenario do
         quantity = 200000
       lockCashResult <- exercise bidLockReq PlaceBidBotTrigger_LockCash with
         cashDepositCids = [issuance.cashAssets.bank1CashDepositCid]
-        cashAssetFungibleCid = issuance.rules.bank1AssetFungibleCid
+        cashAssetFungibleCid = issuance.rules.bank1CashFungibleCid
         lockRuleCid = issuance.rules.bank1LockRuleCid
         investorBondAssetSettlementCid = issuance.rules.bank1BondSettlementCid
 
@@ -449,7 +454,7 @@ startAuction = \(issuance: TestIssuance) -> scenario do
         quantity = 800000
       lockCashResult1 <- exercise bidLockReq1 PlaceBidBotTrigger_LockCash with
         cashDepositCids = [issuance.cashAssets.bank2CashDepositCid]
-        cashAssetFungibleCid = issuance.rules.bank2AssetFungibleCid
+        cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
         lockRuleCid = issuance.rules.bank2LockRuleCid
         investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
 
@@ -459,7 +464,7 @@ startAuction = \(issuance: TestIssuance) -> scenario do
         quantity = 500000
       lockCashResult2 <- exercise bidLockReq2 PlaceBidBotTrigger_LockCash with
         cashDepositCids = rest
-        cashAssetFungibleCid = issuance.rules.bank2AssetFungibleCid
+        cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
         lockRuleCid = issuance.rules.bank2LockRuleCid
         investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
 
@@ -469,7 +474,7 @@ startAuction = \(issuance: TestIssuance) -> scenario do
         quantity = 500000
       lockCashResult3 <- exercise bidLockReq3 PlaceBidBotTrigger_LockCash with
         cashDepositCids = rest'
-        cashAssetFungibleCid = issuance.rules.bank2AssetFungibleCid
+        cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
         lockRuleCid = issuance.rules.bank2LockRuleCid
         investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
 
@@ -485,7 +490,7 @@ startAuction = \(issuance: TestIssuance) -> scenario do
         quantity = 400000
       lockCashResult <- exercise bidLockReq PlaceBidBotTrigger_LockCash with
         cashDepositCids = [issuance.cashAssets.bank3CashDepositCid]
-        cashAssetFungibleCid = issuance.rules.bank3AssetFungibleCid
+        cashAssetFungibleCid = issuance.rules.bank3CashFungibleCid
         lockRuleCid = issuance.rules.bank3LockRuleCid
         investorBondAssetSettlementCid = issuance.rules.bank3BondSettlementCid
 
@@ -506,7 +511,7 @@ startAuction = \(issuance: TestIssuance) -> scenario do
         quantity = 500000
       lockCashResult <- exercise bidLockReq PlaceBidBotTrigger_LockCash with
         cashDepositCids = bank1RemainingCash
-        cashAssetFungibleCid = issuance.rules.bank1AssetFungibleCid
+        cashAssetFungibleCid = issuance.rules.bank1CashFungibleCid
         lockRuleCid = issuance.rules.bank1LockRuleCid
         investorBondAssetSettlementCid = issuance.rules.bank1BondSettlementCid
 
@@ -616,7 +621,7 @@ doSettlement = \(issuance: TestIssuance)
     settlementStarted <- exercise settleRequests.bank1SettleReqCid AuctionParticipantSettleRequest_Settle
     [rdmpPayoutInfoCid] <- exercise settlementStarted InvestorSettlementBotTrigger_Finalize with
       bondAccount = issuance.bondAccounts.bank1Account
-      cashAssetFungible = issuance.rules.bank1AssetFungibleCid
+      cashAssetFungible = issuance.rules.bank1CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank1Locks
       investorCashSettlementCid = issuance.rules.bank1CashSettlementCid
     rdmpPayoutInfo <- fetch rdmpPayoutInfoCid
@@ -632,7 +637,7 @@ doSettlement = \(issuance: TestIssuance)
     settlementStarted <- exercise settleRequests.bank2SettleReqCid AuctionParticipantSettleRequest_Settle
     [rdmpPayoutInfoCid] <- exercise  settlementStarted InvestorSettlementBotTrigger_Finalize with
       bondAccount = issuance.bondAccounts.bank2Account
-      cashAssetFungible = issuance.rules.bank2AssetFungibleCid
+      cashAssetFungible = issuance.rules.bank2CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank2Locks
       investorCashSettlementCid = issuance.rules.bank2CashSettlementCid
     rdmpPayoutInfo <- fetch rdmpPayoutInfoCid
@@ -649,7 +654,7 @@ doSettlement = \(issuance: TestIssuance)
     settlementStarted <- exercise settleRequests.bank3SettleReqCid AuctionParticipantSettleRequest_Settle
     [rdmpPayoutInfoCid] <- exercise  settlementStarted InvestorSettlementBotTrigger_Finalize with
       bondAccount = issuance.bondAccounts.bank3Account
-      cashAssetFungible = issuance.rules.bank3AssetFungibleCid
+      cashAssetFungible = issuance.rules.bank3CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank3Locks
       investorCashSettlementCid = issuance.rules.bank3CashSettlementCid
     rdmpPayoutInfo <- fetch rdmpPayoutInfoCid
@@ -683,70 +688,61 @@ doSettlement = \(issuance: TestIssuance)
     bank2RedemptionPayoutInfoCid = rdmpPI2
     bank3RedemptionPayoutInfoCid = rdmpPI3
 
--- redemption = \(issuance: TestIssuance)
---               (assetsForRedemption: AssetsForRedemption)
---               (remainedBondAsset: ContractId AssetFact)
---               (settleRequests: SettleRequests) ->  scenario do
---   centralBank <- getParty "CentralBank"
---   issuer <- getParty "Issuer"
---   bank1 <- getParty "Bank1"
---   bank2 <- getParty "Bank2"
---   bank3 <- getParty "Bank3"
---   csd <- getParty "CSD"
+redemption = \(issuance: TestIssuance)
+              (assetsForRedemption: AssetsForRedemption)
+              (remainedBondDeposit: ContractId AssetDeposit)
+              (settleRequests: SettleRequests) ->  scenario do
+  centralBank <- getParty "CentralBank"
+  issuer <- getParty "Issuer"
+  bank1 <- getParty "Bank1"
+  bank2 <- getParty "Bank2"
+  bank3 <- getParty "Bank3"
+  csd <- getParty "CSD"
 
---   -- request redemption at CSD
---   passToDate maturity
+  -- request redemption at CSD
+  passToDate maturity
 
---   (request, otherAllocationFact) <- submit issuer do
---     redeemRequest <- exercise issuance.roles.issuerRoleCid $ IssuerRole_Redeem issuance.fixedRateBondFactCid
---     otherParticipantReq <- fetch settleRequests.otherSettleReqCid
---     otherSettleReq <- fetch $ head otherParticipantReq.settleRequestCids
---     allocationFact <- fetch otherSettleReq.allocationResultData.allocationFactCid
---     return (redeemRequest, allocationFact)
+  (request, leftOverSettlementChain) <- submit issuer do
+    redeemRequest <- exercise issuance.roles.issuerRoleCid $ IssuerRole_Redeem issuance.fixedRateBondFactCid
+    otherParticipantReq <- fetch settleRequests.otherSettleReqCid
+    otherSettleReq <- fetch $ head otherParticipantReq.settleRequestCids
+    return (redeemRequest, otherSettleReq.bondSettlementChainCid)
 
---   (redemptionFinalizer, lockArchivalRequests) <- submit csd do
---     calc <- exercise request RedemptionRequest_Accept
---     exercise calc $ RedemptionCalculationBotTrigger_Start
---       [assetsForRedemption.bank1RedemptionPayoutInfoCid, assetsForRedemption.bank2RedemptionPayoutInfoCid, assetsForRedemption.bank3RedemptionPayoutInfoCid]
---       [remainedBondAsset]
---       otherAllocationFact.paymentFactCids
+  redemptionFinalizer <- submit csd do
+    calc <- exercise request RedemptionRequest_Accept
+    exercise calc $ RedemptionCalculationBotTrigger_Start
+      [assetsForRedemption.bank1RedemptionPayoutInfoCid, assetsForRedemption.bank2RedemptionPayoutInfoCid, assetsForRedemption.bank3RedemptionPayoutInfoCid]
+      [remainedBondDeposit]
 
---   -- request transfer rules at CentralBank
+  -- complete instructions
 
---   (rawTransferRule, splitAndMergeRule) <- submit centralBank do
---     tr <- exercise issuance.roles.centralBankRoleCid $ CentralBankRole_CreateTransferRule issuer
---     smr <- exercise issuance.roles.centralBankRoleCid $ CentralBankRole_CreateSplitAndMergeRule issuer
---     return (tr, smr)
+  payments <- submit issuer do
+    --transferRule <- exercise rawTransferRule $ AssetTransferRule_SetObservers [bank1, bank2, bank3]
+    exercise redemptionFinalizer $ RedemptionFinalizeBotTrigger_Finalize with
+      cashAssetDepositCids = [issuance.cashAssets.issuerCashDepositCid] --transferRule splitAndMergeRule
+      cashAssetSettlementCid = issuance.rules.issuerCashSettlementCid
+      cashAssetFungibleCid = issuance.rules.issuerCashFungibleCid
+      settlementChains = [leftOverSettlementChain]
 
---   -- complete instructions
+  -- check payments
 
---   payments <- submit issuer do
---     transferRule <- exercise rawTransferRule $ AssetTransferRule_SetObservers [bank1, bank2, bank3]
---     exercise redemptionFinalizer $ RedemptionFinalizeBotTrigger_Finalize [issuance.cashAssets.issuerCashAssetCid] transferRule splitAndMergeRule
+  submit bank1 do
+    payment <- fetch $ head $ tail $ tail payments
+    payment.asset.quantity === 8822000.0
+    payment.asset.id.label === "USD"
+    payment.account.owner === bank1
 
---   -- check payments
+  submit bank2 do
+    payment <- fetch $ head $ tail payments
+    payment.asset.quantity === 17644000.0
+    payment.asset.id.label === "USD"
+    payment.account.owner === bank2
 
---   submit bank1 do
---     payment <- fetch $ head $ tail $ tail payments
---     payment.quantity === 8822000.0
---     payment.assetId.instrumentId.label === "USD"
---     payment.accountId.owner === bank1
-
---   submit bank2 do
---     payment <- fetch $ head $ tail payments
---     payment.quantity === 17644000.0
---     payment.assetId.instrumentId.label === "USD"
---     payment.accountId.owner === bank2
-
---   submit bank3 do
---     payment <- fetch $ head payments
---     payment.quantity === 17644000.0
---     payment.assetId.instrumentId.label === "USD"
---     payment.accountId.owner === bank3
-
---   -- archive locked asset
---   submit bank1 do
---     exercise (head lockArchivalRequests) LockedBondArchivalRequest_Accept
+  submit bank3 do
+    payment <- fetch $ head payments
+    payment.asset.quantity === 17644000.0
+    payment.asset.id.label === "USD"
+    payment.account.owner === bank3
 
 -- Test with walking through all the supported steps of the workflow
 testFullScenario = scenario do
@@ -754,7 +750,6 @@ testFullScenario = scenario do
   issuance <- setupIssuance
   progress <- startAuction issuance
   (settleRequests, remainedBond) <- finalizeAuction progress
-  -- assetsForRedemption <-
-  doSettlement issuance settleRequests progress
-  -- redemption issuance assetsForRedemption remainedBond settleRequests
+  assetsForRedemption <- doSettlement issuance settleRequests progress
+  redemption issuance assetsForRedemption remainedBond settleRequests
   return ()

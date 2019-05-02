@@ -16,7 +16,6 @@ import DA.Finance.Rule.Asset
 import DA.Finance.Fact.Asset
 
 import DA.Finance.OldTypes
-import DA.Finance.Asset.Lock
 import DA.Finance.Instruments.FixedRateBond
 
 import DA.RefApps.Bond.Util
@@ -27,7 +26,7 @@ import DA.RefApps.Bond.Util
 -                                            +----------------------+                     |
 - Redemption process:                                                                     |
 -   IssuerRole_Redeem  ---+                                                               |
--                         |                                                               |
+-                         | (issuer)                                                      |
 -                         v                                                               v
 -               +--------------------+  Accept   +---------------------------------+    Start     +-----------------------+   Finalize
 -               | RedemptionRequest  |---------->| RedemptionCalculationBotTrigger | -----------> | RedemptionFinalizer   |------------>
@@ -118,34 +117,34 @@ template RedemptionCalculationBotTrigger
     signatory issuer, provider
     observer regulators
 
+--TODO: remove LockedBondArchivalRequest
     controller provider can
-      RedemptionCalculationBotTrigger_Start: (ContractId RedemptionFinalizeBotTrigger, [ContractId LockedBondArchivalRequest])
+      RedemptionCalculationBotTrigger_Start: ContractId RedemptionFinalizeBotTrigger
         with
           redemptionPayoutInfos: [ContractId RedemptionPayoutInfo]
           bondsAtIssuer: [ContractId AssetDeposit]
-          lockedAssets: [ContractId AssetLockedFact]
         do
           fixedRateBond <- fetch fixedRateBondFactCid
 
           -- archive the bonds left at issuer
-          forA bondsAtIssuer \assetDepositCid -> do
-            assetDeposit <- fetch assetDepositCid
-            assertMsg ("Account owner of bondsAtIssuer should be " <> show issuer) $ assetDeposit.account.owner == issuer
-            let depositInstrumentId = assetDeposit.asset.id
+          forA bondsAtIssuer \depositCid -> do
+            deposit <- fetch depositCid
+            assertMsg ("Account owner of bondsAtIssuer should be " <> show issuer) $ deposit.account.owner == issuer
+            let factInstrumentId = deposit.asset.id
             let bondInstrumentId = fixedRateBond.instrumentId
-            assertMsg ("Identifier of the asset [" <> show depositInstrumentId <> "] should match the bond [" <> show bondInstrumentId) $
-              depositInstrumentId == bondInstrumentId
-            archive assetDepositCid
+            assertMsg ("Identifier of the asset [" <> show factInstrumentId <> "] should match the bond [" <> show bondInstrumentId) $
+              factInstrumentId == bondInstrumentId
+            archive depositCid
 
           -- request archival of locked assets
-          lockRequests <- forA lockedAssets \lockedCid -> do
-            locked <- fetch lockedCid
-            create LockedBondArchivalRequest with
-              provider = provider
-              agent = locked.agent
-              issuer = issuer
-              lockedAssetFactCid = lockedCid
-              regulators = regulators
+          -- lockRequests <- forA lockedAssets \lockedCid -> do
+          --   locked <- fetch lockedCid
+          --   create LockedBondArchivalRequest with
+          --     provider = provider
+          --     agent = locked.agent
+          --     issuer = issuer
+          --     lockedAssetFactCid = lockedCid
+          --     regulators = regulators
 
 
           -- proceed with redemption of the sold bonds
@@ -187,7 +186,7 @@ template RedemptionCalculationBotTrigger
             cashAccountProvider = head cashProviders
             regulators = regulators
 
-          return (finalizer, lockRequests)
+          return finalizer
 
 data RedemptionInstruction = RedemptionInstruction
   with
@@ -246,8 +245,14 @@ template RedemptionFinalizeBotTrigger
           cashAssetDepositCids: [ContractId AssetDeposit] -- the cash assets this choice can merge and split the required payment from
           cashAssetSettlementCid: ContractId AssetSettlement
           cashAssetFungibleCid: ContractId AssetFungible
+          settlementChains: [ContractId AssetSettlementChain]
         do
           assertMsg "Cash asset parameter should not be empty" $ (length cashAssetDepositCids) > 0
+
+          -- archive settlement chains
+          -- forA settlementChains \settlementChainCid -> do
+          --   archive settlementChainCid
+
           processInstructions instructions cashAssetDepositCids cashAssetFungibleCid cashAssetSettlementCid []
 
 -- Helper contract to archive the bond assets (which needs signature of both
@@ -266,22 +271,3 @@ template BondArchivalRequest
     controller owner can
       BondArchivalRequest_Archive: ()
         do archive bondAssetDepositCid
-
--- Helper contract to archive the locked bond assets (which needs signature of both
--- the issuer and the provider (CSD))
-template LockedBondArchivalRequest
-  with
-    provider: Party
-    agent: Party
-    issuer: Party
-    lockedAssetFactCid: ContractId AssetLockedFact
-    regulators: [Party]
-  where
-    signatory provider, issuer
-    observer regulators
-
-    controller agent can
-      LockedBondArchivalRequest_Accept: ()
-        do
-          fact <- exercise lockedAssetFactCid AssetLockedFact_Unlock
-          archive fact
