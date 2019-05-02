@@ -14,8 +14,6 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.ISSUER;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.OPERATOR;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.TIME_MANAGER;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.USD_INSTRUMENT_ID;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.USD_INSTRUMENT_KEY;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSingleExercise;
 
 import com.daml.ledger.javaapi.data.Template;
@@ -26,7 +24,7 @@ import da.finance.asset.fact.AssetFact;
 import da.finance.asset.lock.AssetLockRule;
 import da.finance.asset.splitandmerge.AssetSplitAndMergeRule;
 import da.finance.asset.transfer.bilateral.AssetTransferRule;
-import da.finance.instruments.fixedratebond.FixedRateBondFact;
+import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.refapps.bond.auction.AuctionBid;
 import da.refapps.bond.auction.AuctionFinalizeBotTrigger;
 import da.refapps.bond.auction.BidData;

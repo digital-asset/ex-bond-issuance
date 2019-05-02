@@ -44,11 +44,9 @@ public class BotTestUtils {
 
   public static final String AUCTION_NAME = "Bond Auction";
 
-  public static final InstrumentId USD_INSTRUMENT_ID = new InstrumentId("USD", 0L);
-  public static final InstrumentKey USD_INSTRUMENT_KEY =
-      new InstrumentKey(CENTRAL_BANK, USD_INSTRUMENT_ID);
+  public static final String CURRENCY = "USD";
   public static final Id BOND_ID = new Id(null, "BOND-007", 0L);
-  public static final Id CASH_ID = new Id(null, "USD", 0L);
+  public static final Id CASH_ID = new Id(null, CURRENCY, 0L);
   public static final Id ISSUER_BOND_ACCOUNT_ID = new Id(null, "IssuerBondAccount", 0L);
   public static final Id ISSUER_CASH_ACCOUNT_ID = new Id(null, "IssuerCashAccount", 0L);
   public static final Account ISSUER_BOND_ACCOUNT = new Account(ISSUER_BOND_ACCOUNT_ID, CSD, ISSUER);
@@ -57,7 +55,7 @@ public class BotTestUtils {
   public static AssetFact addUsdIntoNewAccount(
       BigDecimal initialAmount, String accountOwnerName, String accountName) {
     return new AssetFact(
-        new AssetId(CENTRAL_BANK, new InstrumentId("USD", 0L), 0L),
+        new AssetId(CENTRAL_BANK, new InstrumentId(CURRENCY, 0L), 0L),
         initialAmount,
         new AccountId(CENTRAL_BANK, accountName, accountOwnerName),
         Collections.emptyList());

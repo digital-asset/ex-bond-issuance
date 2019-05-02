@@ -13,7 +13,6 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CSD;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.ISSUER;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.TIME_MANAGER;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.USD_INSTRUMENT_KEY;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.addUsdIntoNewAccount;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSingleExercise;
 

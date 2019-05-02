@@ -20,7 +20,7 @@ import com.digitalasset.refapps.bondissuance.LedgerTestView;
 import da.finance.account.fact.AccountFact;
 import da.finance.asset.fact.AssetFact;
 import da.finance.asset.lock.AssetLockedFact;
-import da.finance.instruments.fixedratebond.FixedRateBondFact;
+import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.refapps.bond.redemption.RedemptionCalculationBotTrigger;
 import da.refapps.bond.redemption.RedemptionPayoutInfo;
 import java.lang.reflect.InvocationTargetException;
