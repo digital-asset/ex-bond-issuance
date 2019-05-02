@@ -722,7 +722,6 @@ redemption = \(issuance: TestIssuance)
       cashAssetDepositCids = [issuance.cashAssets.issuerCashDepositCid] --transferRule splitAndMergeRule
       cashAssetSettlementCid = issuance.rules.issuerCashSettlementCid
       cashAssetFungibleCid = issuance.rules.issuerCashFungibleCid
-      settlementChains = [leftOverSettlementChain]
 
   -- check payments
 

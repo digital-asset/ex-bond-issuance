@@ -117,7 +117,6 @@ template RedemptionCalculationBotTrigger
     signatory issuer, provider
     observer regulators
 
---TODO: remove LockedBondArchivalRequest
     controller provider can
       RedemptionCalculationBotTrigger_Start: ContractId RedemptionFinalizeBotTrigger
         with
@@ -125,37 +124,26 @@ template RedemptionCalculationBotTrigger
           bondsAtIssuer: [ContractId AssetDeposit]
         do
           fixedRateBond <- fetch fixedRateBondFactCid
+          let bondInstrumentId = fixedRateBond.instrumentId
 
           -- archive the bonds left at issuer
           forA bondsAtIssuer \depositCid -> do
             deposit <- fetch depositCid
             assertMsg ("Account owner of bondsAtIssuer should be " <> show issuer) $ deposit.account.owner == issuer
             let factInstrumentId = deposit.asset.id
-            let bondInstrumentId = fixedRateBond.instrumentId
             assertMsg ("Identifier of the asset [" <> show factInstrumentId <> "] should match the bond [" <> show bondInstrumentId) $
               factInstrumentId == bondInstrumentId
             archive depositCid
-
-          -- request archival of locked assets
-          -- lockRequests <- forA lockedAssets \lockedCid -> do
-          --   locked <- fetch lockedCid
-          --   create LockedBondArchivalRequest with
-          --     provider = provider
-          --     agent = locked.agent
-          --     issuer = issuer
-          --     lockedAssetFactCid = lockedCid
-          --     regulators = regulators
-
 
           -- proceed with redemption of the sold bonds
           zippedInstructions <- forA redemptionPayoutInfos \redemptionPayoutInfoCid -> do
             payoutInfo <- fetch redemptionPayoutInfoCid
             let bondAssetDepositCid = head $ head payoutInfo.settlementResult.deliveryDepositCids
             asset <- fetch bondAssetDepositCid
-            -- assertMsg ("Bond owner [" <> (show asset.accountId.owner) <> "] and account owner [" <> (show payoutInfo.investor) <> "] should be the same") $
-            --   asset.accountId.owner == payoutInfo.investor
-            -- assertMsg ("Asset fact instrumentId [" <> show asset.assetId.instrumentId <> "] should match " <> show bondInstrumentId) $
-            --   asset.assetId.instrumentId == bondInstrumentId
+            assertMsg ("Bond owner [" <> (show asset.account.owner) <> "] and account owner [" <> (show payoutInfo.investor) <> "] should be the same") $
+              asset.account.owner == payoutInfo.investor
+            assertMsg ("Asset fact instrumentId [" <> show asset.asset.id <> "] should match " <> show bondInstrumentId) $
+              asset.asset.id == bondInstrumentId
             -- assertMsg ("RedemptionPayoutInfo instrumentId [" <> show payoutInfo.bondInstrumentId <> "] should match " <> show bondInstrumentId) $
             --   payoutInfo.bondInstrumentId == bondInstrumentId
             arcReq <- create BondArchivalRequest with
@@ -245,14 +233,8 @@ template RedemptionFinalizeBotTrigger
           cashAssetDepositCids: [ContractId AssetDeposit] -- the cash assets this choice can merge and split the required payment from
           cashAssetSettlementCid: ContractId AssetSettlement
           cashAssetFungibleCid: ContractId AssetFungible
-          settlementChains: [ContractId AssetSettlementChain]
         do
           assertMsg "Cash asset parameter should not be empty" $ (length cashAssetDepositCids) > 0
-
-          -- archive settlement chains
-          -- forA settlementChains \settlementChainCid -> do
-          --   archive settlementChainCid
-
           processInstructions instructions cashAssetDepositCids cashAssetFungibleCid cashAssetSettlementCid []
 
 -- Helper contract to archive the bond assets (which needs signature of both
