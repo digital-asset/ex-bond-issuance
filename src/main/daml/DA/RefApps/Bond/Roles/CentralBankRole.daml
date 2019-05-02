@@ -68,16 +68,15 @@ template CentralBankRole
 
       nonconsuming CentralBankRole_CreateSettlementRule: ContractId AssetSettlement
         with
-          owner: Party
           account: Account
+          observers: [Party]
         do
           create AssetSettlement with
             account = account
-            observers = empty
+            observers = fromList observers
 
       nonconsuming CentralBankRole_CreateFungibleRule: ContractId AssetFungible
         with
-          owner: Party
           account: Account
         do
           create AssetFungible with
@@ -86,7 +85,6 @@ template CentralBankRole
 
       nonconsuming CentralBankRole_CreateLockRule: ContractId AssetLockRule
         with
-          owner: Party
           account: Account
         do
           create AssetLockRule with

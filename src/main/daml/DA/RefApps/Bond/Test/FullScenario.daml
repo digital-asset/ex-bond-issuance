@@ -13,14 +13,13 @@ import DA.List
 import DA.Time
 import DA.Optional
 import DA.Assert
-import DA.Finance.OldTypes
-import DA.Finance.Instruments.FixedRateBond
 
 import DA.Finance.Types
 import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 
 import DA.RefApps.Bond.Lock
+import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Roles.CentralBankRole
 import DA.RefApps.Bond.Roles.CsdRole
 import DA.RefApps.Bond.Roles.OperatorRole
@@ -42,7 +41,6 @@ data TestIssuance = TestIssuance {
   roles: TestRoles
 , fixedRateBondFactCid: ContractId FixedRateBondFact
 , bondBundleData: BondBundleData
--- , cashInstrumentKey: InstrumentKey
 , cashAccounts: Accounts
 , bondAccounts: Accounts
 , cashAssets: CashAssets
@@ -219,7 +217,6 @@ setupIssuance: Scenario TestIssuance = scenario do
   csd <- getParty "CSD"
 
   let cashAccountId = "cashaccount"
-      instrumentId = InstrumentId "USD" 0
 
       issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
       bank1CashAccount = createAccount bank1 centralBank "Bank1CashAccount"
@@ -233,53 +230,38 @@ setupIssuance: Scenario TestIssuance = scenario do
   -- Rules and cash
   (bank1CashSettlement, bank1Fungible, bank1Lock, bank1CashAsset) <- submit centralBank do
     bank1CashAsset <- exercise testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank1 bank1CashAccount "USD" 50000000.0
-    bank1Settlement <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1 bank1CashAccount
-    bank1Fungible <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1 bank1CashAccount
-    bank1Lock <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank1 bank1CashAccount
+    bank1Settlement <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
+    bank1Fungible <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1CashAccount
+    bank1Lock <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
     return (bank1Settlement, bank1Fungible, bank1Lock, bank1CashAsset)
   (bank2CashSettlement, bank2Fungible, bank2Lock, bank2CashAsset) <- submit centralBank do
     bank2CashAsset <- exercise testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank2 bank2CashAccount "USD" 600000000.0
-    bank2Settlement <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2 bank2CashAccount
-    bank2Fungible <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank2 bank2CashAccount
-    bank2Lock <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank2 bank2CashAccount
+    bank2Settlement <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount []
+    bank2Fungible <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank2CashAccount
+    bank2Lock <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank2CashAccount
     return (bank2Settlement, bank2Fungible, bank2Lock, bank2CashAsset)
   (bank3CashSettlement, bank3Fungible, bank3Lock, bank3CashAsset) <- submit centralBank do
     bank3CashAsset <- exercise testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank3 bank3CashAccount "USD" 30000000.0
-    bank3Settlement <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3 bank3CashAccount
-    bank3Fungible <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank3 bank3CashAccount
-    bank3Lock <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank3 bank3CashAccount
+    bank3Settlement <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount []
+    bank3Fungible <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank3CashAccount
+    bank3Lock <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank3CashAccount
     return (bank3Settlement, bank3Fungible, bank3Lock, bank3CashAsset)
---FIXME: remove all CreateNNNRUle
+
   (issuerCashAsset, issuerCashSettlement, issuerCashFungibleCid) <- submit centralBank do
     issuerCashAsset <- exercise testRoles.centralBankRoleCid $ CentralBankRole_IssueCash issuer issuerCashAccount "USD" 100000000.0
-    issuerSettlement <- create AssetSettlement with
-            account = issuerCashAccount
-            observers = fromList [auctionAgent, bank1, bank2, bank3]
-    -- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuer issuerCashAccount
-    issuerCashFungibleCid <- create AssetFungible with
-            account = issuerCashAccount
-            observers = empty
-    return (issuerCashAsset, issuerSettlement, issuerCashFungibleCid)
+    issuerCashSettlement <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount [auctionAgent, bank1, bank2, bank3]
+    issuerCashFungibleCid <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule issuerCashAccount
+    return (issuerCashAsset, issuerCashSettlement, issuerCashFungibleCid)
 
   (issuerFungibleRule, issuerBondSettlement) <- submit csd do
-    issuerFungibleRule <- create AssetFungible with
-            account = issuerBondAccount
-            observers = fromList [auctionAgent]
-    issuerSettlementRule <- create AssetSettlement with
-            account = issuerBondAccount
-            observers = fromList [auctionAgent, bank1, bank2, bank3]
+    issuerFungibleRule <- exercise testRoles.csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
+    issuerSettlementRule <- exercise testRoles.csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
     return (issuerFungibleRule, issuerSettlementRule)
 
   (bank1BondSettlement, bank2BondSettlement, bank3BondSettlement) <- submit csd do
-    bank1Settlement <- create AssetSettlement with
-      account = bank1BondAccount
-      observers = empty
-    bank2Settlement <- create AssetSettlement with
-      account = bank2BondAccount
-      observers = empty
-    bank3Settlement <- create AssetSettlement with
-      account = bank3BondAccount
-      observers = empty
+    bank1Settlement <- exercise testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount []
+    bank2Settlement <- exercise testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank2BondAccount []
+    bank3Settlement <- exercise testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
     return (bank1Settlement, bank2Settlement, bank3Settlement)
 
   -- Bond Issuance ------------------------
@@ -401,7 +383,6 @@ startAuction = \(issuance: TestIssuance) -> scenario do
       bidders = [bank1, bank2, bank3]
 
   pass $ seconds 1
-  return ()
 
   -- An other parallel auction ----------------------------
   (otherAuctionInvitation, _) <- submit issuer do
@@ -714,12 +695,10 @@ redemption = \(issuance: TestIssuance)
   -- complete instructions
 
   payments <- submit issuer do
-    --transferRule <- exercise rawTransferRule $ AssetTransferRule_SetObservers [bank1, bank2, bank3]
     exercise redemptionFinalizer $ RedemptionFinalizeBotTrigger_Finalize with
       cashAssetDepositCids = [issuance.cashAssets.issuerCashDepositCid] --transferRule splitAndMergeRule
       cashAssetSettlementCid = issuance.rules.issuerCashSettlementCid
       cashAssetFungibleCid = issuance.rules.issuerCashFungibleCid
-      settlementChains = [leftOverSettlementChain]
 
   -- check payments
 
