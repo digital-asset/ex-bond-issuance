@@ -314,6 +314,7 @@ template AuctionFinalizeBotTrigger
               auctionName = auctionName
               settleRequestCids = requests
               invalidBidNotificationCids = notifications
+              cashProvider = issuerCashAccount.provider
               regulators = regulators
 
           -- archive participations --
@@ -496,6 +497,7 @@ template AuctionParticipantSettleRequest
     auctionName: Text
     settleRequestCids: [ContractId AuctionSettleRequest]
     invalidBidNotificationCids: [ContractId InvalidBidNotification]
+    cashProvider: Party
     regulators: [Party]
   where
     signatory issuer, auctionAgent
@@ -510,4 +512,5 @@ template AuctionParticipantSettleRequest
             auctionAgent = auctionAgent
             auctionName = auctionName
             settleRequestCids = settleRequestCids
+            cashProvider = cashProvider
             regulators = regulators

@@ -51,6 +51,7 @@ template InvestorSettlementBotTrigger
     auctionAgent: Party
     auctionName: Text
     settleRequestCids: [ContractId AuctionSettleRequest]
+    cashProvider: Party
     regulators: [Party]
   where
     signatory investor, issuer, auctionAgent
@@ -59,7 +60,6 @@ template InvestorSettlementBotTrigger
     controller investor can
       InvestorSettlementBotTrigger_Finalize: [ContractId RedemptionPayoutInfo]
         with
-          bondAccount: Account
           auctionLockedCashCids: [ContractId AuctionLockedCash]
           cashAssetFungible: ContractId AssetFungible
           investorCashSettlementCid: ContractId AssetSettlement
