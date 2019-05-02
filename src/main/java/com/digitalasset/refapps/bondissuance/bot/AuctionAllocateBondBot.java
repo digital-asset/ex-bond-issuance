@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 /**
  * An automation bot to exercise the <i>AuctionFinalizeBotTrigger_AllocateBond</i> choice when
  * <i>AuctionFinalizeBotTrigger</i> contracts created on the ledger. It accumulates and filters the
- * necessary parameters: - participationCids - bidCids
+ * necessary parameters.
  */
 public class AuctionAllocateBondBot {
   public final TransactionFilter transactionFilter;

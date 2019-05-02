@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 /**
  * An automation bot to exercise the <i>PlaceBidBotTrigger_LockCash</i> choice when
  * <i>PlaceBidBotTrigger</i> contracts created on the ledger. It accumulates and filters the
- * necessary parameters: - cashAssets - cashSplitAndMergeRuleCid - cashLockRuleCid
+ * necessary parameters.
  */
 public class AuctionLockBot {
 
