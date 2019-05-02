@@ -59,7 +59,7 @@ public class InviteAgentBotTest {
             BOND_ID,
             Collections.emptyList(),
             isin,
-            CURRENCY,
+            CASH_ID,
             denomination,
             rate,
             paymentLag,

@@ -19,7 +19,7 @@ template FixedRateBondFact
     observers : [Party]
     -- specific
     isin : Text
-    currency : Text
+    cashAssetId : Id
     denomination : Decimal
     rate : Decimal -- i.e., bullet cpn rate
     paymentLag : Int

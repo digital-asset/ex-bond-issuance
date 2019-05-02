@@ -82,7 +82,6 @@ template RedemptionRequest
   with
     issuer: Party
     provider: Party
-    bondAssetId: Id
     fixedRateBondFactCid: ContractId FixedRateBondFact
     regulators: [Party]
   where
@@ -98,6 +97,7 @@ template RedemptionRequest
               provider = provider
               fixedRateBondFactCid = fixedRateBondFactCid
               bondAssetId = bond.instrumentId
+              cashAssetId = bond.cashAssetId
               regulators = regulators
 
 -- Triggers the redemption calculation bot. The bot collects the relevant bond assets
@@ -111,6 +111,7 @@ template RedemptionCalculationBotTrigger
     provider: Party
     fixedRateBondFactCid: ContractId FixedRateBondFact
     bondAssetId: Id
+    cashAssetId: Id
     regulators: [Party]
   where
     signatory issuer, provider
@@ -158,7 +159,7 @@ template RedemptionCalculationBotTrigger
                     investor = payoutInfo.investor
                     payment = payment
                     bondAssetId = fixedRateBond.instrumentId
-                    currency = fixedRateBond.currency
+                    currency = fixedRateBond.cashAssetId.label
                     bondAssetDepositCid = bondAssetDepositCid
                     redemptionPayoutInfoCid = redemptionPayoutInfoCid
                     fixedRateBondFactCid = fixedRateBondFactCid
@@ -169,8 +170,8 @@ template RedemptionCalculationBotTrigger
             issuer = issuer
             bondAccountProvider = provider
             instructions = instructions
-            currency = fixedRateBond.currency
             cashAccountProvider = head cashProviders
+            cashAssetId = fixedRateBond.cashAssetId
             regulators = regulators
 
           return finalizer
@@ -219,8 +220,8 @@ template RedemptionFinalizeBotTrigger
     issuer: Party
     bondAccountProvider: Party
     instructions: [RedemptionInstruction]
-    currency: Text
     cashAccountProvider: Party
+    cashAssetId: Id
     regulators: [Party]
   where
     signatory issuer, bondAccountProvider

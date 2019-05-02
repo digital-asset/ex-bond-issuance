@@ -11,15 +11,11 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CSD;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.ISSUER;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.TIME_MANAGER;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.addUsdIntoNewAccount;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSingleExercise;
 
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
-import da.finance.account.fact.AccountFact;
-import da.finance.asset.fact.AssetFact;
-import da.finance.asset.lock.AssetLockedFact;
 import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.refapps.bond.redemption.RedemptionCalculationBotTrigger;
 import da.refapps.bond.redemption.RedemptionPayoutInfo;

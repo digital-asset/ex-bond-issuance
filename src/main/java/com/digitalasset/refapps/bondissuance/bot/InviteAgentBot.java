@@ -15,7 +15,6 @@ import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.daml.ledger.rxjava.components.helpers.CreatedContract;
 import com.digitalasset.refapps.bondissuance.util.*;
 import com.google.common.collect.Sets;
-import da.finance.asset.lock.AssetLockRule;
 import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;

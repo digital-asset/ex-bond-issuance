@@ -57,7 +57,7 @@ template IssuerRole
         with
           issueSize: Int
           issueDate: Date
-          currency: Text
+          cashAssetId: Id
           denomination: Decimal
           maturityDate: Date
           couponRate: Decimal
@@ -122,7 +122,6 @@ template IssuerRole
           create RedemptionRequest with
             provider = fact.provider
             issuer = issuer
-            bondAssetId = fact.instrumentId
             fixedRateBondFactCid = fixedRateBondFactCid
             regulators = regulators
 
@@ -198,7 +197,7 @@ template IssuanceRequest
     issueSize: Int
     issueDate: Date
     maturityDate: Date
-    currency: Text
+    cashAssetId: Id
     denomination: Decimal
     couponRate: Decimal
     couponDates: [Date]
@@ -230,7 +229,7 @@ template IssuanceRequest
             provider = bondAccount.provider
             instrumentId = bondId
             isin = isin
-            currency = currency
+            cashAssetId = cashAssetId
             rate = couponRate
             paymentLag = 0
             denomination = denomination

@@ -14,11 +14,6 @@ import com.daml.ledger.javaapi.data.Value;
 import com.daml.ledger.javaapi.data.Variant;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.util.TimeManager;
-import da.finance.asset.fact.AssetFact;
-import da.finance.oldtypes.AccountId;
-import da.finance.oldtypes.AssetId;
-import da.finance.oldtypes.InstrumentId;
-import da.finance.oldtypes.InstrumentKey;
 import da.finance.types.Account;
 import da.finance.types.Id;
 import da.set.Set;
@@ -52,14 +47,6 @@ public class BotTestUtils {
   public static final Account ISSUER_BOND_ACCOUNT = new Account(ISSUER_BOND_ACCOUNT_ID, CSD, ISSUER);
   public static final Account ISSUER_CASH_ACCOUNT = new Account(ISSUER_CASH_ACCOUNT_ID, CENTRAL_BANK, ISSUER);
 
-  public static AssetFact addUsdIntoNewAccount(
-      BigDecimal initialAmount, String accountOwnerName, String accountName) {
-    return new AssetFact(
-        new AssetId(CENTRAL_BANK, new InstrumentId(CURRENCY, 0L), 0L),
-        initialAmount,
-        new AccountId(CENTRAL_BANK, accountName, accountOwnerName),
-        Collections.emptyList());
-  }
 
   public static void assertHasSingleExercise(
       CommandsAndPendingSet cmds, String cid, String choiceName) {

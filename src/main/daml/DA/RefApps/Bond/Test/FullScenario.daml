@@ -116,7 +116,6 @@ data Rules = Rules {
 }
 
 bondIsin = "BOND-007"
-scenarioCurrency = "USD"
 auctionStartDate = date 2020 Jan 10
 auctionEndDate = date 2020 Jan 20
 maturity = date 2022 Jan 20
@@ -269,10 +268,14 @@ setupIssuance: Scenario TestIssuance = scenario do
   accProviderApprovalReqCid <- submit issuer do
     now <- toDateUTC <$> getTime
     let (year, month, day) = toGregorian auctionEndDate
+        cashAssetId = Id with
+          signatories = fromList [centralBank]
+          label = "USD"
+          version = 0
     exercise testRoles.issuerRoleCid IssuerRole_Issuance with
       issueSize = 3000000
       issueDate = now
-      currency = scenarioCurrency
+      cashAssetId = cashAssetId
       denomination = 40.1
       maturityDate = maturity
       couponRate = 0.1

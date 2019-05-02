@@ -9,9 +9,7 @@ module DA.RefApps.Bond.Test.MarketSetup where
 import DA.Date
 
 import DA.Finance.Types
-import DA.Finance.Asset.Lock
-import DA.Finance.Asset.SplitAndMerge
-import DA.Finance.Asset.Transfer.Bilateral
+
 import DA.RefApps.Bond.Roles.CentralBankRole
 import DA.RefApps.Bond.Roles.CsdRole
 import DA.RefApps.Bond.Roles.OperatorRole

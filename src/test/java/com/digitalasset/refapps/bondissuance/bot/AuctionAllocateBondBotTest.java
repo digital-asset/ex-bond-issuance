@@ -19,11 +19,6 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSi
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
-import da.finance.account.fact.AccountFact;
-import da.finance.asset.fact.AssetFact;
-import da.finance.asset.lock.AssetLockRule;
-import da.finance.asset.splitandmerge.AssetSplitAndMergeRule;
-import da.finance.asset.transfer.bilateral.AssetTransferRule;
 import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.refapps.bond.auction.AuctionBid;
 import da.refapps.bond.auction.AuctionFinalizeBotTrigger;
