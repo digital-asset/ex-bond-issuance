@@ -19,6 +19,7 @@ import da.finance.oldtypes.AccountId;
 import da.finance.oldtypes.AssetId;
 import da.finance.oldtypes.InstrumentId;
 import da.finance.oldtypes.InstrumentKey;
+import da.finance.types.Account;
 import da.finance.types.Id;
 import da.set.Set;
 
@@ -50,6 +51,8 @@ public class BotTestUtils {
   public static final Id CASH_ID = new Id(null, "USD", 0L);
   public static final Id ISSUER_BOND_ACCOUNT_ID = new Id(null, "IssuerBondAccount", 0L);
   public static final Id ISSUER_CASH_ACCOUNT_ID = new Id(null, "IssuerCashAccount", 0L);
+  public static final Account ISSUER_BOND_ACCOUNT = new Account(ISSUER_BOND_ACCOUNT_ID, CSD, ISSUER);
+  public static final Account ISSUER_CASH_ACCOUNT = new Account(ISSUER_CASH_ACCOUNT_ID, CENTRAL_BANK, ISSUER);
 
   public static AssetFact addUsdIntoNewAccount(
       BigDecimal initialAmount, String accountOwnerName, String accountName) {

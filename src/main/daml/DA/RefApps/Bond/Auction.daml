@@ -139,7 +139,6 @@ template Auction
     auctionAgent: Party
     issuer: Party
     operator: Party
-    bondAccount: Account
     regulators: [Party]
     startDate: Date
     endDate: Date
@@ -170,7 +169,6 @@ template Auction
                     auctionAgent = auctionAgent
                     issuer = issuer
                     operator = operator
-                    bondAccount = bondAccount
                     regulators = regulators
                     startDate = startDate
                     endDate = endDate
@@ -334,7 +332,6 @@ template BidderParticipation
     auctionAgent: Party
     issuer: Party
     operator: Party
-    bondAccount: Account
     regulators: [Party]
     startDate: Date
     endDate: Date
@@ -366,7 +363,6 @@ template BidderParticipation
             bidder = bidder
             auctionAgent = auctionAgent
             issuer = issuer
-            bondAccount = bondAccount
             bidData = bidData
             auctionName = auctionName
             bondAssetId = fixedRateBondFact.instrumentId
@@ -395,7 +391,6 @@ template PlaceBidBotTrigger
     bidder: Party
     auctionAgent: Party
     issuer: Party
-    bondAccount: Account
     bidData: BidData
     auctionName: Text
     bondAssetId: Id
@@ -445,7 +440,6 @@ template AuctionBid
     bidder: Party
     auctionAgent: Party
     issuer: Party
-    bondAccount: Account
     bidData: BidData
     auctionName: Text
     bondAssetId: Id

@@ -102,7 +102,7 @@ template IssuerRole
             operator = operator
             regulators = regulators
             bondAssetDepositCid = bondAssetDepositCid
-            bondAccount = asset.account
+            issuerBondAccount = asset.account
             bondAssetId = asset.asset.id
             auctionAgent = auctionAgent
             startDate = startDate
@@ -136,7 +136,7 @@ template CommissionBotTrigger
     operator: Party
     regulators: [Party]
     bondAssetDepositCid: ContractId AssetDeposit
-    bondAccount: Account
+    issuerBondAccount: Account
     bondAssetId: Id
     auctionAgent: Party
     startDate: Date
@@ -173,7 +173,6 @@ template CommissionBotTrigger
                 auctionAgent = auctionAgent
                 issuer = issuer
                 operator = operator
-                bondAccount = bondAccount
                 regulators = regulators
                 startDate = startDate
                 endDate = endDate

@@ -94,14 +94,14 @@ public class InviteAgentBot {
           new CommissionBotTrigger.ContractId(trigger.getKey());
 
      AssetSettlement.ContractId bondSettlementCid =
-          AssetUtil.findAssetSettlement(settlementCids, trigger.getValue().bondAccount.provider, trigger.getValue().bondAccount.owner, logger);
+          AssetUtil.findAssetSettlement(settlementCids, trigger.getValue().issuerBondAccount.provider, trigger.getValue().issuerBondAccount.owner, logger);
 
       AssetSettlement.ContractId cashSettlementCid =
           AssetUtil.findAssetSettlement(settlementCids, trigger.getValue().cashAccount.provider, trigger.getValue().cashAccount.owner, logger);
       
       AssetFungible.ContractId bondAssetFungibleCid =
           AssetUtil.findAssetFungible(
-              fungibleCids, trigger.getValue().bondAccount.provider, trigger.getValue().bondAccount.owner, logger);
+              fungibleCids, trigger.getValue().issuerBondAccount.provider, trigger.getValue().issuerBondAccount.owner, logger);
 
       // find the bond refdata contract
       List<FixedRateBondFact.ContractId> fixedRateBondCids =
