@@ -8,8 +8,6 @@ module DA.RefApps.Bond.Test.MarketSetup where
 
 import DA.Date
 
-import DA.Finance.Types
-
 import DA.RefApps.Bond.Roles.CentralBankRole
 import DA.RefApps.Bond.Roles.CsdRole
 import DA.RefApps.Bond.Roles.OperatorRole
@@ -19,112 +17,106 @@ import DA.RefApps.Bond.Roles.AuctionAgentRole
 import DA.RefApps.Bond.Test.FullScenario
 
 -- Initial setup of the market participants and some cash
--- testMarketSetup = scenario do
---   operator <- getParty "Operator"
---   regulator <- getParty "Regulator"
---   auctionAgent <- getParty "AuctionAgent"
---   bank1 <- getParty "Bank1"
---   bank2 <- getParty "Bank2"
---   bank3 <- getParty "Bank3"
---   csd <- getParty "CSD"
---   issuer <- getParty "Issuer"
---   centralBank <- getParty "CentralBank"
+testMarketSetup = scenario do
+  operator <- getParty "Operator"
+  regulator <- getParty "Regulator"
+  auctionAgent <- getParty "AuctionAgent"
+  bank1 <- getParty "Bank1"
+  bank2 <- getParty "Bank2"
+  bank3 <- getParty "Bank3"
+  csd <- getParty "CSD"
+  issuer <- getParty "Issuer"
+  centralBank <- getParty "CentralBank"
 
---   (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, csdInvitationCid, issuerCid, centralBankCid)
---     <- submit operator do
---       operatorCid <- create OperatorRole with
---           operator = operator
---           regulators = [regulator]
---       auctionAgentInvitationCid
---         <- exercise operatorCid OperatorRole_InviteAuctionAgent with
---               auctionAgent = auctionAgent
---       bankInvitationCid1
---         <- exercise operatorCid OperatorRole_InviteBank with
---               bank = bank1
---       bankInvitationCid2
---         <- exercise operatorCid OperatorRole_InviteBank with
---               bank = bank2
---       bankInvitationCid3
---         <- exercise operatorCid OperatorRole_InviteBank with
---               bank = bank3
---       csdInvitationCid
---         <- exercise operatorCid OperatorRole_InviteCsd with
---               csd = csd
---       issuerCid
---         <- exercise operatorCid OperatorRole_InviteIssuer with
---               issuer = issuer
---       centralBankCid
---         <- exercise operatorCid OperatorRole_InviteCentralBank with
---               centralBank = centralBank
---       return (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, csdInvitationCid, issuerCid, centralBankCid)
+  (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, csdInvitationCid, issuerCid, centralBankCid)
+    <- submit operator do
+      operatorCid <- create OperatorRole with
+          operator = operator
+          regulators = [regulator]
+      auctionAgentInvitationCid
+        <- exercise operatorCid OperatorRole_InviteAuctionAgent with
+              auctionAgent = auctionAgent
+      bankInvitationCid1
+        <- exercise operatorCid OperatorRole_InviteBank with
+              bank = bank1
+      bankInvitationCid2
+        <- exercise operatorCid OperatorRole_InviteBank with
+              bank = bank2
+      bankInvitationCid3
+        <- exercise operatorCid OperatorRole_InviteBank with
+              bank = bank3
+      csdInvitationCid
+        <- exercise operatorCid OperatorRole_InviteCsd with
+              csd = csd
+      issuerCid
+        <- exercise operatorCid OperatorRole_InviteIssuer with
+              issuer = issuer
+      centralBankCid
+        <- exercise operatorCid OperatorRole_InviteCentralBank with
+              centralBank = centralBank
+      return (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, csdInvitationCid, issuerCid, centralBankCid)
 
---   submit auctionAgent do
---     exercise auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
+  submit auctionAgent do
+    exercise auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
 
---   submit bank1 do
---     exercise bankInvitationCid1 BankRoleInvitation_Accept
+  submit bank1 do
+    exercise bankInvitationCid1 BankRoleInvitation_Accept
 
---   submit bank2 do
---     exercise bankInvitationCid2 BankRoleInvitation_Accept
+  submit bank2 do
+    exercise bankInvitationCid2 BankRoleInvitation_Accept
 
---   submit bank3 do
---     exercise bankInvitationCid3 BankRoleInvitation_Accept
+  submit bank3 do
+    exercise bankInvitationCid3 BankRoleInvitation_Accept
 
---   csdRoleCid <- submit csd do
---     exercise csdInvitationCid CsdRoleInvitation_Accept
+  csdRoleCid <- submit csd do
+    exercise csdInvitationCid CsdRoleInvitation_Accept
 
---   submit issuer do
---     exercise issuerCid IssuerRoleInvitation_Accept
+  submit issuer do
+    exercise issuerCid IssuerRoleInvitation_Accept
 
---   centralBankRoleCid <- submit centralBank do
---     exercise centralBankCid CentralBankRoleInvitation_Accept
+  centralBankRoleCid <- submit centralBank do
+    exercise centralBankCid CentralBankRoleInvitation_Accept
 
---   submit centralBank do
---     exercise centralBankRoleCid CentralBankRole_IssueCash with
---       currency = "USD"
+  let issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
+      bank1CashAccount = createAccount bank1 centralBank "Bank1CashAccount"
+      bank2CashAccount = createAccount bank2 centralBank "Bank2CashAccount"
+      bank3CashAccount = createAccount bank3 centralBank "Bank3CashAccount"
+      issuerBondAccount = createAccount issuer csd "IssuerBondAccount"
+      bank1BondAccount = createAccount bank1 csd "Bank1BondAccount"
+      bank2BondAccount = createAccount bank2 csd "Bank2BondAccount"
+      bank3BondAccount = createAccount bank3 csd "Bank3BondAccount"
 
---   let instrumentId = InstrumentId "USD" 0
---   createCashAccount centralBankRoleCid issuer "IssuerCashAccount" 100000000.0 instrumentId [auctionAgent]
---   createCashAccount centralBankRoleCid bank1 "Bank1CashAccount" 50000000.0 instrumentId []
---   createCashAccount centralBankRoleCid bank2 "Bank2CashAccount" 600000000.0 instrumentId []
---   createCashAccount centralBankRoleCid bank3 "Bank3CashAccount" 30000000.0 instrumentId []
+  submit centralBank do
+    exercise centralBankRoleCid $ CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0
+    exercise centralBankRoleCid $ CentralBankRole_IssueCash bank2CashAccount "USD" 600000000.0
+    exercise centralBankRoleCid $ CentralBankRole_IssueCash bank3CashAccount "USD" 50000000.0
+    exercise centralBankRoleCid $ CentralBankRole_IssueCash issuerCashAccount "USD" 100000000.0
 
---   createAssetAccount csdRoleCid issuer "IssuerAssetAccount"
---   createAssetAccount csdRoleCid bank1 "Bank1AssetAccount"
---   createAssetAccount csdRoleCid bank2 "Bank2AssetAccount"
---   createAssetAccount csdRoleCid bank3 "Bank3AssetAccount"
+    exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
+    exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount []
+    exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount []
+    exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount []
 
---   submit centralBank do
---     exercise centralBankRoleCid $ CentralBankRole_CreateTransferRule bank1
---     exercise centralBankRoleCid $ CentralBankRole_CreateTransferRule bank2
---     exercise centralBankRoleCid $ CentralBankRole_CreateTransferRule bank3
---     exercise centralBankRoleCid $ CentralBankRole_CreateTransferRule issuer
+    exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1CashAccount
+    exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank2CashAccount
+    exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank3CashAccount
+    exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule issuerCashAccount
 
+    exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
+    exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank2CashAccount
+    exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank3CashAccount
 
---     exercise centralBankRoleCid $ CentralBankRole_CreateSplitAndMergeRule bank1
---     exercise centralBankRoleCid $ CentralBankRole_CreateSplitAndMergeRule bank2
---     exercise centralBankRoleCid $ CentralBankRole_CreateSplitAndMergeRule bank3
---     exercise centralBankRoleCid $ CentralBankRole_CreateSplitAndMergeRule issuer
+  submit csd do
+    exercise csdRoleCid $ CsdRole_CreateFungibleRule bank1BondAccount []
+    exercise csdRoleCid $ CsdRole_CreateFungibleRule bank2BondAccount []
+    exercise csdRoleCid $ CsdRole_CreateFungibleRule bank3BondAccount []
+    exercise csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
 
---     exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank1
---     exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank2
---     exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank3
---     exercise centralBankRoleCid $ CentralBankRole_CreateLockRule issuer
+    exercise csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount []
+    exercise csdRoleCid $ CsdRole_CreateSettlementRule bank2BondAccount []
+    exercise csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
+    exercise csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
 
---   submit csd do
---     splitAndMergeRule <- create AssetSplitAndMergeRule with
---             provider = csd
---             owner = issuer
---             observers = [auctionAgent]
---     lockRule <- create AssetLockRule with
---             provider = csd
---             owner = issuer
---             observers = [auctionAgent]
---     create AssetTransferRule with
---             provider = csd
---             owner = issuer
---             observers = [auctionAgent]
-
---   -- setup time
---   now <- getTime
---   passToDate $ date 2019 Apr 1
+  -- setup time
+  now <- getTime
+  passToDate $ date 2019 Apr 1
