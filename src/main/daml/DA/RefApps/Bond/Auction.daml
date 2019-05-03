@@ -145,7 +145,7 @@ template Auction
     size: Int
     fixedRateBondFact: FixedRateBondFact
     cashAssetId: Id
-    issuerCashAccount: Account
+    issuerCashAccountProvider: Party
     bondBundleData: BondBundleData
     invitedBidders: [Party]
     auctionName: Text
@@ -174,7 +174,7 @@ template Auction
                     size = size
                     fixedRateBondFact = fixedRateBondFact
                     cashAssetId = cashAssetId
-                    issuerCashAccount = issuerCashAccount
+                    issuerCashAccountProvider = issuerCashAccountProvider
                     auctionName = auctionName
           auction' <- create this with invitedBidders = bidders <> invitedBidders
           return (auction', participations)
@@ -190,7 +190,7 @@ template Auction
             regulators = regulators
             minPrice = minPrice
             size = size
-            issuerCashAccount = issuerCashAccount
+            issuerCashAccountProvider = issuerCashAccountProvider
             bondBundleData = bondBundleData
             invitedBidders = invitedBidders
             auctionName = auctionName
@@ -206,7 +206,7 @@ template AuctionFinalizeBotTrigger
     regulators: [Party]
     minPrice: Decimal
     size: Int
-    issuerCashAccount: Account
+    issuerCashAccountProvider: Party
     bondBundleData: BondBundleData
     invitedBidders: [Party]
     auctionName: Text
@@ -288,7 +288,7 @@ template AuctionFinalizeBotTrigger
               issuer = issuer
               auctionAgent = auctionAgent
               auctionName = auctionName
-              issuerCashAccount = issuerCashAccount
+              issuerCashAccountProvider = issuerCashAccountProvider
               issuerBondAssetDepositCid = bidWithAsset.bondAssetDepositCid
               issuerBondAssetDeposit = issuerBondAssetDeposit
               cashAmountToPay = auctionResult.price * intToDecimal bidWithAsset.bidData.quantity
@@ -313,7 +313,7 @@ template AuctionFinalizeBotTrigger
               auctionName = auctionName
               settleRequestCids = requests
               invalidBidNotificationCids = notifications
-              cashProvider = issuerCashAccount.provider
+              cashProvider = issuerCashAccountProvider
               regulators = regulators
 
           -- archive participations --
@@ -338,7 +338,7 @@ template BidderParticipation
     size: Int
     fixedRateBondFact: FixedRateBondFact
     cashAssetId: Id
-    issuerCashAccount: Account
+    issuerCashAccountProvider: Party
     auctionName: Text
   where
     signatory issuer, auctionAgent
@@ -359,7 +359,7 @@ template BidderParticipation
           let bidData = BidData price quantity now
           create PlaceBidBotTrigger with
             cashAssetId = cashAssetId
-            cashProvider = issuerCashAccount.provider
+            cashProvider = issuerCashAccountProvider
             bidder = bidder
             auctionAgent = auctionAgent
             issuer = issuer

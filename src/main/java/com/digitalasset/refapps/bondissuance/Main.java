@@ -48,34 +48,34 @@ public class Main {
 
       TimeManager timeManager = new TimeManager(client.getTimeClient());
 
-//      AuctionAllocateBondBot auctionAllocateBondBot =
-//          new AuctionAllocateBondBot(timeManager, applicationId, auctionAgent);
+      AuctionAllocateBondBot auctionAllocateBondBot =
+          new AuctionAllocateBondBot(timeManager, applicationId, auctionAgent);
 
       InviteAgentBot inviteAgentBot = new InviteAgentBot(timeManager, applicationId, issuer);
 
-//      RedemptionStartBot redemptionStartBot =
-//          new RedemptionStartBot(timeManager, applicationId, csd);
-//
-//      RedemptionFinalizerBot redemptionFinalizerBot =
-//          new RedemptionFinalizerBot(timeManager, applicationId, issuer);
+      RedemptionStartBot redemptionStartBot =
+          new RedemptionStartBot(timeManager, applicationId, csd);
 
-//      FinalizeSettlementBot finalizeSettlementBot1 =
-//          new FinalizeSettlementBot(timeManager, applicationId, bank1);
-//      FinalizeSettlementBot finalizeSettlementBot2 =
-//          new FinalizeSettlementBot(timeManager, applicationId, bank2);
-//      FinalizeSettlementBot finalizeSettlementBot3 =
-//          new FinalizeSettlementBot(timeManager, applicationId, bank3);
+      RedemptionFinalizerBot redemptionFinalizerBot =
+          new RedemptionFinalizerBot(timeManager, applicationId, issuer);
 
-//      AuctionLockBot auctionLockBot1 = new AuctionLockBot(timeManager, applicationId, bank1);
-//      AuctionLockBot auctionLockBot2 = new AuctionLockBot(timeManager, applicationId, bank2);
-//      AuctionLockBot auctionLockBot3 = new AuctionLockBot(timeManager, applicationId, bank3);
+      FinalizeSettlementBot finalizeSettlementBot1 =
+          new FinalizeSettlementBot(timeManager, applicationId, bank1);
+      FinalizeSettlementBot finalizeSettlementBot2 =
+          new FinalizeSettlementBot(timeManager, applicationId, bank2);
+      FinalizeSettlementBot finalizeSettlementBot3 =
+          new FinalizeSettlementBot(timeManager, applicationId, bank3);
 
-//      Bot.wire(
-//          applicationId,
-//          client,
-//          auctionAllocateBondBot.transactionFilter,
-//          auctionAllocateBondBot::calculateCommands,
-//          auctionAllocateBondBot::getContractInfo);
+      AuctionLockBot auctionLockBot1 = new AuctionLockBot(timeManager, applicationId, bank1);
+      AuctionLockBot auctionLockBot2 = new AuctionLockBot(timeManager, applicationId, bank2);
+      AuctionLockBot auctionLockBot3 = new AuctionLockBot(timeManager, applicationId, bank3);
+
+      Bot.wire(
+          applicationId,
+          client,
+          auctionAllocateBondBot.transactionFilter,
+          auctionAllocateBondBot::calculateCommands,
+          auctionAllocateBondBot::getContractInfo);
 
       Bot.wire(
           applicationId,
@@ -84,61 +84,61 @@ public class Main {
           inviteAgentBot::calculateCommands,
           inviteAgentBot::getContractInfo);
 
-//      Bot.wire(
-//          applicationId,
-//          client,
-//          redemptionStartBot.transactionFilter,
-//          redemptionStartBot::calculateCommands,
-//          redemptionStartBot::getContractInfo);
-//
-//      Bot.wire(
-//          applicationId,
-//          client,
-//          redemptionFinalizerBot.transactionFilter,
-//          redemptionFinalizerBot::calculateCommands,
-//          redemptionFinalizerBot::getContractInfo);
-//
-//      Bot.wire(
-//          applicationId,
-//          client,
-//          finalizeSettlementBot1.transactionFilter,
-//          finalizeSettlementBot1::calculateCommands,
-//          finalizeSettlementBot1::getContractInfo);
-//
-//      Bot.wire(
-//          applicationId,
-//          client,
-//          finalizeSettlementBot2.transactionFilter,
-//          finalizeSettlementBot2::calculateCommands,
-//          finalizeSettlementBot2::getContractInfo);
-//
-//      Bot.wire(
-//          applicationId,
-//          client,
-//          finalizeSettlementBot3.transactionFilter,
-//          finalizeSettlementBot3::calculateCommands,
-//          finalizeSettlementBot3::getContractInfo);
-//
-//      Bot.wire(
-//          applicationId,
-//          client,
-//          auctionLockBot1.transactionFilter,
-//          auctionLockBot1::calculateCommands,
-//          auctionLockBot1::getContractInfo);
-//
-//      Bot.wire(
-//          applicationId,
-//          client,
-//          auctionLockBot2.transactionFilter,
-//          auctionLockBot2::calculateCommands,
-//          auctionLockBot2::getContractInfo);
-//
-//      Bot.wire(
-//          applicationId,
-//          client,
-//          auctionLockBot3.transactionFilter,
-//          auctionLockBot3::calculateCommands,
-//          auctionLockBot3::getContractInfo);
+      Bot.wire(
+          applicationId,
+          client,
+          redemptionStartBot.transactionFilter,
+          redemptionStartBot::calculateCommands,
+          redemptionStartBot::getContractInfo);
+
+      Bot.wire(
+          applicationId,
+          client,
+          redemptionFinalizerBot.transactionFilter,
+          redemptionFinalizerBot::calculateCommands,
+          redemptionFinalizerBot::getContractInfo);
+
+      Bot.wire(
+          applicationId,
+          client,
+          finalizeSettlementBot1.transactionFilter,
+          finalizeSettlementBot1::calculateCommands,
+          finalizeSettlementBot1::getContractInfo);
+
+      Bot.wire(
+          applicationId,
+          client,
+          finalizeSettlementBot2.transactionFilter,
+          finalizeSettlementBot2::calculateCommands,
+          finalizeSettlementBot2::getContractInfo);
+
+      Bot.wire(
+          applicationId,
+          client,
+          finalizeSettlementBot3.transactionFilter,
+          finalizeSettlementBot3::calculateCommands,
+          finalizeSettlementBot3::getContractInfo);
+
+      Bot.wire(
+          applicationId,
+          client,
+          auctionLockBot1.transactionFilter,
+          auctionLockBot1::calculateCommands,
+          auctionLockBot1::getContractInfo);
+
+      Bot.wire(
+          applicationId,
+          client,
+          auctionLockBot2.transactionFilter,
+          auctionLockBot2::calculateCommands,
+          auctionLockBot2::getContractInfo);
+
+      Bot.wire(
+          applicationId,
+          client,
+          auctionLockBot3.transactionFilter,
+          auctionLockBot3::calculateCommands,
+          auctionLockBot3::getContractInfo);
 
       logger.info("Welcome to Bond Issuance Application!");
       logger.info("Press Ctrl+C to shut down the program.");

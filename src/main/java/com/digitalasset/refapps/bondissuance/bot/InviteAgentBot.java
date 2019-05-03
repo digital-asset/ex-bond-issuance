@@ -15,9 +15,9 @@ import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.daml.ledger.rxjava.components.helpers.CreatedContract;
 import com.digitalasset.refapps.bondissuance.util.*;
 import com.google.common.collect.Sets;
-import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;
+import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.refapps.bond.roles.issuerrole.CommissionBotTrigger;
 import io.reactivex.Flowable;
 import java.util.Collections;
@@ -37,10 +37,12 @@ public class InviteAgentBot {
   public final TransactionFilter transactionFilter;
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
+  private final String partyName;
 
   public InviteAgentBot(TimeManager timeManager, String appId, String partyName) {
     String workflowId = "WORKFLOW-" + partyName + "-InviteAgentBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(InviteAgentBot.class, workflowId);
+    this.partyName = partyName;
 
     commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
 
@@ -77,8 +79,7 @@ public class InviteAgentBot {
     // collecting AssetFungible contracts from the ledger
     Map<String, AssetFungible> fungibleCids =
         BotUtil.filterTemplates(
-            AssetFungible.class,
-            ledgerView.getContracts(AssetFungible.TEMPLATE_ID));
+            AssetFungible.class, ledgerView.getContracts(AssetFungible.TEMPLATE_ID));
 
     if (commissionBotTriggerCids.size() > 0) {
       logger.info(
@@ -92,25 +93,30 @@ public class InviteAgentBot {
       CommissionBotTrigger.ContractId triggerCid =
           new CommissionBotTrigger.ContractId(trigger.getKey());
 
-     AssetSettlement.ContractId bondSettlementCid =
-          AssetUtil.findAssetSettlement(settlementCids, trigger.getValue().issuerBondAccount.provider, trigger.getValue().issuerBondAccount.owner, logger);
+      AssetSettlement.ContractId bondSettlementCid =
+          AssetUtil.findAssetSettlement(
+              settlementCids,
+              trigger.getValue().issuerBondAccount.provider,
+              trigger.getValue().issuerBondAccount.owner,
+              logger);
 
       AssetSettlement.ContractId cashSettlementCid =
-          AssetUtil.findAssetSettlement(settlementCids, trigger.getValue().cashAccount.provider, trigger.getValue().cashAccount.owner, logger);
-      
+          AssetUtil.findAssetSettlement(
+              settlementCids, trigger.getValue().cashAccountProvider, partyName, logger);
+
       AssetFungible.ContractId bondAssetFungibleCid =
           AssetUtil.findAssetFungible(
-              fungibleCids, trigger.getValue().issuerBondAccount.provider, trigger.getValue().issuerBondAccount.owner, logger);
+              fungibleCids,
+              trigger.getValue().issuerBondAccount.provider,
+              trigger.getValue().issuerBondAccount.owner,
+              logger);
 
       // find the bond refdata contract
       List<FixedRateBondFact.ContractId> fixedRateBondCids =
           fixedRateBondsMap.entrySet().stream()
               .filter(
                   cidWithBond ->
-                      cidWithBond
-                          .getValue()
-                          .instrumentId
-                          .equals(trigger.getValue().bondAssetId))
+                      cidWithBond.getValue().instrumentId.equals(trigger.getValue().bondAssetId))
               .map(cidWithBond -> new FixedRateBondFact.ContractId(cidWithBond.getKey()))
               .collect(Collectors.toList());
 

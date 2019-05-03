@@ -57,12 +57,14 @@ template IssuerRole
         with
           issueSize: Int
           issueDate: Date
-          cashAssetId: Id
+          currency: Text
+          cashProvider: Party
           denomination: Decimal
           maturityDate: Date
           couponRate: Decimal
           couponDates: [Date]
-          bondAccount: Account
+          bondAccountName: Text
+          bondProvider: Party
         do
           assertMsg "Denomination should be positive" $ denomination > 0.0
           assertMsg "Coupon rate should be positive" $ couponRate > 0.0
@@ -73,6 +75,14 @@ template IssuerRole
           forA couponDates $ \date -> assertMsg
             ("Coupon dates should be between the issue date and maturity. Issue date: " <> show issueDate <> " Maturity: " <> show maturityDate <> " current date: " <> show date) $
             date >= issueDate && date < maturityDate
+          let cashAssetId = Id with
+                signatories = singleton cashProvider
+                label = currency
+                version = 0
+              bondAccount = Account with
+                id = Id (singleton bondProvider) bondAccountName 0
+                provider = bondProvider
+                owner = issuer
           create IssuanceRequest with ..
 
       nonconsuming IssuerRole_CommissionAuction: ContractId CommissionBotTrigger
@@ -83,8 +93,7 @@ template IssuerRole
           endDate: Date
           minPrice: Decimal
           size: Int
-          cashAccount: Account
-          cashAssetId: Id
+          cashAccountProvider: Party
         do
           assertMsg "Minimum price should be positive" $ minPrice > 0.0
           assertMsg "Size price should be positive" $ size > 0
@@ -108,8 +117,7 @@ template IssuerRole
             endDate = endDate
             minPrice = minPrice
             size = size
-            cashAccount = cashAccount
-            cashAssetId = cashAssetId
+            cashAccountProvider = cashAccountProvider
 
       nonconsuming IssuerRole_Redeem: ContractId RedemptionRequest
         with
@@ -141,8 +149,7 @@ template CommissionBotTrigger
     endDate: Date
     minPrice: Decimal
     size: Int
-    cashAccount: Account
-    cashAssetId: Id
+    cashAccountProvider: Party
   where
     signatory issuer, operator
     observer regulators
@@ -177,8 +184,8 @@ template CommissionBotTrigger
                 minPrice = minPrice
                 size = size
                 fixedRateBondFact = fixedRateBondFact
-                cashAssetId = cashAssetId
-                issuerCashAccount = cashAccount
+                cashAssetId = fixedRateBondFact.cashAssetId
+                issuerCashAccountProvider = cashAccountProvider
                 bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetFungibleCid bondAssetSettlementCid cashAssetSettlementCid observedBondAssetDeposit.asset.id.label
                 invitedBidders = []
                 auctionName = ""

@@ -273,12 +273,14 @@ setupIssuance: Scenario TestIssuance = scenario do
     exercise testRoles.issuerRoleCid IssuerRole_Issuance with
       issueSize = 3000000
       issueDate = now
-      cashAssetId = cashAssetId
+      currency = cashAssetId.label
+      cashProvider = centralBank
       denomination = 40.1
       maturityDate = maturity
       couponRate = 0.1
       couponDates = [date (year + 1) month day] -- plus maturity
-      bondAccount = issuerBondAccount
+      bondAccountName = issuerBondAccount.id.label
+      bondProvider = issuerBondAccount.provider
 
   (fixedRateBondFactCid, assetDepositCid) <- submit csd do
     exercise accProviderApprovalReqCid IssuanceRequest_Accept with isin = bondIsin
@@ -368,8 +370,7 @@ startAuction = \(issuance: TestIssuance) -> scenario do
       endDate = auctionEndDate
       minPrice = 40.0
       size = 1000000
-      cashAssetId = issuance.cashAssetId
-      cashAccount = issuance.cashAccounts.issuerAccount
+      cashAccountProvider = issuance.cashAccounts.issuerAccount.provider
 
     exercise commissionedCid CommissionBotTrigger_InviteAgent with
       bondAssetFungibleCid = issuance.bondBundleData.assetFungibleCid
@@ -394,8 +395,7 @@ startAuction = \(issuance: TestIssuance) -> scenario do
       endDate = auctionEndDate
       minPrice = 50.0
       size = 2000000
-      cashAccount = issuance.cashAccounts.issuerAccount
-      cashAssetId = issuance.cashAssetId
+      cashAccountProvider = issuance.cashAccounts.issuerAccount.provider
 
     exercise otherCommissionedCid CommissionBotTrigger_InviteAgent with
       bondAssetFungibleCid = issuance.bondBundleData.assetFungibleCid

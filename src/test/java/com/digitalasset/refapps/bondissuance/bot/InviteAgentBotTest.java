@@ -11,9 +11,9 @@ import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
 import da.finance.fact.asset.AssetDeposit;
-import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;
+import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.refapps.bond.roles.issuerrole.CommissionBotTrigger;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
@@ -97,8 +97,7 @@ public class InviteAgentBotTest {
             endDate,
             minPrice,
             size,
-            ISSUER_CASH_ACCOUNT,
-            CASH_ID));
+            CSD));
 
     CommandsAndPendingSet cmds =
         bot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();

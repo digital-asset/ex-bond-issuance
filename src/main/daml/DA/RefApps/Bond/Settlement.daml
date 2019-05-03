@@ -30,7 +30,7 @@ template AuctionSettleRequest
     issuer: Party
     auctionAgent: Party
     auctionName: Text
-    issuerCashAccount: Account
+    issuerCashAccountProvider: Party
     issuerBondAssetDepositCid: ContractId AssetDeposit
     issuerBondAssetDeposit: AssetDeposit
     cashAmountToPay: Decimal
