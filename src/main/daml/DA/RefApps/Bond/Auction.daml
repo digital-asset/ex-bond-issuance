@@ -132,7 +132,7 @@ isSubset (x::xs) l = elem x l && isSubset xs l
 -- The agent can invite bidders using `Auction_InviteBidders` which creates a new Auction contract with
 -- updated `invitedBidders` list.
 -- The agent can initiate finalizing the auction using `Auction_Finalize`. It creates `AuctionFinalizeBotTrigger`
--- contract which is picked up by`AuctionAllocateBondBot`.
+-- contract which is picked up by a java bot.
 template Auction
   with
     auctionAgent: Party
@@ -195,7 +195,7 @@ template Auction
             invitedBidders = invitedBidders
             auctionName = auctionName
 
--- This template is used to trigger `AuctionAllocateBondBot` which passes the active participations
+-- This template is used to trigger the corresponding java bot which passes the active participations
 -- and bids to the single choice of this contract.
 -- The actual auction logic is placed here. The bids are sorted by price (and timestamp) and the
 -- assets are given out in this order but using the price of the last winning bid.
@@ -382,7 +382,7 @@ template BidderParticipation
       AuctionBidderParticipation_Archive: ()
         do return ()
 
--- This contract triggers the `AuctionLockBot` which collects all the cash assets the bidder owns and
+-- This contract triggers the correnponding java bot which collects all the cash assets the bidder owns and
 -- executes the `PlaceBidBotTrigger_LockCash` choice. It locks the required amount from the given
 -- cash assets and creates the bid.
 template PlaceBidBotTrigger
