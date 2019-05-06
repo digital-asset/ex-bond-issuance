@@ -67,21 +67,26 @@ public class CommissionBotTest {
             couponDatesTriggered,
             issueDate,
             maturityDate));
+    
     ledgerView.addActiveContract(
         AssetSettlement.TEMPLATE_ID,
         "assetSettlementCid1",
         new AssetSettlement(ISSUER_BOND_ACCOUNT, null));
+    
     ledgerView.addActiveContract(
         AssetSettlement.TEMPLATE_ID,
         "assetSettlementCid2",
         new AssetSettlement(ISSUER_CASH_ACCOUNT, null));
+    
     ledgerView.addActiveContract(
         AssetFungible.TEMPLATE_ID,
         "assetFungibleCid",
         new AssetFungible(ISSUER_BOND_ACCOUNT, null));
+    
     String commissionBotTriggerCid = "commissionBotTriggerCid";
     AssetDeposit.ContractId bondAssetDepositCid = new AssetDeposit.ContractId("cid-1");
     BigDecimal minPrice = BigDecimal.valueOf(0.98);
+    
     ledgerView.addActiveContract(
         CommissionBotTrigger.TEMPLATE_ID,
         commissionBotTriggerCid,

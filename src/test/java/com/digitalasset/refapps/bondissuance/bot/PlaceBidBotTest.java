@@ -41,6 +41,7 @@ public class PlaceBidBotTest {
   @Test
   public void testTrigger() throws InvocationTargetException, IllegalAccessException {
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
+    
     ledgerView.addActiveContract(
         AssetDeposit.TEMPLATE_ID,
         "assetDepositCid",

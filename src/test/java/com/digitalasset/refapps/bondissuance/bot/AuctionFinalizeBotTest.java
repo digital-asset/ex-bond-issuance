@@ -8,6 +8,7 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.APP_ID;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.AUCTION_AGENT;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.AUCTION_NAME;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.BOND_ID;
+import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CASH_ID;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CENTRAL_BANK;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CSD;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR;
@@ -19,6 +20,10 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSi
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
+
+import da.finance.fact.asset.AssetDeposit;
+import da.finance.rule.asset.AssetFungible;
+import da.finance.rule.asset.AssetSettlement;
 import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.refapps.bond.auction.AuctionBid;
 import da.refapps.bond.auction.AuctionFinalizeBotTrigger;
@@ -37,114 +42,116 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class AuctionFinalizeBotTest {
-//
-//  private AuctionFinalizeBot bot;
-//
-//  @Before
-//  public void setupTests() {
-//    bot = new AuctionFinalizeBot(TIME_MANAGER, APP_ID, AUCTION_AGENT);
-//  }
-//
+
+  private AuctionFinalizeBot bot;
+
+  @Before
+  public void setupTests() {
+    bot = new AuctionFinalizeBot(TIME_MANAGER, APP_ID, AUCTION_AGENT);
+  }
+
   @Test
   public void testTrigger() throws InvocationTargetException, IllegalAccessException {
-//    List<String> regulators = Collections.emptyList();
-//    LocalDate startDate = TIME_MANAGER.getLocalDate();
-//    LocalDate endDate = TIME_MANAGER.getLocalDate();
-//    Long size = 1000L;
-//
-//    String isin = "CH0000000012";
-//    BigDecimal denomination = BigDecimal.valueOf(100);
-//    BigDecimal rate = BigDecimal.valueOf(0.02);
-//    Long paymentLag = 1L;
-//    List<LocalDate> couponDates = Collections.emptyList();
-//    List<LocalDate> couponDatesTriggered = Collections.emptyList();
-//    LocalDate issueDate = TIME_MANAGER.getLocalDate();
-//    LocalDate maturityDate = TIME_MANAGER.getLocalDate();
-//
-//    FixedRateBondFact fixedRateBondFact =
-//        new FixedRateBondFact(
-//            CENTRAL_BANK,
-//            BOND_ID,
-//            Collections.emptyList(),
-//            isin,
-//            USD_INSTRUMENT_ID,
-//            denomination,
-//            rate,
-//            paymentLag,
-//            couponDates,
-//            couponDatesTriggered,
-//            issueDate,
-//            maturityDate);
-//
-//    LedgerTestView<Template> ledgerView = new LedgerTestView<>();
-//    ledgerView.addActiveContract(
-//        BidderParticipation.TEMPLATE_ID,
-//        "participationCid",
-//        new BidderParticipation(
-//            INVESTOR,
-//            AUCTION_AGENT,
-//            ISSUER,
-//            OPERATOR,
-//            CSD,
-//            regulators,
-//            startDate,
-//            endDate,
-//            size,
-//            fixedRateBondFact,
-//            USD_INSTRUMENT_KEY,
-//            AUCTION_NAME));
-//
-//    BidData bidData = new BidData(BigDecimal.valueOf(1), 100L, TIME_MANAGER.getTime());
-//    ledgerView.addActiveContract(
-//        AuctionBid.TEMPLATE_ID,
-//        "auctionBidCid",
-//        new AuctionBid(
-//            INVESTOR,
-//            AUCTION_AGENT,
-//            ISSUER,
-//            CSD,
-//            bidData,
-//            AUCTION_NAME,
-//            BOND_ID,
-//            regulators));
-//
-//    String auctionFinalizeBotTriggerCid = "auctionFinalizeBotTriggerCid";
-//    BigDecimal minPrice = BigDecimal.valueOf(0.98);
-//    AccountFact.ContractId issuerCashAccountCid = new AccountFact.ContractId("cid-1");
-//    AssetFact.ContractId assetFactCid = new AssetFact.ContractId("cid-2");
-//    AssetSplitAndMergeRule.ContractId assetSplitAndMergeRuleCid =
-//        new AssetSplitAndMergeRule.ContractId("cid-3");
-//    AssetTransferRule.ContractId assetTransferRuleCid = new AssetTransferRule.ContractId("cid-4");
-//    AssetLockRule.ContractId assetLockRuleCid = new AssetLockRule.ContractId("cid-5");
-//    String assetLabel = "asset-label";
-//
-//    BondBundleData bondBundleData =
-//        new BondBundleData(
-//            assetFactCid,
-//            assetSplitAndMergeRuleCid,
-//            assetLockRuleCid,
-//            assetTransferRuleCid,
-//            assetLabel);
-//    List<String> invitedBidders = Collections.singletonList(INVESTOR);
-//    ledgerView.addActiveContract(
-//        AuctionFinalizeBotTrigger.TEMPLATE_ID,
-//        auctionFinalizeBotTriggerCid,
-//        new AuctionFinalizeBotTrigger(
-//            AUCTION_AGENT,
-//            ISSUER,
-//            regulators,
-//            minPrice,
-//            size,
-//            USD_INSTRUMENT_KEY,
-//            issuerCashAccountCid,
-//            bondBundleData,
-//            invitedBidders,
-//            AUCTION_NAME));
-//
-//    CommandsAndPendingSet cmds =
-//        bot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
-//
-//    assertHasSingleExercise(
-//        cmds, auctionFinalizeBotTriggerCid, "AuctionFinalizeBotTrigger_AllocateBond");
+    List<String> regulators = Collections.emptyList();
+    LocalDate startDate = TIME_MANAGER.getLocalDate();
+    LocalDate endDate = TIME_MANAGER.getLocalDate();
+    Long size = 1000L;
+
+    String isin = "CH0000000012";
+    BigDecimal denomination = BigDecimal.valueOf(100);
+    BigDecimal rate = BigDecimal.valueOf(0.02);
+    Long paymentLag = 1L;
+    List<LocalDate> couponDates = Collections.emptyList();
+    List<LocalDate> couponDatesTriggered = Collections.emptyList();
+    LocalDate issueDate = TIME_MANAGER.getLocalDate();
+    LocalDate maturityDate = TIME_MANAGER.getLocalDate();
+
+    FixedRateBondFact fixedRateBondFact =
+        new FixedRateBondFact(
+            CENTRAL_BANK,
+            BOND_ID,
+            Collections.emptyList(),
+            isin,
+            CASH_ID,
+            denomination,
+            rate,
+            paymentLag,
+            couponDates,
+            couponDatesTriggered,
+            issueDate,
+            maturityDate);
+
+    LedgerTestView<Template> ledgerView = new LedgerTestView<>();
+    
+    ledgerView.addActiveContract(
+        BidderParticipation.TEMPLATE_ID,
+        "participationCid",
+        new BidderParticipation(
+            INVESTOR,
+            AUCTION_AGENT,
+            ISSUER,
+            OPERATOR,
+            regulators,
+            startDate,
+            endDate,
+            size,
+            fixedRateBondFact,
+            CASH_ID,
+            CENTRAL_BANK,
+            AUCTION_NAME));
+
+    BidData bidData = new BidData(BigDecimal.valueOf(1), 100L, TIME_MANAGER.getTime());
+    AssetSettlement.ContractId assetSettlementCid = new AssetSettlement.ContractId("assetSettlementCid");
+    
+    ledgerView.addActiveContract(
+        AuctionBid.TEMPLATE_ID,
+        "auctionBidCid",
+        new AuctionBid(
+            INVESTOR,
+            AUCTION_AGENT,
+            ISSUER,
+            bidData,
+            AUCTION_NAME,
+            BOND_ID,
+            assetSettlementCid,
+            regulators));
+
+    String auctionFinalizeBotTriggerCid = "auctionFinalizeBotTriggerCid";
+    BigDecimal minPrice = BigDecimal.valueOf(0.98);
+    AssetDeposit.ContractId assetDepositCid = new AssetDeposit.ContractId("assetDepositCid");
+    AssetFungible.ContractId assetFungibleCid =
+        new AssetFungible.ContractId("assetFungibleCid");
+    AssetSettlement.ContractId bondSettlementCid = new AssetSettlement.ContractId("bondSettlementCid");
+    AssetSettlement.ContractId cashSettlementCid = new AssetSettlement.ContractId("cashSettlementCid");
+    String assetLabel = "asset-label";
+
+    BondBundleData bondBundleData =
+        new BondBundleData(
+            assetDepositCid,
+            assetFungibleCid,
+            bondSettlementCid,
+            cashSettlementCid,
+            assetLabel);
+    List<String> invitedBidders = Collections.singletonList(INVESTOR);
+    
+    ledgerView.addActiveContract(
+        AuctionFinalizeBotTrigger.TEMPLATE_ID,
+        auctionFinalizeBotTriggerCid,
+        new AuctionFinalizeBotTrigger(
+            AUCTION_AGENT,
+            ISSUER,
+            regulators,
+            minPrice,
+            size,
+            CENTRAL_BANK,
+            bondBundleData,
+            invitedBidders,
+            AUCTION_NAME));
+
+    CommandsAndPendingSet cmds =
+        bot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
+
+    assertHasSingleExercise(
+        cmds, auctionFinalizeBotTriggerCid, "AuctionFinalizeBotTrigger_AllocateBond");
   }
 }
