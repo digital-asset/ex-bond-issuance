@@ -117,7 +117,7 @@ public class AuctionLockBot {
       // pick a AssetSettlement
       AssetSettlement.ContractId assetSettlement =
           AssetUtil.findAssetSettlement(
-              assetSettlements, lockRequest.getValue().cashProvider, lockRequest.getValue().bidder, logger);
+              assetSettlements, lockRequest.getValue().bondProvider, lockRequest.getValue().bidder, logger);
 
 
       // exercise the choice

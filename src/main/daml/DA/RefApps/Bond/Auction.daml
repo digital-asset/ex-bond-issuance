@@ -360,6 +360,7 @@ template BidderParticipation
           create PlaceBidBotTrigger with
             cashAssetId = cashAssetId
             cashProvider = issuerCashAccountProvider
+            bondProvider = fixedRateBondFact.provider
             bidder = bidder
             auctionAgent = auctionAgent
             issuer = issuer
@@ -388,6 +389,7 @@ template PlaceBidBotTrigger
   with
     cashAssetId: Id
     cashProvider: Party
+    bondProvider: Party
     bidder: Party
     auctionAgent: Party
     issuer: Party
