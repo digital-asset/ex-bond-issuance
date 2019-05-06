@@ -46,7 +46,7 @@ public class AuctionAllocateBondBotTest {
 //  }
 //
   @Test
-  public void testInviteAgentTrigger() throws InvocationTargetException, IllegalAccessException {
+  public void testTrigger() throws InvocationTargetException, IllegalAccessException {
 //    List<String> regulators = Collections.emptyList();
 //    LocalDate startDate = TIME_MANAGER.getLocalDate();
 //    LocalDate endDate = TIME_MANAGER.getLocalDate();

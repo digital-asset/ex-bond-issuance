@@ -41,7 +41,7 @@ public class AuctionLockBotTest {
 //  }
 //
   @Test
-  public void testInviteAgentTrigger() throws InvocationTargetException, IllegalAccessException {
+  public void testTrigger() throws InvocationTargetException, IllegalAccessException {
 //    LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 //    ledgerView.addActiveContract(
 //        AssetFact.TEMPLATE_ID,

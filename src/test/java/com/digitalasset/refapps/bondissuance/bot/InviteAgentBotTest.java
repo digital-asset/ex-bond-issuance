@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class InviteAgentBotTest {
+public class CommissionBotTest {
 
   private CommissionBot bot;
 
@@ -36,7 +36,7 @@ public class InviteAgentBotTest {
   }
 
   @Test
-  public void testInviteAgentTrigger() throws InvocationTargetException, IllegalAccessException {
+  public void testTrigger() throws InvocationTargetException, IllegalAccessException {
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
     LocalDate startDate = TIME_MANAGER.getLocalDate();
     LocalDate endDate = TIME_MANAGER.getLocalDate();

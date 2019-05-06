@@ -39,7 +39,7 @@ public class RedemptionFinalizerBotTest {
 //  }
 //
   @Test
-  public void testInviteAgentTrigger() throws InvocationTargetException, IllegalAccessException {
+  public void testTrigger() throws InvocationTargetException, IllegalAccessException {
 //    LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 //    AccountFact.ContractId cashAccountCid = new AccountFact.ContractId("cid-1");
 //    AssetFact.ContractId bondAssetFactCid = new AssetFact.ContractId("cid-2");

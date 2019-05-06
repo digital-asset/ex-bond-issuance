@@ -40,7 +40,7 @@ public class FinalizeSettlementBotTest {
 //  }
 //
   @Test
-  public void testInviteAgentTrigger() throws InvocationTargetException, IllegalAccessException {
+  public void testTrigger() throws InvocationTargetException, IllegalAccessException {
 //    LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 //    AssetLockedFact.ContractId lockedCashAssetCid = new AssetLockedFact.ContractId("cid-1");
 //    String investorSettlementBotTriggerCid = "investorSettlementBotTriggerCid";
