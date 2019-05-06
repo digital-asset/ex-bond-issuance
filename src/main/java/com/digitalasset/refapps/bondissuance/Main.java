@@ -6,7 +6,7 @@ package com.digitalasset.refapps.bondissuance;
 
 import com.daml.ledger.rxjava.DamlLedgerClient;
 import com.daml.ledger.rxjava.components.Bot;
-import com.digitalasset.refapps.bondissuance.bot.AuctionAllocateBondBot;
+import com.digitalasset.refapps.bondissuance.bot.AuctionFinalizeBot;
 import com.digitalasset.refapps.bondissuance.bot.PlaceBidBot;
 import com.digitalasset.refapps.bondissuance.bot.FinalizeSettlementBot;
 import com.digitalasset.refapps.bondissuance.bot.CommissionBot;
@@ -48,8 +48,8 @@ public class Main {
 
       TimeManager timeManager = new TimeManager(client.getTimeClient());
 
-      AuctionAllocateBondBot auctionAllocateBondBot =
-          new AuctionAllocateBondBot(timeManager, applicationId, auctionAgent);
+      AuctionFinalizeBot auctionFinalizeBot =
+          new AuctionFinalizeBot(timeManager, applicationId, auctionAgent);
 
       CommissionBot commissionBot = new CommissionBot(timeManager, applicationId, issuer);
 
@@ -73,9 +73,9 @@ public class Main {
       Bot.wire(
           applicationId,
           client,
-          auctionAllocateBondBot.transactionFilter,
-          auctionAllocateBondBot::calculateCommands,
-          auctionAllocateBondBot::getContractInfo);
+          auctionFinalizeBot.transactionFilter,
+          auctionFinalizeBot::calculateCommands,
+          auctionFinalizeBot::getContractInfo);
 
       Bot.wire(
           applicationId,

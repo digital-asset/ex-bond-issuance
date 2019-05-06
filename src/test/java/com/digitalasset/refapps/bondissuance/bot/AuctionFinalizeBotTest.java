@@ -36,13 +36,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class AuctionAllocateBondBotTest {
+public class AuctionFinalizeBotTest {
 //
-//  private AuctionAllocateBondBot bot;
+//  private AuctionFinalizeBot bot;
 //
 //  @Before
 //  public void setupTests() {
-//    bot = new AuctionAllocateBondBot(TIME_MANAGER, APP_ID, AUCTION_AGENT);
+//    bot = new AuctionFinalizeBot(TIME_MANAGER, APP_ID, AUCTION_AGENT);
 //  }
 //
   @Test

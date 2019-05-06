@@ -34,15 +34,15 @@ import org.slf4j.Logger;
  * <i>AuctionFinalizeBotTrigger</i> contracts created on the ledger. It accumulates and filters the
  * necessary parameters.
  */
-public class AuctionAllocateBondBot {
+public class AuctionFinalizeBot {
   public final TransactionFilter transactionFilter;
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
 
-  public AuctionAllocateBondBot(TimeManager timeManager, String appId, String partyName) {
+  public AuctionFinalizeBot(TimeManager timeManager, String appId, String partyName) {
     String workflowId =
-        "WORKFLOW-" + partyName + "-AuctionAllocateBondBot-" + UUID.randomUUID().toString();
-    logger = BotLogger.getLogger(AuctionAllocateBondBot.class, workflowId);
+        "WORKFLOW-" + partyName + "-AuctionFinalizeBot-" + UUID.randomUUID().toString();
+    logger = BotLogger.getLogger(AuctionFinalizeBot.class, workflowId);
 
     commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
 
