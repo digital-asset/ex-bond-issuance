@@ -31,13 +31,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class AuctionLockBotTest {
+public class PlaceBidBotTest {
 //
-//  private AuctionLockBot bot;
+//  private PlaceBidBot bot;
 //
 //  @Before
 //  public void setupTests() {
-//    bot = new AuctionLockBot(TIME_MANAGER, APP_ID, INVESTOR);
+//    bot = new PlaceBidBot(TIME_MANAGER, APP_ID, INVESTOR);
 //  }
 //
   @Test

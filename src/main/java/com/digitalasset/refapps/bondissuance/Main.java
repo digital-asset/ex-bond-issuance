@@ -7,7 +7,7 @@ package com.digitalasset.refapps.bondissuance;
 import com.daml.ledger.rxjava.DamlLedgerClient;
 import com.daml.ledger.rxjava.components.Bot;
 import com.digitalasset.refapps.bondissuance.bot.AuctionAllocateBondBot;
-import com.digitalasset.refapps.bondissuance.bot.AuctionLockBot;
+import com.digitalasset.refapps.bondissuance.bot.PlaceBidBot;
 import com.digitalasset.refapps.bondissuance.bot.FinalizeSettlementBot;
 import com.digitalasset.refapps.bondissuance.bot.CommissionBot;
 import com.digitalasset.refapps.bondissuance.bot.RedemptionFinalizerBot;
@@ -66,9 +66,9 @@ public class Main {
       FinalizeSettlementBot finalizeSettlementBot3 =
           new FinalizeSettlementBot(timeManager, applicationId, bank3);
 
-      AuctionLockBot auctionLockBot1 = new AuctionLockBot(timeManager, applicationId, bank1);
-      AuctionLockBot auctionLockBot2 = new AuctionLockBot(timeManager, applicationId, bank2);
-      AuctionLockBot auctionLockBot3 = new AuctionLockBot(timeManager, applicationId, bank3);
+      PlaceBidBot placeBidBot1 = new PlaceBidBot(timeManager, applicationId, bank1);
+      PlaceBidBot placeBidBot2 = new PlaceBidBot(timeManager, applicationId, bank2);
+      PlaceBidBot placeBidBot3 = new PlaceBidBot(timeManager, applicationId, bank3);
 
       Bot.wire(
           applicationId,
@@ -122,23 +122,23 @@ public class Main {
       Bot.wire(
           applicationId,
           client,
-          auctionLockBot1.transactionFilter,
-          auctionLockBot1::calculateCommands,
-          auctionLockBot1::getContractInfo);
+          placeBidBot1.transactionFilter,
+          placeBidBot1::calculateCommands,
+          placeBidBot1::getContractInfo);
 
       Bot.wire(
           applicationId,
           client,
-          auctionLockBot2.transactionFilter,
-          auctionLockBot2::calculateCommands,
-          auctionLockBot2::getContractInfo);
+          placeBidBot2.transactionFilter,
+          placeBidBot2::calculateCommands,
+          placeBidBot2::getContractInfo);
 
       Bot.wire(
           applicationId,
           client,
-          auctionLockBot3.transactionFilter,
-          auctionLockBot3::calculateCommands,
-          auctionLockBot3::getContractInfo);
+          placeBidBot3.transactionFilter,
+          placeBidBot3::calculateCommands,
+          placeBidBot3::getContractInfo);
 
       logger.info("Welcome to Bond Issuance Application!");
       logger.info("Press Ctrl+C to shut down the program.");

@@ -36,15 +36,15 @@ import org.slf4j.Logger;
  * <i>PlaceBidBotTrigger</i> contracts created on the ledger. It accumulates and filters the
  * necessary parameters.
  */
-public class AuctionLockBot {
+public class PlaceBidBot {
 
   public final TransactionFilter transactionFilter;
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
 
-  public AuctionLockBot(TimeManager timeManager, String appId, String partyName) {
-    String workflowId = "WORKFLOW-" + partyName + "-AuctionLockBot-" + UUID.randomUUID().toString();
-    logger = BotLogger.getLogger(AuctionLockBot.class, workflowId);
+  public PlaceBidBot(TimeManager timeManager, String appId, String partyName) {
+    String workflowId = "WORKFLOW-" + partyName + "-PlaceBidBot-" + UUID.randomUUID().toString();
+    logger = BotLogger.getLogger(PlaceBidBot.class, workflowId);
     commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
 
     Filter messageFilter =
@@ -141,7 +141,7 @@ public class AuctionLockBot {
       return AssetSettlement.fromValue(args);
     } else {
       String msg =
-          "AuctionLockBot encountered an unknown contract of type "
+          "PlaceBidBot encountered an unknown contract of type "
               + createdContract.getTemplateId();
       logger.error(msg);
       throw new IllegalStateException(msg);
