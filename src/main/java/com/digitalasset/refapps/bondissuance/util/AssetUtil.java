@@ -71,7 +71,10 @@ public class AssetUtil {
   public static List<AssetDeposit.ContractId> findAssetDepositCids(
       Map<String, AssetDeposit> assetDeposits, Id assetId) {
     return assetDeposits.entrySet().stream()
-        .filter(cidWithAsset -> cidWithAsset.getValue().asset.id.equals(assetId))
+        .filter(cidWithAsset -> 
+            cidWithAsset.getValue().asset.id.label.equals(assetId.label) &&
+            cidWithAsset.getValue().asset.id.version.equals(assetId.version)
+        )
         .map(cidWithAsset -> new AssetDeposit.ContractId(cidWithAsset.getKey()))
         .collect(Collectors.toList());
   }
