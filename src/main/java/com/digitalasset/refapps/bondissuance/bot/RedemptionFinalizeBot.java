@@ -23,16 +23,16 @@ import org.slf4j.Logger;
  * <i>RedemptionFinalizeBotTrigger</i> contracts created on the ledger. It accumulates and filters
  * the necessary parameters.
  */
-public class RedemptionFinalizerBot {
+public class RedemptionFinalizeBot {
 
   public final TransactionFilter transactionFilter;
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
 
-  public RedemptionFinalizerBot(TimeManager timeManager, String appId, String partyName) {
+  public RedemptionFinalizeBot(TimeManager timeManager, String appId, String partyName) {
     String workflowId =
-        "WORKFLOW-" + partyName + "-RedemptionFinalizerBot-" + UUID.randomUUID().toString();
-    logger = BotLogger.getLogger(RedemptionFinalizerBot.class, workflowId);
+        "WORKFLOW-" + partyName + "-RedemptionFinalizeBot-" + UUID.randomUUID().toString();
+    logger = BotLogger.getLogger(RedemptionFinalizeBot.class, workflowId);
 
     commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
 
@@ -122,7 +122,7 @@ public class RedemptionFinalizerBot {
       return AssetFungible.fromValue(args);
     } else {
       String msg =
-          "RedemptionFinalizerBot Bot encountered an unknown contract of type "
+          "RedemptionFinalizeBot Bot encountered an unknown contract of type "
               + createdContract.getTemplateId();
       logger.error(msg);
       throw new IllegalStateException(msg);

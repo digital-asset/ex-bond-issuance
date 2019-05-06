@@ -10,7 +10,7 @@ import com.digitalasset.refapps.bondissuance.bot.AuctionFinalizeBot;
 import com.digitalasset.refapps.bondissuance.bot.InvestorSettlementBot;
 import com.digitalasset.refapps.bondissuance.bot.PlaceBidBot;
 import com.digitalasset.refapps.bondissuance.bot.CommissionBot;
-import com.digitalasset.refapps.bondissuance.bot.RedemptionFinalizerBot;
+import com.digitalasset.refapps.bondissuance.bot.RedemptionFinalizeBot;
 import com.digitalasset.refapps.bondissuance.bot.RedemptionStartBot;
 import com.digitalasset.refapps.bondissuance.util.CliOptions;
 import com.digitalasset.refapps.bondissuance.util.TimeManager;
@@ -56,8 +56,8 @@ public class Main {
       RedemptionStartBot redemptionStartBot =
           new RedemptionStartBot(timeManager, applicationId, csd);
 
-      RedemptionFinalizerBot redemptionFinalizerBot =
-          new RedemptionFinalizerBot(timeManager, applicationId, issuer);
+      RedemptionFinalizeBot redemptionFinalizeBot =
+          new RedemptionFinalizeBot(timeManager, applicationId, issuer);
 
       InvestorSettlementBot investorSettlementBot1 =
           new InvestorSettlementBot(timeManager, applicationId, bank1);
@@ -94,9 +94,9 @@ public class Main {
       Bot.wire(
           applicationId,
           client,
-          redemptionFinalizerBot.transactionFilter,
-          redemptionFinalizerBot::calculateCommands,
-          redemptionFinalizerBot::getContractInfo);
+          redemptionFinalizeBot.transactionFilter,
+          redemptionFinalizeBot::calculateCommands,
+          redemptionFinalizeBot::getContractInfo);
 
       Bot.wire(
           applicationId,
