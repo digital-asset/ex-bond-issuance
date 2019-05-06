@@ -103,8 +103,7 @@ template RedemptionRequest
 -- Triggers the redemption calculation bot. The bot collects the relevant bond assets
 -- and `RedemptionPayoutInfo`s and calculates the final coupon and creates cash
 -- transfers to each of the investors.
--- It also archives the bonds still in active DvP contracts and the bond which weren't
--- sold at all.
+-- It also archives the bonds that weren't sold at all.
 template RedemptionCalculationBotTrigger
   with
     issuer: Party
