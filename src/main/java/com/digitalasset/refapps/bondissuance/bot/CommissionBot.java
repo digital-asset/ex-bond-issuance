@@ -32,16 +32,16 @@ import org.slf4j.Logger;
  * <i>CommissionBotTrigger</i> contracts created on the ledger. It accumulates and filters the
  * necessary parameters.
  */
-public class InviteAgentBot {
+public class CommissionBot {
 
   public final TransactionFilter transactionFilter;
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
   private final String partyName;
 
-  public InviteAgentBot(TimeManager timeManager, String appId, String partyName) {
-    String workflowId = "WORKFLOW-" + partyName + "-InviteAgentBot-" + UUID.randomUUID().toString();
-    logger = BotLogger.getLogger(InviteAgentBot.class, workflowId);
+  public CommissionBot(TimeManager timeManager, String appId, String partyName) {
+    String workflowId = "WORKFLOW-" + partyName + "-CommissionBot-" + UUID.randomUUID().toString();
+    logger = BotLogger.getLogger(CommissionBot.class, workflowId);
     this.partyName = partyName;
 
     commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);

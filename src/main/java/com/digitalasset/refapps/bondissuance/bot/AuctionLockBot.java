@@ -44,7 +44,7 @@ public class AuctionLockBot {
 
   public AuctionLockBot(TimeManager timeManager, String appId, String partyName) {
     String workflowId = "WORKFLOW-" + partyName + "-AuctionLockBot-" + UUID.randomUUID().toString();
-    logger = BotLogger.getLogger(InviteAgentBot.class, workflowId);
+    logger = BotLogger.getLogger(AuctionLockBot.class, workflowId);
     commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
 
     Filter messageFilter =

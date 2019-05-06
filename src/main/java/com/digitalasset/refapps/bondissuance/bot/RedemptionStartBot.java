@@ -43,7 +43,7 @@ public class RedemptionStartBot {
   public RedemptionStartBot(TimeManager timeManager, String appId, String partyName) {
     String workflowId =
         "WORKFLOW-" + partyName + "-RedemptionStartBot-" + UUID.randomUUID().toString();
-    logger = BotLogger.getLogger(InviteAgentBot.class, workflowId);
+    logger = BotLogger.getLogger(RedemptionStartBot.class, workflowId);
     commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
 
     Filter messageFilter =

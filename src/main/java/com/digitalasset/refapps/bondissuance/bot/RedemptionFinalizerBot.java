@@ -32,7 +32,7 @@ public class RedemptionFinalizerBot {
   public RedemptionFinalizerBot(TimeManager timeManager, String appId, String partyName) {
     String workflowId =
         "WORKFLOW-" + partyName + "-RedemptionFinalizerBot-" + UUID.randomUUID().toString();
-    logger = BotLogger.getLogger(InviteAgentBot.class, workflowId);
+    logger = BotLogger.getLogger(RedemptionFinalizerBot.class, workflowId);
 
     commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
 
