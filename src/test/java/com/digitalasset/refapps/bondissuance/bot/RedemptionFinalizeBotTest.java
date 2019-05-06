@@ -42,14 +42,17 @@ public class RedemptionFinalizeBotTest {
         AssetDeposit.TEMPLATE_ID,
         "assetDepositCid",
         new AssetDeposit(ISSUER_CASH_ACCOUNT, CASH_ASSET, null));
+    
     ledgerView.addActiveContract(
         AssetSettlement.TEMPLATE_ID,
         "assetSettlementCid",
         new AssetSettlement(ISSUER_CASH_ACCOUNT, null));
+    
     ledgerView.addActiveContract(
         AssetFungible.TEMPLATE_ID,
         "assetFungibleCid",
         new AssetFungible(ISSUER_CASH_ACCOUNT, null));
+    
     String redemptionFinalizeBotTriggerCid = "redemptionFinalizeBotTriggerCid";
     List<RedemptionInstruction> instructions = Collections.emptyList();
     ledgerView.addActiveContract(

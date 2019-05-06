@@ -46,9 +46,11 @@ public class BotTestUtils {
   public static final Id ISSUER_BOND_ACCOUNT_ID = new Id(null, "IssuerBondAccount", 0L);
   public static final Id ISSUER_CASH_ACCOUNT_ID = new Id(null, "IssuerCashAccount", 0L);
   public static final Id INVESTOR_CASH_ACCOUNT_ID = new Id(null, "InvestorCashAccount", 0L);
+  public static final Id INVESTOR_BOND_ACCOUNT_ID = new Id(null, "InvestorBondAccount", 0L);
   public static final Account ISSUER_BOND_ACCOUNT = new Account(ISSUER_BOND_ACCOUNT_ID, CSD, ISSUER);
   public static final Account ISSUER_CASH_ACCOUNT = new Account(ISSUER_CASH_ACCOUNT_ID, CENTRAL_BANK, ISSUER);
   public static final Account INVESTOR_CASH_ACCOUNT = new Account(INVESTOR_CASH_ACCOUNT_ID, CENTRAL_BANK, INVESTOR);
+  public static final Account INVESTOR_BOND_ACCOUNT = new Account(INVESTOR_BOND_ACCOUNT_ID, CSD, INVESTOR);
   public static final Asset BOND_ASSET = new Asset(BOND_ID, new BigDecimal(1));
   public static final Asset CASH_ASSET = new Asset(CASH_ID, new BigDecimal(1));
 
