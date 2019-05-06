@@ -30,13 +30,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class FinalizeSettlementBotTest {
+public class InvestorSettlementBotTest {
 //
-//  private FinalizeSettlementBot bot;
+//  private InvestorSettlementBot bot;
 //
 //  @Before
 //  public void setupTests() {
-//    bot = new FinalizeSettlementBot(TIME_MANAGER, APP_ID, INVESTOR);
+//    bot = new InvestorSettlementBot(TIME_MANAGER, APP_ID, INVESTOR);
 //  }
 //
   @Test

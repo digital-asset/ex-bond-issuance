@@ -7,8 +7,8 @@ package com.digitalasset.refapps.bondissuance;
 import com.daml.ledger.rxjava.DamlLedgerClient;
 import com.daml.ledger.rxjava.components.Bot;
 import com.digitalasset.refapps.bondissuance.bot.AuctionFinalizeBot;
+import com.digitalasset.refapps.bondissuance.bot.InvestorSettlementBot;
 import com.digitalasset.refapps.bondissuance.bot.PlaceBidBot;
-import com.digitalasset.refapps.bondissuance.bot.FinalizeSettlementBot;
 import com.digitalasset.refapps.bondissuance.bot.CommissionBot;
 import com.digitalasset.refapps.bondissuance.bot.RedemptionFinalizerBot;
 import com.digitalasset.refapps.bondissuance.bot.RedemptionStartBot;
@@ -59,12 +59,12 @@ public class Main {
       RedemptionFinalizerBot redemptionFinalizerBot =
           new RedemptionFinalizerBot(timeManager, applicationId, issuer);
 
-      FinalizeSettlementBot finalizeSettlementBot1 =
-          new FinalizeSettlementBot(timeManager, applicationId, bank1);
-      FinalizeSettlementBot finalizeSettlementBot2 =
-          new FinalizeSettlementBot(timeManager, applicationId, bank2);
-      FinalizeSettlementBot finalizeSettlementBot3 =
-          new FinalizeSettlementBot(timeManager, applicationId, bank3);
+      InvestorSettlementBot investorSettlementBot1 =
+          new InvestorSettlementBot(timeManager, applicationId, bank1);
+      InvestorSettlementBot investorSettlementBot2 =
+          new InvestorSettlementBot(timeManager, applicationId, bank2);
+      InvestorSettlementBot investorSettlementBot3 =
+          new InvestorSettlementBot(timeManager, applicationId, bank3);
 
       PlaceBidBot placeBidBot1 = new PlaceBidBot(timeManager, applicationId, bank1);
       PlaceBidBot placeBidBot2 = new PlaceBidBot(timeManager, applicationId, bank2);
@@ -101,23 +101,23 @@ public class Main {
       Bot.wire(
           applicationId,
           client,
-          finalizeSettlementBot1.transactionFilter,
-          finalizeSettlementBot1::calculateCommands,
-          finalizeSettlementBot1::getContractInfo);
+          investorSettlementBot1.transactionFilter,
+          investorSettlementBot1::calculateCommands,
+          investorSettlementBot1::getContractInfo);
 
       Bot.wire(
           applicationId,
           client,
-          finalizeSettlementBot2.transactionFilter,
-          finalizeSettlementBot2::calculateCommands,
-          finalizeSettlementBot2::getContractInfo);
+          investorSettlementBot2.transactionFilter,
+          investorSettlementBot2::calculateCommands,
+          investorSettlementBot2::getContractInfo);
 
       Bot.wire(
           applicationId,
           client,
-          finalizeSettlementBot3.transactionFilter,
-          finalizeSettlementBot3::calculateCommands,
-          finalizeSettlementBot3::getContractInfo);
+          investorSettlementBot3.transactionFilter,
+          investorSettlementBot3::calculateCommands,
+          investorSettlementBot3::getContractInfo);
 
       Bot.wire(
           applicationId,

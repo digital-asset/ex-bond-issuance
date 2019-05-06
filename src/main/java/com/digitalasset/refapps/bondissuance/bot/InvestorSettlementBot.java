@@ -36,16 +36,16 @@ import org.slf4j.Logger;
  * <i>InvestorSettlementBotTrigger</i> contracts created on the ledger. It accumulates and filters
  * the necessary parameters.
  */
-public class FinalizeSettlementBot {
+public class InvestorSettlementBot {
 
   public final TransactionFilter transactionFilter;
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
 
-  public FinalizeSettlementBot(TimeManager timeManager, String appId, String partyName) {
+  public InvestorSettlementBot(TimeManager timeManager, String appId, String partyName) {
     String workflowId =
-        "WORKFLOW-" + partyName + "-FinalizeSettlementBot-" + UUID.randomUUID().toString();
-    logger = BotLogger.getLogger(FinalizeSettlementBot.class, workflowId);
+        "WORKFLOW-" + partyName + "-InvestorSettlementBot-" + UUID.randomUUID().toString();
+    logger = BotLogger.getLogger(InvestorSettlementBot.class, workflowId);
 
     commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
 
