@@ -11,7 +11,7 @@ import com.digitalasset.refapps.bondissuance.bot.InvestorSettlementBot;
 import com.digitalasset.refapps.bondissuance.bot.PlaceBidBot;
 import com.digitalasset.refapps.bondissuance.bot.CommissionBot;
 import com.digitalasset.refapps.bondissuance.bot.RedemptionFinalizeBot;
-import com.digitalasset.refapps.bondissuance.bot.RedemptionStartBot;
+import com.digitalasset.refapps.bondissuance.bot.RedemptionCalculationBot;
 import com.digitalasset.refapps.bondissuance.util.CliOptions;
 import com.digitalasset.refapps.bondissuance.util.TimeManager;
 import java.util.Optional;
@@ -53,8 +53,8 @@ public class Main {
 
       CommissionBot commissionBot = new CommissionBot(timeManager, applicationId, issuer);
 
-      RedemptionStartBot redemptionStartBot =
-          new RedemptionStartBot(timeManager, applicationId, csd);
+      RedemptionCalculationBot redemptionCalculationBot =
+          new RedemptionCalculationBot(timeManager, applicationId, csd);
 
       RedemptionFinalizeBot redemptionFinalizeBot =
           new RedemptionFinalizeBot(timeManager, applicationId, issuer);
@@ -87,9 +87,9 @@ public class Main {
       Bot.wire(
           applicationId,
           client,
-          redemptionStartBot.transactionFilter,
-          redemptionStartBot::calculateCommands,
-          redemptionStartBot::getContractInfo);
+          redemptionCalculationBot.transactionFilter,
+          redemptionCalculationBot::calculateCommands,
+          redemptionCalculationBot::getContractInfo);
 
       Bot.wire(
           applicationId,

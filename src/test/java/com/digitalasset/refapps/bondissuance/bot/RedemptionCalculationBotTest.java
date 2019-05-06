@@ -29,13 +29,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class RedemptionStartBotTest {
+public class RedemptionCalculationBotTest {
 //
-//  private RedemptionStartBot bot;
+//  private RedemptionCalculationBot bot;
 //
 //  @Before
 //  public void setupTests() {
-//    bot = new RedemptionStartBot(TIME_MANAGER, APP_ID, CSD);
+//    bot = new RedemptionCalculationBot(TIME_MANAGER, APP_ID, CSD);
 //  }
 //
   @Test

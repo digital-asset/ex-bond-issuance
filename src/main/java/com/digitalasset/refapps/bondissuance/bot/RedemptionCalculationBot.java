@@ -34,16 +34,16 @@ import org.slf4j.Logger;
  * <i>RedemptionCalculationBotTrigger</i> contracts created on the ledger. It accumulates and
  * filters the necessary parameters.
  */
-public class RedemptionStartBot {
+public class RedemptionCalculationBot {
 
   public final TransactionFilter transactionFilter;
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
 
-  public RedemptionStartBot(TimeManager timeManager, String appId, String partyName) {
+  public RedemptionCalculationBot(TimeManager timeManager, String appId, String partyName) {
     String workflowId =
-        "WORKFLOW-" + partyName + "-RedemptionStartBot-" + UUID.randomUUID().toString();
-    logger = BotLogger.getLogger(RedemptionStartBot.class, workflowId);
+        "WORKFLOW-" + partyName + "-RedemptionCalculationBot-" + UUID.randomUUID().toString();
+    logger = BotLogger.getLogger(RedemptionCalculationBot.class, workflowId);
     commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
 
     Filter messageFilter =
