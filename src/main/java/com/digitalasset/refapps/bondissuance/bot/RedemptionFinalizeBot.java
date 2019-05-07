@@ -59,7 +59,8 @@ public class RedemptionFinalizeBot {
 
     // collecting asset fact contracts from the ledger
     Map<String, AssetDeposit> assetDeposits =
-        BotUtil.filterTemplates(AssetDeposit.class, ledgerView.getContracts(AssetDeposit.TEMPLATE_ID));
+        BotUtil.filterTemplates(
+            AssetDeposit.class, ledgerView.getContracts(AssetDeposit.TEMPLATE_ID));
 
     // collecting AssetSettlement contracts from the ledger
     Map<String, AssetSettlement> assetSettlements =
@@ -69,8 +70,7 @@ public class RedemptionFinalizeBot {
     // collecting AssetFungible contracts from the ledger
     Map<String, AssetFungible> assetFungibles =
         BotUtil.filterTemplates(
-            AssetFungible.class,
-            ledgerView.getContracts(AssetFungible.TEMPLATE_ID));
+            AssetFungible.class, ledgerView.getContracts(AssetFungible.TEMPLATE_ID));
 
     CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
     if (triggerContracts.size() > 0) {
@@ -84,22 +84,22 @@ public class RedemptionFinalizeBot {
 
       // pick AssetSettlement
       AssetSettlement.ContractId assetSettlementCid =
-          AssetUtil.findAssetSettlement(assetSettlements, cashAccountProvider, trigger.getValue().issuer, logger);
+          AssetUtil.findAssetSettlement(
+              assetSettlements, cashAccountProvider, trigger.getValue().issuer, logger);
 
       // pick AssetFungible
       AssetFungible.ContractId assetFungibleCid =
-          AssetUtil.findAssetFungible(assetFungibles, cashAccountProvider, trigger.getValue().issuer, logger);
+          AssetUtil.findAssetFungible(
+              assetFungibles, cashAccountProvider, trigger.getValue().issuer, logger);
 
       // find relevant asset facts
       List<AssetDeposit.ContractId> assetDepositCids =
-          AssetUtil.findAssetDepositCids(
-              assetDeposits, trigger.getValue().cashAssetId);
+          AssetUtil.findAssetDepositCids(assetDeposits, trigger.getValue().cashAssetId);
 
       // exercise choice
       if (assetDepositCids.isEmpty()) {
         logger.warn(
-            "No cash assets found to pay with. Instrument: "
-                + trigger.getValue().cashAssetId);
+            "No cash assets found to pay with. Instrument: " + trigger.getValue().cashAssetId);
       } else {
         logger.info("Completing redemption " + trigger.getKey());
         builder.addCommand(

@@ -7,12 +7,9 @@ package com.digitalasset.refapps.bondissuance.bot;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.APP_ID;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.AUCTION_AGENT;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.AUCTION_NAME;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.BOND_ID;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CASH_ASSET;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CENTRAL_BANK;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CSD;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR_BOND_ACCOUNT;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR_CASH_ACCOUNT;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.ISSUER;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.TIME_MANAGER;
@@ -21,7 +18,6 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSi
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
-
 import da.finance.fact.asset.AssetDeposit;
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;
@@ -52,12 +48,16 @@ public class InvestorSettlementBotTest {
     String investorSettlementBotTriggerCid = "investorSettlementBotTriggerCid";
     List<AuctionSettleRequest.ContractId> settleRequestCids = Collections.emptyList();
 
-
     ledgerView.addActiveContract(
         AuctionLockedCash.TEMPLATE_ID,
         "auctionLockedCashCid",
         new AuctionLockedCash(
-            INVESTOR, AUCTION_AGENT, AUCTION_NAME, new AssetDeposit(INVESTOR_CASH_ACCOUNT, CASH_ASSET, null), INVESTOR_CASH_ACCOUNT, Collections.emptyList()));
+            INVESTOR,
+            AUCTION_AGENT,
+            AUCTION_NAME,
+            new AssetDeposit(INVESTOR_CASH_ACCOUNT, CASH_ASSET, null),
+            INVESTOR_CASH_ACCOUNT,
+            Collections.emptyList()));
 
     ledgerView.addActiveContract(
         AssetFungible.TEMPLATE_ID,

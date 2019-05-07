@@ -10,7 +10,6 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.AUCTION_NAM
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.BOND_ID;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CASH_ID;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CENTRAL_BANK;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CSD;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.ISSUER;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.OPERATOR;
@@ -20,15 +19,14 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSi
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
-
 import da.finance.fact.asset.AssetDeposit;
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;
-import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.refapps.bond.auction.AuctionBid;
 import da.refapps.bond.auction.AuctionFinalizeBotTrigger;
 import da.refapps.bond.auction.BidData;
 import da.refapps.bond.auction.BidderParticipation;
+import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.refapps.bond.util.BondBundleData;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
@@ -82,7 +80,7 @@ public class AuctionFinalizeBotTest {
             maturityDate);
 
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
-    
+
     ledgerView.addActiveContract(
         BidderParticipation.TEMPLATE_ID,
         "participationCid",
@@ -101,8 +99,9 @@ public class AuctionFinalizeBotTest {
             AUCTION_NAME));
 
     BidData bidData = new BidData(BigDecimal.valueOf(1), 100L, TIME_MANAGER.getTime());
-    AssetSettlement.ContractId assetSettlementCid = new AssetSettlement.ContractId("assetSettlementCid");
-    
+    AssetSettlement.ContractId assetSettlementCid =
+        new AssetSettlement.ContractId("assetSettlementCid");
+
     ledgerView.addActiveContract(
         AuctionBid.TEMPLATE_ID,
         "auctionBidCid",
@@ -119,21 +118,18 @@ public class AuctionFinalizeBotTest {
     String auctionFinalizeBotTriggerCid = "auctionFinalizeBotTriggerCid";
     BigDecimal minPrice = BigDecimal.valueOf(0.98);
     AssetDeposit.ContractId assetDepositCid = new AssetDeposit.ContractId("assetDepositCid");
-    AssetFungible.ContractId assetFungibleCid =
-        new AssetFungible.ContractId("assetFungibleCid");
-    AssetSettlement.ContractId bondSettlementCid = new AssetSettlement.ContractId("bondSettlementCid");
-    AssetSettlement.ContractId cashSettlementCid = new AssetSettlement.ContractId("cashSettlementCid");
+    AssetFungible.ContractId assetFungibleCid = new AssetFungible.ContractId("assetFungibleCid");
+    AssetSettlement.ContractId bondSettlementCid =
+        new AssetSettlement.ContractId("bondSettlementCid");
+    AssetSettlement.ContractId cashSettlementCid =
+        new AssetSettlement.ContractId("cashSettlementCid");
     String assetLabel = "asset-label";
 
     BondBundleData bondBundleData =
         new BondBundleData(
-            assetDepositCid,
-            assetFungibleCid,
-            bondSettlementCid,
-            cashSettlementCid,
-            assetLabel);
+            assetDepositCid, assetFungibleCid, bondSettlementCid, cashSettlementCid, assetLabel);
     List<String> invitedBidders = Collections.singletonList(INVESTOR);
-    
+
     ledgerView.addActiveContract(
         AuctionFinalizeBotTrigger.TEMPLATE_ID,
         auctionFinalizeBotTriggerCid,

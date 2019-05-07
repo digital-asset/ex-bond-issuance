@@ -83,8 +83,7 @@ public class InvestorSettlementBot {
     // collecting AssetFungible contracts from the ledger
     Map<String, AssetFungible> assetFungibles =
         BotUtil.filterTemplates(
-            AssetFungible.class,
-            ledgerView.getContracts(AssetFungible.TEMPLATE_ID));
+            AssetFungible.class, ledgerView.getContracts(AssetFungible.TEMPLATE_ID));
 
     CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
     if (triggerContracts.size() > 0) {
@@ -100,12 +99,18 @@ public class InvestorSettlementBot {
       // pick a transfer rule
       AssetSettlement.ContractId assetSettlement =
           AssetUtil.findAssetSettlement(
-              assetSettlements, settlement.getValue().cashProvider, settlement.getValue().investor, logger);
+              assetSettlements,
+              settlement.getValue().cashProvider,
+              settlement.getValue().investor,
+              logger);
 
       // pick an asset fungible
       AssetFungible.ContractId assetFungible =
           AssetUtil.findAssetFungible(
-              assetFungibles, settlement.getValue().cashProvider, settlement.getValue().investor, logger);
+              assetFungibles,
+              settlement.getValue().cashProvider,
+              settlement.getValue().investor,
+              logger);
 
       // find the relevant locked cash assets
       List<AuctionLockedCash.ContractId> auctionLockedCashCids =
@@ -134,7 +139,8 @@ public class InvestorSettlementBot {
       // exercise the choice
       logger.info("Executing InvestorSettlementBotTrigger_Finalize for " + settlement.getKey());
       builder.addCommand(
-          triggerCid.exerciseInvestorSettlementBotTrigger_Finalize(auctionLockedCashCids, assetFungible, assetSettlement));
+          triggerCid.exerciseInvestorSettlementBotTrigger_Finalize(
+              auctionLockedCashCids, assetFungible, assetSettlement));
     }
     return builder.buildFlowable();
   }

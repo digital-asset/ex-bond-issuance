@@ -10,7 +10,6 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSi
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
-
 import da.finance.fact.asset.AssetDeposit;
 import da.finance.fact.trade.dvp.Dvp;
 import da.finance.rule.asset.AssetSettlement;
@@ -40,7 +39,7 @@ public class RedemptionCalculationBotTest {
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
     AssetSettlement.ContractId assetSettlementCid = new AssetSettlement.ContractId("cid-1");
     Dvp.ContractId dvpCid = new Dvp.ContractId("cid-2");
-    
+
     ledgerView.addActiveContract(
         RedemptionPayoutInfo.TEMPLATE_ID,
         "redemptionPayoutInfoCid",
@@ -50,7 +49,8 @@ public class RedemptionCalculationBotTest {
             BOND_ID,
             CSD,
             INVESTOR_CASH_ACCOUNT,
-            new DvpSettlement_Process_Result(dvpCid, Collections.emptyList(), Collections.emptyList()),
+            new DvpSettlement_Process_Result(
+                dvpCid, Collections.emptyList(), Collections.emptyList()),
             assetSettlementCid,
             Collections.emptyList()));
 

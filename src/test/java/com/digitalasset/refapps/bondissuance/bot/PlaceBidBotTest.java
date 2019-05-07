@@ -10,19 +10,16 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSi
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
-
 import da.finance.fact.asset.AssetDeposit;
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;
-import da.refapps.bond.auction.AuctionBid;
 import da.refapps.bond.auction.BidData;
 import da.refapps.bond.auction.PlaceBidBotTrigger;
+import da.refapps.bond.lock.AssetLockRule;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
-
-import da.refapps.bond.lock.AssetLockRule;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +38,7 @@ public class PlaceBidBotTest {
   @Test
   public void testTrigger() throws InvocationTargetException, IllegalAccessException {
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
-    
+
     ledgerView.addActiveContract(
         AssetDeposit.TEMPLATE_ID,
         "assetDepositCid",
@@ -61,7 +58,7 @@ public class PlaceBidBotTest {
         AssetSettlement.TEMPLATE_ID,
         "assetSettlementCid",
         new AssetSettlement(INVESTOR_BOND_ACCOUNT, null));
-    
+
     String placeBidBotTriggerCid = "placeBidBotTriggerCid";
     BidData bidData = new BidData(BigDecimal.valueOf(0.98), 100L, Instant.now());
     ledgerView.addActiveContract(
@@ -77,9 +74,7 @@ public class PlaceBidBotTest {
             bidData,
             AUCTION_NAME,
             BOND_ID,
-            Collections.emptyList()
-        )
-    );
+            Collections.emptyList()));
 
     CommandsAndPendingSet cmds =
         bot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();

@@ -10,7 +10,6 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSi
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
-
 import da.finance.fact.asset.AssetDeposit;
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;
@@ -37,22 +36,22 @@ public class RedemptionFinalizeBotTest {
   @Test
   public void testTrigger() throws InvocationTargetException, IllegalAccessException {
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
-    
+
     ledgerView.addActiveContract(
         AssetDeposit.TEMPLATE_ID,
         "assetDepositCid",
         new AssetDeposit(ISSUER_CASH_ACCOUNT, CASH_ASSET, null));
-    
+
     ledgerView.addActiveContract(
         AssetSettlement.TEMPLATE_ID,
         "assetSettlementCid",
         new AssetSettlement(ISSUER_CASH_ACCOUNT, null));
-    
+
     ledgerView.addActiveContract(
         AssetFungible.TEMPLATE_ID,
         "assetFungibleCid",
         new AssetFungible(ISSUER_CASH_ACCOUNT, null));
-    
+
     String redemptionFinalizeBotTriggerCid = "redemptionFinalizeBotTriggerCid";
     List<RedemptionInstruction> instructions = Collections.emptyList();
     ledgerView.addActiveContract(
@@ -62,8 +61,7 @@ public class RedemptionFinalizeBotTest {
             ISSUER, CSD, instructions, CENTRAL_BANK, CASH_ID, Collections.emptyList()));
 
     CommandsAndPendingSet cmds =
-        bot.calculateCommands(ledgerView.getRealLedgerView())
-            .blockingFirst();
+        bot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
 
     assertHasSingleExercise(
         cmds, redemptionFinalizeBotTriggerCid, "RedemptionFinalizeBotTrigger_Finalize");

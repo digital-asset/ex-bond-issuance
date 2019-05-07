@@ -51,8 +51,7 @@ public class RedemptionCalculationBot {
             Sets.newHashSet(
                 RedemptionCalculationBotTrigger.TEMPLATE_ID,
                 RedemptionPayoutInfo.TEMPLATE_ID,
-                AssetDeposit.TEMPLATE_ID)
-        );
+                AssetDeposit.TEMPLATE_ID));
 
     transactionFilter = new FiltersByParty(Collections.singletonMap(partyName, messageFilter));
 
@@ -74,8 +73,8 @@ public class RedemptionCalculationBot {
 
     // collecting asset fact contracts from the ledger
     Map<String, AssetDeposit> assetDeposits =
-        BotUtil.filterTemplates(AssetDeposit.class, ledgerView.getContracts(AssetDeposit.TEMPLATE_ID));
-
+        BotUtil.filterTemplates(
+            AssetDeposit.class, ledgerView.getContracts(AssetDeposit.TEMPLATE_ID));
 
     CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
     for (Map.Entry<String, RedemptionCalculationBotTrigger> calculation :
@@ -103,11 +102,9 @@ public class RedemptionCalculationBot {
               .map(e -> new AssetDeposit.ContractId(e.getKey()))
               .collect(Collectors.toList());
 
-
       // exercise the choice
       builder.addCommand(
-          triggerCid.exerciseRedemptionCalculationBotTrigger_Start(
-              payouInfos, remainingAssetCids));
+          triggerCid.exerciseRedemptionCalculationBotTrigger_Start(payouInfos, remainingAssetCids));
     }
     return builder.buildFlowable();
   }

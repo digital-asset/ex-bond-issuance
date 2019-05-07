@@ -70,19 +70,18 @@ public class PlaceBidBot {
 
     // collecting AssetDeposit contracts from the ledger
     Map<String, AssetDeposit> assetDeposits =
-        BotUtil.filterTemplates(AssetDeposit.class, ledgerView.getContracts(AssetDeposit.TEMPLATE_ID));
+        BotUtil.filterTemplates(
+            AssetDeposit.class, ledgerView.getContracts(AssetDeposit.TEMPLATE_ID));
 
     // collecting AssetFungible contracts from the ledger
     Map<String, AssetFungible> assetFungibles =
         BotUtil.filterTemplates(
-            AssetFungible.class,
-            ledgerView.getContracts(AssetFungible.TEMPLATE_ID));
+            AssetFungible.class, ledgerView.getContracts(AssetFungible.TEMPLATE_ID));
 
     // collecting AssetSettlement contracts from the ledger
     Map<String, AssetSettlement> assetSettlements =
         BotUtil.filterTemplates(
-            AssetSettlement.class,
-            ledgerView.getContracts(AssetSettlement.TEMPLATE_ID));
+            AssetSettlement.class, ledgerView.getContracts(AssetSettlement.TEMPLATE_ID));
 
     // collecting lockRule contracts from the ledger
     Map<String, AssetLockRule> assetLockRules =
@@ -100,29 +99,32 @@ public class PlaceBidBot {
 
       // find relevant assets
       List<AssetDeposit.ContractId> cashAssets =
-          AssetUtil.findAssetDepositCids(
-              assetDeposits,
-              lockRequest.getValue().cashAssetId);
+          AssetUtil.findAssetDepositCids(assetDeposits, lockRequest.getValue().cashAssetId);
 
       // pick a lock rule
       AssetLockRule.ContractId lockRule =
-          AssetUtil.findLockRule(
-              assetLockRules, lockRequest.getValue().cashProvider, logger);
+          AssetUtil.findLockRule(assetLockRules, lockRequest.getValue().cashProvider, logger);
 
       // pick a AssetFungible
       AssetFungible.ContractId assetFungible =
           AssetUtil.findAssetFungible(
-              assetFungibles, lockRequest.getValue().cashProvider, lockRequest.getValue().bidder, logger);
+              assetFungibles,
+              lockRequest.getValue().cashProvider,
+              lockRequest.getValue().bidder,
+              logger);
 
       // pick a AssetSettlement
       AssetSettlement.ContractId assetSettlement =
           AssetUtil.findAssetSettlement(
-              assetSettlements, lockRequest.getValue().bondProvider, lockRequest.getValue().bidder, logger);
-
+              assetSettlements,
+              lockRequest.getValue().bondProvider,
+              lockRequest.getValue().bidder,
+              logger);
 
       // exercise the choice
       builder.addCommand(
-          triggerCid.exercisePlaceBidBotTrigger_LockCash(cashAssets, assetFungible, lockRule, assetSettlement));
+          triggerCid.exercisePlaceBidBotTrigger_LockCash(
+              cashAssets, assetFungible, lockRule, assetSettlement));
     }
     return builder.buildFlowable();
   }
@@ -141,8 +143,7 @@ public class PlaceBidBot {
       return AssetSettlement.fromValue(args);
     } else {
       String msg =
-          "PlaceBidBot encountered an unknown contract of type "
-              + createdContract.getTemplateId();
+          "PlaceBidBot encountered an unknown contract of type " + createdContract.getTemplateId();
       logger.error(msg);
       throw new IllegalStateException(msg);
     }
