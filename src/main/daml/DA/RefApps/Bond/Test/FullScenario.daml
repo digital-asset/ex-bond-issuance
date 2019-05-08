@@ -158,6 +158,9 @@ setupRoles: Scenario TestRoles = scenario do
       issuerCid
         <- exercise operatorCid OperatorRole_InviteIssuer with
               issuer = issuer
+              bondProvider = csd
+              cashProvider = centralBank
+              auctionAgent = auctionAgent
       centralBankCid
         <- exercise operatorCid OperatorRole_InviteCentralBank with
               centralBank = centralBank
@@ -274,13 +277,10 @@ setupIssuance: Scenario TestIssuance = scenario do
       issueSize = 3000000
       issueDate = now
       currency = cashAssetId.label
-      cashProvider = centralBank
       denomination = 40.1
       maturityDate = maturity
       couponRate = 0.1
       couponDates = [date (year + 1) month day] -- plus maturity
-      bondAccountName = issuerBondAccount.id.label
-      bondProvider = issuerBondAccount.provider
 
   (fixedRateBondFactCid, assetDepositCid) <- submit csd do
     exercise accProviderApprovalReqCid IssuanceRequest_Accept with isin = bondIsin
@@ -365,12 +365,10 @@ startAuction = \(issuance: TestIssuance) -> scenario do
   (auctionInvitationCid, remainingAssets) <- submit issuer do
     commissionedCid <- exercise issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
       bondAssetDepositCid = issuance.bondBundleData.assetDepositCid
-      auctionAgent = auctionAgent
       startDate = auctionStartDate
       endDate = auctionEndDate
       minPrice = 40.0
       size = 1000000
-      cashAccountProvider = issuance.cashAccounts.issuerAccount.provider
 
     exercise commissionedCid CommissionBotTrigger_InviteAgent with
       bondAssetFungibleCid = issuance.bondBundleData.assetFungibleCid
@@ -390,12 +388,10 @@ startAuction = \(issuance: TestIssuance) -> scenario do
   (otherAuctionInvitation, _) <- submit issuer do
     otherCommissionedCid <- exercise issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
       bondAssetDepositCid = head remainingAssets
-      auctionAgent = auctionAgent
       startDate = auctionStartDate
       endDate = auctionEndDate
       minPrice = 50.0
       size = 2000000
-      cashAccountProvider = issuance.cashAccounts.issuerAccount.provider
 
     exercise otherCommissionedCid CommissionBotTrigger_InviteAgent with
       bondAssetFungibleCid = issuance.bondBundleData.assetFungibleCid

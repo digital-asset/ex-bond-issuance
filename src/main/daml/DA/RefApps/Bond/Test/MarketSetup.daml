@@ -51,6 +51,9 @@ testMarketSetup = scenario do
       issuerCid
         <- exercise operatorCid OperatorRole_InviteIssuer with
               issuer = issuer
+              bondProvider = csd
+              cashProvider = centralBank
+              auctionAgent = auctionAgent
       centralBankCid
         <- exercise operatorCid OperatorRole_InviteCentralBank with
               centralBank = centralBank

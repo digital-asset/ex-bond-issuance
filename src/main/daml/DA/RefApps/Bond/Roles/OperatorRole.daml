@@ -48,9 +48,16 @@ template OperatorRole
               regulators = regulators
 
       nonconsuming OperatorRole_InviteIssuer: ContractId IssuerRoleInvitation
-        with issuer : Party
+        with
+          issuer : Party
+          bondProvider: Party
+          cashProvider: Party
+          auctionAgent: Party
         do create IssuerRoleInvitation with
               issuer = issuer
+              bondProvider = bondProvider
+              cashProvider = cashProvider
+              auctionAgent = auctionAgent
               operator = operator
               regulators = regulators
 

@@ -22,6 +22,9 @@ import DA.RefApps.Bond.Redemption
 template IssuerRoleInvitation
   with
     issuer: Party
+    bondProvider: Party
+    cashProvider: Party
+    auctionAgent: Party
     operator: Party
     regulators: [Party]
   where
@@ -32,6 +35,9 @@ template IssuerRoleInvitation
       IssuerRoleInvitation_Accept: ContractId IssuerRole
         do create IssuerRole with
             issuer = issuer
+            bondProvider = bondProvider
+            cashProvider = cashProvider
+            auctionAgent = auctionAgent
             operator = operator
             regulators = regulators
 
@@ -47,6 +53,9 @@ template IssuerRoleInvitation
 template IssuerRole
   with
     issuer: Party
+    bondProvider: Party
+    cashProvider: Party
+    auctionAgent: Party
     operator: Party
     regulators: [Party]
   where
@@ -58,13 +67,10 @@ template IssuerRole
           issueSize: Int
           issueDate: Date
           currency: Text
-          cashProvider: Party
           denomination: Decimal
           maturityDate: Date
           couponRate: Decimal
           couponDates: [Date]
-          bondAccountName: Text
-          bondProvider: Party
         do
           assertMsg "Denomination should be positive" $ denomination > 0.0
           assertMsg "Coupon rate should be positive" $ couponRate > 0.0
@@ -80,7 +86,7 @@ template IssuerRole
                 label = currency
                 version = 0
               bondAccount = Account with
-                id = Id (singleton bondProvider) bondAccountName 0
+                id = Id (singleton bondProvider) "IssuerBondAccount" 0
                 provider = bondProvider
                 owner = issuer
           create IssuanceRequest with ..
@@ -88,12 +94,10 @@ template IssuerRole
       nonconsuming IssuerRole_CommissionAuction: ContractId CommissionBotTrigger
         with
           bondAssetDepositCid: ContractId AssetDeposit
-          auctionAgent: Party
           startDate: Date
           endDate: Date
           minPrice: Decimal
           size: Int
-          cashAccountProvider: Party
         do
           assertMsg "Minimum price should be positive" $ minPrice > 0.0
           assertMsg "Size price should be positive" $ size > 0
@@ -117,7 +121,7 @@ template IssuerRole
             endDate = endDate
             minPrice = minPrice
             size = size
-            cashAccountProvider = cashAccountProvider
+            cashAccountProvider = cashProvider
 
       nonconsuming IssuerRole_Redeem: ContractId RedemptionRequest
         with
