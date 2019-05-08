@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
 
 PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
 
@@ -30,3 +35,6 @@ sed -e "s/FROM digitalasset\/daml-sdk:.*$/FROM digitalasset\/daml-sdk:$SDK_VERSI
 
 echo "modifying ${PROJECT_DIR}/Dockerfile-sandbox"
 sed -e "s/FROM digitalasset\/daml-sdk:.*$/FROM digitalasset\/daml-sdk:$SDK_VERSION-master/" -i "${PROJECT_DIR}/Dockerfile-sandbox"
+
+echo "modifying ${PROJECT_DIR}/.circleci/config.yml"
+sed -e "s/image: digitalasset\/daml-sdk:.*$/image: digitalasset\/daml-sdk:$SDK_VERSION-circleci-master/" -i "${PROJECT_DIR}/.circleci/config.yml"
