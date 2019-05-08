@@ -83,6 +83,7 @@ template RedemptionRequest
     issuer: Party
     provider: Party
     fixedRateBondFactCid: ContractId FixedRateBondFact
+    isin: Text
     regulators: [Party]
   where
     signatory issuer

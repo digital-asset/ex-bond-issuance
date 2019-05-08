@@ -131,6 +131,7 @@ template IssuerRole
             provider = fact.provider
             issuer = issuer
             fixedRateBondFactCid = fixedRateBondFactCid
+            isin = fact.isin
             regulators = regulators
 
 -- Triggers the commission bot, which is responsible to provide the FixedRateBond

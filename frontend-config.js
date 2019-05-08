@@ -70,7 +70,7 @@ const csdRoleView = createTab("CSD Actions", ":CsdRole@", [
 const csdRedemptionView = createTab("Redemption Requests", ":RedemptionRequest@", [
     createIdCol(),
     createCol("issuer", "Issuer"),
-    createCol("instrument", "Instrument", null, r => r.bondAssetId.label),
+    createCol("isin"),
 ]);
 
 const bankRoleView = createTab("Bank Actions", ":BankRole@", [
