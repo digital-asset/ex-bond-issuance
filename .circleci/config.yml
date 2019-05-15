@@ -31,6 +31,10 @@ jobs:
       - store_artifacts:
           path: target/surefire-reports
       - run:
+          name: Env Vars
+          command: |
+            echo $ENVAR
+      - run:
           name: Run Blackduck Detect
           command: |
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) ci-build digitalasset_ex-bond-issuance master --logging.level.com.synopsys.integration=DEBUG
