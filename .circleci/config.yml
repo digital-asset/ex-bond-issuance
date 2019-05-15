@@ -33,7 +33,7 @@ jobs:
       - run:
           name: Env Vars
           command: |
-            echo $ENVAR
+            bash echo $ENVAR
       - run:
           name: Run Blackduck Detect
           command: |
