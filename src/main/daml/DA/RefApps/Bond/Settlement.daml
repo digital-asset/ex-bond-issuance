@@ -6,34 +6,21 @@
 daml 1.2
 module DA.RefApps.Bond.Settlement where
 
+import DA.Finance.Rule.Trade.Dvp
+import DA.Finance.Fact.Trade.Dvp
 import DA.Finance.Types
-import DA.Finance.Dvp.Fact
-import DA.Finance.Asset.Fact
-import DA.Finance.Asset.Lock
-import DA.Finance.Asset.SplitAndMerge
-import DA.Finance.Asset.Transfer.Bilateral
-import DA.Finance.Account.Fact
-import DA.Finance.Dvp.Settlement.Asymmetric
+import DA.Finance.Fact.Asset
+import DA.Finance.Rule.Asset
+
 
 import DA.RefApps.Bond.Redemption
+import DA.RefApps.Bond.Lock
 import DA.List
-import DA.Map
+import DA.Set as Set
 import DA.Optional
 import DA.Action
 import DA.RefApps.Bond.Util
 
-data AllocationResultData = AllocationResultData
-  { dvpFactCid: ContractId DvpFact
-  , allocationFactCid: ContractId DvpAllocationFact
-  , dvpRuleCid: ContractId DvpRule
-  , transferRuleCid: ContractId AssetTransferRule
-  , buyer: Party
-  , seller: Party
-  , assetId: Text
-  , quantity: Decimal
-  , amount: Decimal
-  , currency: Text
-  } deriving (Eq, Show)
 
 -- This template is used to collect the allocation details for a particular DvP created
 -- from a successful bid
@@ -41,14 +28,18 @@ template AuctionSettleRequest
   with
     investor: Party
     issuer: Party
-    bondAccountProvider: Party
     auctionAgent: Party
     auctionName: Text
-    allocationResultData: AllocationResultData
+    issuerCashAccountProvider: Party
+    issuerBondAssetDepositCid: ContractId AssetDeposit
+    issuerBondAssetDeposit: AssetDeposit
+    cashAmountToPay: Decimal
+    bondSettlementChainCid: ContractId AssetSettlementChain
+    issuerCashSettlementCid: ContractId AssetSettlement
     regulators: [Party]
   where
-    signatory investor, issuer
-    observer regulators
+    signatory issuer
+    observer investor :: regulators
 
 -- Triggers the settlement bot which settles all the DvPs on behalf an investor party.
 -- It unlocks all the previously locked cash, executes the payment, receives the bonds and
@@ -57,82 +48,97 @@ template InvestorSettlementBotTrigger
   with
     investor: Party
     issuer: Party
-    bondAccountProvider: Party
     auctionAgent: Party
     auctionName: Text
     settleRequestCids: [ContractId AuctionSettleRequest]
     cashProvider: Party
-    deliveryInstrumentId: InstrumentId
     regulators: [Party]
   where
-    signatory investor, issuer
+    signatory investor, issuer, auctionAgent
     observer regulators
 
     controller investor can
-      InvestorSettlementBotTrigger_Finalize: [(ContractId AssetFact, ContractId AssetFact, ContractId RedemptionPayoutInfo)]
+      InvestorSettlementBotTrigger_Finalize: [ContractId RedemptionPayoutInfo]
         with
-          deliveryTransferRuleCid: ContractId AssetTransferRule
-          deliverySplitAndMergeRuleCid: ContractId AssetSplitAndMergeRule
           auctionLockedCashCids: [ContractId AuctionLockedCash]
-          cashAccountCid: ContractId AccountFact
-          assetTargetAccountFactCid: ContractId AccountFact
+          cashAssetFungible: ContractId AssetFungible
+          investorCashSettlementCid: ContractId AssetSettlement
         do
+
           -- unlock
-          possibleDeliveryFactCids <- forA auctionLockedCashCids \lockCid -> do
+          investorCashAssetDepositCids <- forA auctionLockedCashCids \lockCid -> do
             lock <- fetch lockCid
             assertMsg "Lock should be owned by the settling party" $ lock.owner == investor
             assertMsg "AuctionLockedCash should match the auction" $ lock.auctionName == auctionName && lock.auctionAgent == auctionAgent
-            unlocked <- exercise lock.lockedCashAssetCid AssetLockedFact_Unlock
-            archive lockCid
+            unlocked <- exercise lockCid AuctionLockedCash_Unlock
             return unlocked
 
           -- process all settle requests
-          (_, accountAndFacts) <- foldlA (\(remaining, accountsAndFacts) settleRequestCid -> do
-            settleRequest <- fetch settleRequestCid
-            dvpFact <- fetch settleRequest.allocationResultData.dvpFactCid
-            assertMsg "The delivery legs should not be empty" $ size dvpFact.deliveryLegs > 0
-            assertMsg "The auctionLockedCashCids should not be empty" $ length auctionLockedCashCids > 0
-            -- merge until required quantity
-            let requiredCashQuantity = (snd $ head $ toList dvpFact.deliveryLegs)
-                firstAssetCid = head possibleDeliveryFactCids
-            firstDeliveryAsset <- fetch firstAssetCid
-            mergeResult <- mergeForQuantity firstAssetCid firstDeliveryAsset (tail possibleDeliveryFactCids) requiredCashQuantity deliverySplitAndMergeRuleCid
-            -- As sufficient cash has been locked, the merge should succeed
+          (_, payoutInfos) <- foldlA (\(remaining, redemptionPayouts) settleRequestCid -> do
+
+            -- create DvP
+            settleRequest <- fetch $ head settleRequestCids
+            let firstCashAssetCid = head remaining
+            firstCashAsset <- fetch firstCashAssetCid
+            mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail remaining) settleRequest.cashAmountToPay cashAssetFungible
             assertMsg "Locked cash should be sufficient to finalize settlement" $ isSome mergeResult
-            let (cashMergedForQuantity, remaining)  = fromSome $ mergeResult
-            (_, [paymentFactCid], [deliveryFactCid]) <- exercise settleRequest.allocationResultData.dvpRuleCid DvpRule_Settle2 with
-              dvpFactCid = settleRequest.allocationResultData.dvpFactCid
-              dvpAllocationFactCid = settleRequest.allocationResultData.allocationFactCid
-              deliveryTransferRuleCids = [deliveryTransferRuleCid]
-              deliveryFactCids = [cashMergedForQuantity]
-              paymentTargetAccountFactCids = [assetTargetAccountFactCid]
-            assetFact <- fetch paymentFactCid
-            cashAccount <- fetch cashAccountCid
+            let (cashMergedForQuantityCid, remainingNew)  = fromSome $ mergeResult
+            cashMergedForQuantity <- fetch cashMergedForQuantityCid
+            let delivery = settleRequest.issuerBondAssetDeposit.asset
+                payment = cashMergedForQuantity.asset
+
+            bondChain <- fetch settleRequest.bondSettlementChainCid
+
+            dvpCid <- create Dvp with
+              masterAgreement = bondChain.masterAgreement
+              tradeId = bondChain.tradeId
+              buyer = investor
+              status = SettlementStatus_Instructed
+              settlementDate = None
+              payments = [payment]
+              deliveries = [delivery]
+              observers = Set.fromList regulators
+
+            let cashSettlementStep = AssetSettlementStep with
+                    sender = investor
+                    receiver = issuer
+                    depositCid = None
+                    creditSettlementCid = investorCashSettlementCid
+                    debitSettlementCid = settleRequest.issuerCashSettlementCid
+
+            cashChain <- create AssetSettlementChain with
+              masterAgreement = bondChain.masterAgreement
+              tradeId = bondChain.tradeId
+              asset = cashMergedForQuantity.asset
+              steps = [cashSettlementStep]
+              observers = Set.fromList regulators
+
+            allocatedCashChain <- exercise cashChain $ AssetSettlementChain_AllocateNext cashMergedForQuantityCid
+
+            let settleParam = DvpSettlement_Process_Param with
+                  dvpCid = dvpCid
+                  paymentChainCids = [allocatedCashChain]
+                  deliveryChainCids = [settleRequest.bondSettlementChainCid]
+
+            dvpSettlement <- create DvpSettlement with
+              masterAgreement = bondChain.masterAgreement
+              observers = Set.fromList regulators
+
+            result <- exercise dvpSettlement DvpSettlement_Process1 with
+              param = settleParam
+
             redemptionPayout <- create RedemptionPayoutInfo with
-                  issuer = dvpFact.buyer
+                  issuer = issuer
                   investor = investor
-                  bondAccountProvider = bondAccountProvider
-                  cashAccountProvider = cashAccount.accountId.provider
-                  cashAccountCid = cashAccountCid
-                  bondAssetFactCid = paymentFactCid
-                  bondInstrumentId = assetFact.assetId.instrumentId
+                  bondInstrumentId = delivery.id
+                  bondAccountProvider = settleRequest.issuerBondAssetDeposit.account.provider
+                  investorCashAccount = firstCashAsset.account
+                  settlementResult = result
+                  investorCashAssetSettlementCid = investorCashSettlementCid
                   regulators = regulators
-            return (remaining, (paymentFactCid, deliveryFactCid, redemptionPayout) :: accountsAndFacts)
-            ) (possibleDeliveryFactCids, []) settleRequestCids
+
+            return (remainingNew, redemptionPayout :: redemptionPayouts)
+            ) (investorCashAssetDepositCids, []) settleRequestCids
 
           forA settleRequestCids \sr -> archive sr
-
-          return accountAndFacts
-
--- A marker template which assigns a `AssetLockedFact` to an auction, so the
--- settlement bot can collect the relevant locked cash assets to settle the outstanding DvPs.
-template AuctionLockedCash
-  with
-    owner: Party
-    auctionAgent: Party
-    auctionName: Text
-    lockedCashAssetCid: ContractId AssetLockedFact
-    regulators: [Party]
-  where
-    signatory owner
-    observer regulators
+          return payoutInfos

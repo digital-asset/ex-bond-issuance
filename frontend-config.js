@@ -70,7 +70,7 @@ const csdRoleView = createTab("CSD Actions", ":CsdRole@", [
 const csdRedemptionView = createTab("Redemption Requests", ":RedemptionRequest@", [
     createIdCol(),
     createCol("issuer", "Issuer"),
-    createCol("instrument", "Instrument", null, r => r.bondInstrumentId.label),
+    createCol("isin"),
 ]);
 
 const bankRoleView = createTab("Bank Actions", ":BankRole@", [
@@ -135,30 +135,21 @@ const ongoingAuctionsView = createTab("Ongoing Auctions", ":Auction@", [
 ]);
 
 function accountBalanceView(owner) {
-    return createTab("Balance", ":AssetFact@",
+    return createTab("Balance", ":AssetDeposit@",
         [
             createIdCol(),
-            createCol("owner", "Owner", 80, r => r.accountId.owner),
-            createCol("account", "Account", 80, r => r.accountId.identifier),
-            createCol("account", "Account Provider", 80, r => r.accountId.provider),
-            createCol("quantity"),
-            createCol("asset", "Asset Id", 80, r => r.assetId.instrumentId.label),
-            createCol("issuer", "Issuer", 80, r => r.assetId.issuer),
+            createCol("owner", "Owner", 80, r => r.account.owner),
+            createCol("account", "Account", 80, r => r.account.id.label),
+            createCol("account", "Account Provider", 80, r => r.account.provider),
+            createCol("quantity", "Quantity", 80, r => r.asset.quantity),
+            createCol("asset", "Asset Id", 80, r => r.asset.id.label),
         ],
         {
-            field: "argument.accountId.owner",
+            field: "argument.account.owner",
             value: owner
         }
     );
 }
-
-const accountsView = createTab("Accounts", ":AccountFact@", [
-    createIdCol(),
-    createCol("identifier", null, null, r => r.accountId.identifier),
-    createCol("owner", null, null, r => r.accountId.owner),
-    createCol("priovider", null, null, r => r.accountId.provider),
-    createCol("observers", null, 120),
-]);
 
 const bidView = createTab("Bids", ":AuctionBid@", [
     createIdCol(),
@@ -178,20 +169,17 @@ const depositNewAssetView = createTab("Issuance and ISIN Request", ":IssuanceReq
 const pendingSettlementsViewForBanks = createTab("Pending Settlements", ":AuctionParticipantSettleRequest@", [
     createIdCol(),
     createCol("seller", "Seller", "", r => r.issuer),
-    // delivery and payment legs are swapped by the FinLib
     createCol("auctionName"),
 ]);
 
 const pendingSettlementsViewForIssuer = createTab("Pending Settlements", ":AuctionSettleRequest@", [
     createIdCol(),
-    // seller and buyer are swapped by the FinLib
-    createCol("buyer", "Buyer", "", r => r.allocationResultData.seller),
-    // delivery and payment legs are swapped by the FinLib
-    createCol("bond", "Bond", null, r => r.allocationResultData.assetId),
-    createCol("quantity", "Quantity", null, r => r.allocationResultData.quantity),
-    createCol("price", "Price", null, r => r.allocationResultData.amount / r.allocationResultData.quantity),
-    createCol("amount", "Consideration", null, r => r.allocationResultData.amount),
-    createCol("currency", "Currency", null, r => r.allocationResultData.currency),
+    createCol("buyer", "Buyer", "", r => r.investor),
+    createCol("bond", "Bond", null, r => r.issuerBondAssetDeposit.asset.id.label),
+    createCol("quantity", "Quantity", null, r => r.issuerBondAssetDeposit.asset.quantity),
+    createCol("price", "Price", null, r => r.cashAmountToPay / r.issuerBondAssetDeposit.asset.quantity),
+    createCol("amount", "Consideration", null, r => r.cashAmountToPay),
+    createCol("currency", "Currency", null, r => r.issuerCashAccount.id.label),
 ]);
 
 const auctionRequestView = createTab("Auction Request", ":AuctionInvitation@", [
@@ -224,7 +212,6 @@ export const customViews = (userId, party, role) => {
     if (party == 'Issuer') {
         return {
             issuerRoleView,
-            accountsView,
             balanceView,
             ongoingAuctionsView,
             pendingSettlementsViewForIssuer
@@ -234,7 +221,6 @@ export const customViews = (userId, party, role) => {
     if (party == 'AuctionAgent') {
         return {
             auctionAgentRoleView,
-            accountsView,
             balanceView,
             auctionRequestView,
             ongoingAuctionsView,
@@ -247,7 +233,6 @@ export const customViews = (userId, party, role) => {
     if (party == 'CentralBank') {
         return {
             centralBankRoleView,
-            accountsView,
             balanceView,
         };
     }
@@ -255,7 +240,6 @@ export const customViews = (userId, party, role) => {
     if (party == 'CSD') {
         return {
             csdRoleView,
-            accountsView,
             balanceView,
             depositNewAssetView,
             csdRedemptionView
@@ -265,7 +249,6 @@ export const customViews = (userId, party, role) => {
     if (party == 'Regulator') {
         return {
             operatorRoleView,
-            accountsView,
             balanceView,
             centralBankRoleView,
             issuerRoleView,
@@ -278,7 +261,6 @@ export const customViews = (userId, party, role) => {
     if (party == "Bank1" || party == 'Bank2' || party == 'Bank3') {
         return {
             bankRoleView,
-            accountsView,
             balanceView,
             ongoingAuctionsForBiddersView,
             bidView,

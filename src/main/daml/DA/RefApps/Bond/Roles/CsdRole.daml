@@ -6,8 +6,10 @@
 daml 1.2
 module DA.RefApps.Bond.Roles.CsdRole where
 
+import DA.Set
+
 import DA.Finance.Types
-import DA.Finance.Account.Fact
+import DA.Finance.Rule.Asset
 
 -- Role contract invitation for CSD role.
 template CsdRoleInvitation
@@ -45,15 +47,20 @@ template CsdRole
     observer regulators
 
     controller csd can
-      nonconsuming CsdRole_RequestAccount: ContractId AccountRequest
+      nonconsuming CsdRole_CreateSettlementRule: ContractId AssetSettlement
         with
-          owner: Party
-          accountName: Text
+          account: Account
+          observers: [Party]
         do
-          create AccountRequest with
-            accountId = AccountId with
-              provider = csd
-              identifier = accountName
-              owner = owner
-            observers = owner :: regulators
-            operator = operator
+          create AssetSettlement with
+            account = account
+            observers = fromList observers
+
+      nonconsuming CsdRole_CreateFungibleRule: ContractId AssetFungible
+        with
+          account: Account
+          observers: [Party]
+        do
+          create AssetFungible with
+            account = account
+            observers = fromList observers

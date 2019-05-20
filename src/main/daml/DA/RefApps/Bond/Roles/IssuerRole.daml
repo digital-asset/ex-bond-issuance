@@ -7,15 +7,13 @@ daml 1.2
 module DA.RefApps.Bond.Roles.IssuerRole where
 
 import DA.Date
+import DA.Set
 
 import DA.Finance.Types
-import DA.Finance.Asset.Fact
-import DA.Finance.Asset.Lock
-import DA.Finance.Asset.SplitAndMerge
-import DA.Finance.Asset.Transfer.Bilateral
-import DA.Finance.Account.Fact
-import DA.Finance.Instruments.FixedRateBond
+import DA.Finance.Fact.Asset
+import DA.Finance.Rule.Asset
 
+import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Util
 import DA.RefApps.Bond.Redemption
@@ -24,6 +22,9 @@ import DA.RefApps.Bond.Redemption
 template IssuerRoleInvitation
   with
     issuer: Party
+    bondProvider: Party
+    cashProvider: Party
+    auctionAgent: Party
     operator: Party
     regulators: [Party]
   where
@@ -34,6 +35,9 @@ template IssuerRoleInvitation
       IssuerRoleInvitation_Accept: ContractId IssuerRole
         do create IssuerRole with
             issuer = issuer
+            bondProvider = bondProvider
+            cashProvider = cashProvider
+            auctionAgent = auctionAgent
             operator = operator
             regulators = regulators
 
@@ -49,6 +53,9 @@ template IssuerRoleInvitation
 template IssuerRole
   with
     issuer: Party
+    bondProvider: Party
+    cashProvider: Party
+    auctionAgent: Party
     operator: Party
     regulators: [Party]
   where
@@ -64,7 +71,6 @@ template IssuerRole
           maturityDate: Date
           couponRate: Decimal
           couponDates: [Date]
-          bondAccountId: ContractId AccountFact
         do
           assertMsg "Denomination should be positive" $ denomination > 0.0
           assertMsg "Coupon rate should be positive" $ couponRate > 0.0
@@ -75,30 +81,23 @@ template IssuerRole
           forA couponDates $ \date -> assertMsg
             ("Coupon dates should be between the issue date and maturity. Issue date: " <> show issueDate <> " Maturity: " <> show maturityDate <> " current date: " <> show date) $
             date >= issueDate && date < maturityDate
-          bondAccount <- fetch bondAccountId
-          create IssuanceRequest with
-            issuer = issuer
-            operator = operator
-            regulators = regulators
-            issueSize = issueSize
-            issueDate = issueDate
-            maturityDate = maturityDate
-            currency = currency
-            denomination = denomination
-            couponRate = couponRate
-            couponDates = couponDates
-            bondAccount = bondAccount
+          let cashAssetId = Id with
+                signatories = singleton cashProvider
+                label = currency
+                version = 0
+              bondAccount = Account with
+                id = Id (singleton bondProvider) "IssuerBondAccount" 0
+                provider = bondProvider
+                owner = issuer
+          create IssuanceRequest with ..
 
       nonconsuming IssuerRole_CommissionAuction: ContractId CommissionBotTrigger
         with
-          bondAssetFactCid: ContractId AssetFact
-          auctionAgent: Party
+          bondAssetDepositCid: ContractId AssetDeposit
           startDate: Date
           endDate: Date
           minPrice: Decimal
           size: Int
-          cashInstrumentKey: InstrumentKey
-          cashAccountCid: ContractId AccountFact
         do
           assertMsg "Minimum price should be positive" $ minPrice > 0.0
           assertMsg "Size price should be positive" $ size > 0
@@ -106,24 +105,23 @@ template IssuerRole
           let today = toDateUTC time
           assertMsg "Start date should not be in the past" $ startDate >= today
           assertMsg "End date should be after start date" $ endDate >= startDate
-          asset <- fetch bondAssetFactCid
-          assertMsg ("Asset quantity [" <> show asset.quantity <> "] should be greater than or equal to issue size [" <> show size <> "]") $
-            asset.quantity >= intToDecimal size
+          asset <- fetch bondAssetDepositCid
+          assertMsg ("Asset quantity [" <> show asset.asset.quantity <> "] should be greater than or equal to issue size [" <> show size <> "]") $
+            asset.asset.quantity >= intToDecimal size
 
           create CommissionBotTrigger with
             issuer = issuer
             operator = operator
-            bondAccountProvider = asset.accountId.provider
             regulators = regulators
-            bondAssetFactCid = bondAssetFactCid
-            bondInstrumentId = asset.assetId.instrumentId
+            bondAssetDepositCid = bondAssetDepositCid
+            issuerBondAccount = asset.account
+            bondAssetId = asset.asset.id
             auctionAgent = auctionAgent
             startDate = startDate
             endDate = endDate
             minPrice = minPrice
             size = size
-            cashInstrumentKey = cashInstrumentKey
-            cashAccount = cashAccountCid
+            cashAccountProvider = cashProvider
 
       nonconsuming IssuerRole_Redeem: ContractId RedemptionRequest
         with
@@ -136,8 +134,8 @@ template IssuerRole
           create RedemptionRequest with
             provider = fact.provider
             issuer = issuer
-            bondInstrumentId = fact.instrumentId
             fixedRateBondFactCid = fixedRateBondFactCid
+            isin = fact.isin
             regulators = regulators
 
 -- Triggers the commission bot, which is responsible to provide the FixedRateBond
@@ -147,54 +145,56 @@ template CommissionBotTrigger
   with
     issuer: Party
     operator: Party
-    bondAccountProvider: Party
     regulators: [Party]
-    bondAssetFactCid: ContractId AssetFact
-    bondInstrumentId: InstrumentId
+    bondAssetDepositCid: ContractId AssetDeposit
+    issuerBondAccount: Account
+    bondAssetId: Id
     auctionAgent: Party
     startDate: Date
     endDate: Date
     minPrice: Decimal
     size: Int
-    cashInstrumentKey: InstrumentKey
-    cashAccount: ContractId AccountFact
+    cashAccountProvider: Party
   where
     signatory issuer, operator
     observer regulators
 
     controller issuer can
-      CommissionBotTrigger_InviteAgent: (ContractId AuctionInvitation, Optional (ContractId AssetFact))
+      CommissionBotTrigger_InviteAgent: (ContractId AuctionInvitation,  [ContractId AssetDeposit])
         with
-          bondSplitAndMergeRuleCid: ContractId AssetSplitAndMergeRule
-          bondLockRuleCid: ContractId AssetLockRule
-          bondTransferRuleCid: ContractId AssetTransferRule
+          bondAssetFungibleCid: ContractId AssetFungible
+          bondAssetSettlementCid: ContractId AssetSettlement
+          cashAssetSettlementCid: ContractId AssetSettlement
           fixedRateBondFactCid: ContractId FixedRateBondFact
         do
-          assetFact <- fetch bondAssetFactCid
+          bondAssetDeposit <- fetch bondAssetDepositCid
+          let decimalSize = intToDecimal size
+              rest = bondAssetDeposit.asset.quantity - decimalSize
           -- Splitting the asset if needed
-          splitFactPair <- if (assetFact.quantity > intToDecimal size) then do
-                 (first, second) <- exercise bondSplitAndMergeRuleCid $ AssetSplitAndMergeRule_Split bondAssetFactCid $ intToDecimal size
-                 return (first, Some second)
-                else return (bondAssetFactCid, None)
+          splitFactPair <- if (bondAssetDeposit.asset.quantity > intToDecimal size) then do
+                 first :: remaining <- exercise bondAssetFungibleCid $ AssetFungible_Split bondAssetDepositCid [decimalSize, rest]
+                 return (first, remaining)
+                else return (bondAssetDepositCid, [])
           let splitFactCid = fst splitFactPair
-          observedAssetFactCid <- exercise splitFactCid $ AssetFact_SetObservers (auctionAgent :: assetFact.observers)
+          observedBondAssetDepositCid <- exercise splitFactCid $ AssetDeposit_SetObservers (insert auctionAgent bondAssetDeposit.observers)
+          observedBondAssetDeposit <- fetch observedBondAssetDepositCid
           fixedRateBondFact <- fetch fixedRateBondFactCid
           let auction = Auction with
                 auctionAgent = auctionAgent
                 issuer = issuer
                 operator = operator
-                bondAccountProvider = bondAccountProvider
                 regulators = regulators
                 startDate = startDate
                 endDate = endDate
                 minPrice = minPrice
                 size = size
-                cashInstrumentKey = cashInstrumentKey
-                issuerCashAccountCid = cashAccount
-                bondBundleData = BondBundleData observedAssetFactCid bondSplitAndMergeRuleCid bondLockRuleCid bondTransferRuleCid assetFact.assetId.instrumentId.label
+                fixedRateBondFact = fixedRateBondFact
+                cashAssetId = fixedRateBondFact.cashAssetId
+                issuerCashAccountProvider = cashAccountProvider
+                bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetFungibleCid bondAssetSettlementCid cashAssetSettlementCid observedBondAssetDeposit.asset.id.label
                 invitedBidders = []
                 auctionName = ""
-                fixedRateBondFact = fixedRateBondFact
+
 
           invitation <- create AuctionInvitation with auction
           return (invitation, snd splitFactPair)
@@ -209,39 +209,39 @@ template IssuanceRequest
     issueSize: Int
     issueDate: Date
     maturityDate: Date
-    currency: Text
+    cashAssetId: Id
     denomination: Decimal
     couponRate: Decimal
     couponDates: [Date]
-    bondAccount: AccountFact
+    bondAccount: Account
   where
     signatory operator, issuer
     observer regulators
 
-    controller bondAccount.accountId.provider can
-      IssuanceRequest_Accept: (ContractId FixedRateBondFact, ContractId AssetFact)
+    controller bondAccount.provider can
+      IssuanceRequest_Accept: (ContractId FixedRateBondFact, ContractId AssetDeposit)
         with
           isin: Text
         do
-          let bondId = InstrumentId with
-                        label = isin
-                        version = 0
-              cashId = currencyInstrumentId currency
-              assetId = AssetId with
-                issuer = issuer
-                instrumentId = bondId
+          let bondId = Id with
+                signatories = fromList [bondAccount.provider]
+                label = isin
                 version = 0
-              assetFact = AssetFact with
-                assetId = assetId
+              id = Id with
+                signatories = bondAccount.id.signatories
+                label = isin
+                version = 0
+              asset = Asset with
+                id = id
                 quantity = intToDecimal issueSize
-                accountId = bondAccount.accountId
-                observers = regulators
-              instrumentKey = InstrumentKey bondAccount.accountId.provider bondId
+              assetFact = AssetDeposit with
+                account = bondAccount
+                observers = fromList regulators, ..
           fixedRateBondFactCid <- create FixedRateBondFact with
-            provider = bondAccount.accountId.provider
+            provider = bondAccount.provider
             instrumentId = bondId
             isin = isin
-            cashInstrumentId = cashId
+            cashAssetId = cashAssetId
             rate = couponRate
             paymentLag = 0
             denomination = denomination

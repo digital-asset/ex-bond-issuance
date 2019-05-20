@@ -88,7 +88,7 @@ After working through these steps, you can use the Navigator interface to explor
 
 **Roles and Responsibilities**
 
-Participants in the following roles are involved in the Bond Issuance workflow:
+Participants in the following roles are involved in the Bond Issuance workflow.
 
 <table>
   <tr>
@@ -151,6 +151,7 @@ Finalizes the auction
   </tr>
 </table>
 
+There are three parties set up with the Bank role, other roles have a single corresponding party configured. Setting up a given role with different parties (e.g. having two parties with the AuctionaAgent role) would require changing the DAML models.
 
 The Bond Issuance application includes these steps:
 
@@ -170,7 +171,7 @@ Invited banks can start bidding on the auction. The banks cannot see the minimum
 
 ### Choosing and Changing Roles
 
-When you launch Direct Asset Control application, you will see the Navigator screen with the option to choose your role.
+When you launch Bond Issuance application, you will see the Navigator screen with the option to choose your role.
 
 To log in:
 
@@ -218,7 +219,7 @@ To request a new bond issuance:
     *   Maturity date: Note that redemption of the bond will be only possible on the defined maturity date. At redemption the face value of the bond plus the coupon rate is paid to the buyer.
     *   Coupon rate: rate expressed in numeric value for the duration of the bond: 0.01 = 1%
     *   Coupon Dates: Leave blank (**Note**: The application does not handle interim coupon payments.)
-    *   Bond account id: #18:2 (you can find the Asset Account contract id # at the **Accounts** tab)
+6. Choose **Submit**.
 
 #### Approving New Bond Issuance Request
 
@@ -260,17 +261,12 @@ To create an auction request:
 3. Click on the Issuer **role contract.**
 4. Select the **IssuerRole_CommissionAuction** choice.
 5. Enter parameters of New Bond Auction:
-    *  Bond asset fact ID: #28:2 (Copy contract id for the Bond from the **Balance** tab).
-    *  AuctionAgent: type: AuctionAgent
+    *  Bond asset deposit ID: #12:2 (Copy contract id for the Bond from the **Balance** tab).
     *  Start date
     *  End date
     *  Minimum price: e.g: 96 (must be smaller the the bond's denomination)
     *  Size: e.g.: 500000 (The size of the auction cannot be larger than the balance of available bonds).
-    *  Cash instrument key:
-        *   Provider: CentralBank
-        *   Instrument id label: USD
-        *   Version: 0
-    *  Cash account id: #10:4 (Copy the Cash account contract id from the **Account** tab).
+6. Choose **Submit**.
 
 #### Commissioning New Bond Auction
 

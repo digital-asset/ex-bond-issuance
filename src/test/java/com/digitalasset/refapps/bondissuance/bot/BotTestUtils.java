@@ -11,14 +11,11 @@ import com.daml.ledger.javaapi.data.Command;
 import com.daml.ledger.javaapi.data.ExerciseCommand;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.util.TimeManager;
-import da.finance.asset.fact.AssetFact;
-import da.finance.types.AccountId;
-import da.finance.types.AssetId;
-import da.finance.types.InstrumentId;
-import da.finance.types.InstrumentKey;
+import da.finance.types.Account;
+import da.finance.types.Asset;
+import da.finance.types.Id;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,19 +33,23 @@ public class BotTestUtils {
 
   public static final String AUCTION_NAME = "Bond Auction";
 
-  public static final InstrumentId USD_INSTRUMENT_ID = new InstrumentId("USD", 0L);
-  public static final InstrumentKey USD_INSTRUMENT_KEY =
-      new InstrumentKey(CENTRAL_BANK, USD_INSTRUMENT_ID);
-  public static final InstrumentId BOND_INSTRUMENT_ID = new InstrumentId("BOND-007", 0L);
-
-  public static AssetFact addUsdIntoNewAccount(
-      BigDecimal initialAmount, String accountOwnerName, String accountName) {
-    return new AssetFact(
-        new AssetId(CENTRAL_BANK, new InstrumentId("USD", 0L), 0L),
-        initialAmount,
-        new AccountId(CENTRAL_BANK, accountName, accountOwnerName),
-        Collections.emptyList());
-  }
+  public static final String CURRENCY = "USD";
+  public static final Id BOND_ID = new Id(null, "BOND-007", 0L);
+  public static final Id CASH_ID = new Id(null, CURRENCY, 0L);
+  public static final Id ISSUER_BOND_ACCOUNT_ID = new Id(null, "IssuerBondAccount", 0L);
+  public static final Id ISSUER_CASH_ACCOUNT_ID = new Id(null, "IssuerCashAccount", 0L);
+  public static final Id INVESTOR_CASH_ACCOUNT_ID = new Id(null, "InvestorCashAccount", 0L);
+  public static final Id INVESTOR_BOND_ACCOUNT_ID = new Id(null, "InvestorBondAccount", 0L);
+  public static final Account ISSUER_BOND_ACCOUNT =
+      new Account(ISSUER_BOND_ACCOUNT_ID, CSD, ISSUER);
+  public static final Account ISSUER_CASH_ACCOUNT =
+      new Account(ISSUER_CASH_ACCOUNT_ID, CENTRAL_BANK, ISSUER);
+  public static final Account INVESTOR_CASH_ACCOUNT =
+      new Account(INVESTOR_CASH_ACCOUNT_ID, CENTRAL_BANK, INVESTOR);
+  public static final Account INVESTOR_BOND_ACCOUNT =
+      new Account(INVESTOR_BOND_ACCOUNT_ID, CSD, INVESTOR);
+  public static final Asset BOND_ASSET = new Asset(BOND_ID, new BigDecimal(1));
+  public static final Asset CASH_ASSET = new Asset(CASH_ID, new BigDecimal(1));
 
   public static void assertHasSingleExercise(
       CommandsAndPendingSet cmds, String cid, String choiceName) {
