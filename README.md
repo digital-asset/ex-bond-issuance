@@ -88,7 +88,7 @@ After working through these steps, you can use the Navigator interface to explor
 
 **Roles and Responsibilities**
 
-Participants in the following roles are involved in the Bond Issuance workflow:
+Participants in the following roles are involved in the Bond Issuance workflow.
 
 <table>
   <tr>
@@ -151,6 +151,7 @@ Finalizes the auction
   </tr>
 </table>
 
+There are three parties set up with the Bank role, other roles have a single corresponding party configured. Setting up a given role with different parties (e.g. having two parties with the AuctionaAgent role) would require changing the DAML models.
 
 The Bond Issuance application includes these steps:
 
