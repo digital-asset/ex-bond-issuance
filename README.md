@@ -52,7 +52,7 @@ The Navigator automatically opens in a new browser tab
 
 2.  Start the automation logic by starting bots. Type:
 ```
-java -jar ./target/bond-issuance-0.0.1-SNAPSHOT.jar
+java -jar ./target/bond-issuance-0.0.1-SNAPSHOT.jar -p 6865
 ```
 
 ### Stopping the App
@@ -301,7 +301,7 @@ To invite Banks:
 
 To view the invitation as a Bank:
 
-1. Log in as any **bank (Bank1, Bank2, Bank3)**
+1. Log in as any **bank (Bank1, Bank2, Bank3)**.
 2. Select the **Ongoing Auctions** tab.
 
     See that the auction is now active
@@ -316,7 +316,7 @@ To bid:
 
 Banks can start bidding only on the set auction start date. Move the system date to the Auction start date. This must be the start date as defined by the Issuer in the auction request contract.
 
-1. Log in as a **bank (Bank1, Bank2, or Bank3)***.
+1. Log in as a **bank (Bank1, Bank2, or Bank3)**.
 2. Select the **Ongoing Auctions** tab.
 3. Click on the relevant auction.
 4. Select the **AuctionBidderParticipation_PlaceBid** choice and enter details:
