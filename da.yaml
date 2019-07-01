@@ -5,7 +5,7 @@
 
 project:
   name: bond-issuance
-  sdk-version: 0.13.5
+  sdk-version: 0.13.10
   source: src/main/daml/DA/RefApps/Bond/Test/MarketSetup.daml
   scenario: DA.RefApps.Bond.Test.MarketSetup:testMarketSetup
   parties:
