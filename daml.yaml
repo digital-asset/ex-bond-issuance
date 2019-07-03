@@ -3,12 +3,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-project:
-  name: bond-issuance
-  sdk-version: 0.12.1
-  source: src/main/daml/DA/RefApps/Bond/Test/MarketSetup.daml
-  scenario: DA.RefApps.Bond.Test.MarketSetup:testMarketSetup
-  parties:
+sdk-version: 0.13.10
+name: bond-issuance
+source: src/main/daml/DA/RefApps/Bond/Test/MarketSetup.daml
+scenario: DA.RefApps.Bond.Test.MarketSetup:testMarketSetup
+parties:
   - Operator
   - Regulator
   - AuctionAgent
@@ -18,4 +17,8 @@ project:
   - CSD
   - Issuer
   - CentralBank
-version: 2
+version: 2.0.0
+exposed-modules: []
+dependencies:
+  - daml-prim
+  - daml-stdlib
