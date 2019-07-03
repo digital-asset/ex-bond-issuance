@@ -75,7 +75,7 @@ jobs:
           command: |
             export PATH=${HOME}/.daml/bin:${PATH}
             daml build -o target/bond-issuance.dar
-            daml test --junit target/daml-test-reports/daml-test.xml --files daml/LibraryModules.daml
+            daml test --junit target/daml-test-reports/daml-test.xml --files src/main/daml/DA/RefApps/Bond/Test/FullScenario.daml
       - save_cache:
           paths:
             - ~/.daml
