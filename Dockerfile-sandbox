@@ -3,12 +3,18 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-FROM digitalasset/daml-sdk:0.12.1-master
+FROM ubuntu:18.04
+
+ARG sdk_version=0.13.0
 
 WORKDIR /home/sdk
 
 COPY target/bond-issuance.dar /home/sdk/
+COPY scripts/install-daml.sh /home/sdk/
+
+RUN /bin/bash -c "apt-get update --no-show-upgraded &&  apt-get install wget openjdk-8-jdk -y"
+RUN /home/sdk/install-daml.sh ${sdk_version}
 
 EXPOSE 7600
 
-CMD da run sandbox -- --port 7600 --scenario DA.RefApps.Bond.Test.MarketSetup:testMarketSetup  bond-issuance.dar
+CMD ~/.daml/bin/daml sandbox -- --port 7600 --scenario DA.RefApps.Bond.Test.MarketSetup:testMarketSetup  bond-issuance.dar
