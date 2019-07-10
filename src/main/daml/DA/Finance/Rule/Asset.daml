@@ -11,7 +11,7 @@ import DA.Assert
 import DA.Either
 import DA.List
 import DA.Optional
-import DA.Set
+import DA.Next.Set
 
 import DA.Finance.Fact.Asset
 import DA.Finance.Types

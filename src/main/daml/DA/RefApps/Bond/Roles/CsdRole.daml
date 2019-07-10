@@ -6,7 +6,7 @@
 daml 1.2
 module DA.RefApps.Bond.Roles.CsdRole where
 
-import DA.Set
+import DA.Next.Set
 
 import DA.Finance.Types
 import DA.Finance.Rule.Asset

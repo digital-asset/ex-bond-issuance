@@ -9,7 +9,7 @@ module Test.Finance.Rule.Instrument.Equity where
 import DA.Assert
 import DA.Date
 import DA.List
-import DA.Set
+import DA.Next.Set
 
 import DA.Finance.Fact.Instrument.Equity
 import DA.Finance.Rule.Asset

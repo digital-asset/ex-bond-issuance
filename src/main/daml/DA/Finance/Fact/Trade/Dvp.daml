@@ -6,7 +6,7 @@
 daml 1.2
 module DA.Finance.Fact.Trade.Dvp where
 
-import DA.Set
+import DA.Next.Set
 
 import DA.Finance.Types
 
@@ -20,7 +20,7 @@ template Dvp
       -- masterAgreement.id.signatories. Depending on the desired trust model this
       -- might be both counterparties or a third party agent.
     tradeId : Id
-      -- ^ The identifier of the trade within the master agreement. 
+      -- ^ The identifier of the trade within the master agreement.
       -- The tradeId.signatories can be left empty.
     buyer : Party
       -- ^ The buyer is the party that sends the payments and receives the deliveries.
