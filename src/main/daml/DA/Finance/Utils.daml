@@ -9,7 +9,7 @@ daml 1.2
 module DA.Finance.Utils where
 
 import DA.Date
-import DA.Map as M
+import DA.Next.Map as M
 import DA.Optional
 import DA.Record
 
@@ -47,20 +47,20 @@ zipChecked xs ys
     | otherwise               = zip xs ys
 
 -- | Return all keys of the map in ascending order.
-keys : Map k v -> [k]
+keys : (MapKey k) => Map k v -> [k]
 keys m = map fst $ toList m
 
 -- | Return all elements of the map in the ascending order of their keys.
-elems : Map k v -> [v]
+elems : (MapKey k) => Map k v -> [v]
 elems m = map snd $ toList m
 
 infixl 9 !
 -- | Find the value at a key. Calls error when the element can not be found.
-(!) : (Eq k, Ord k) => Map k v -> k -> v
+(!) : (MapKey k) => Map k v -> k -> v
 (!) m x = fromSome $ M.lookup x m
 
 -- | Like map insert but takes an Action as value and returns the modified map as action.
-insertA : (Action m, Ord k) => Map k v -> k -> m v -> m (Map k v)
+insertA : (Action m, MapKey k) => Map k v -> k -> m v -> m (Map k v)
 insertA m k mv = do v <- mv; return $ M.insert k v m
 
 -- | Hand-crafted lens functionality to view, update and modify nested record fields.

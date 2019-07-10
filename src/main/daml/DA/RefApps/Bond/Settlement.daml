@@ -16,7 +16,7 @@ import DA.Finance.Rule.Asset
 import DA.RefApps.Bond.Redemption
 import DA.RefApps.Bond.Lock
 import DA.List
-import DA.Set as Set
+import DA.Next.Set as Set
 import DA.Optional
 import DA.Action
 import DA.RefApps.Bond.Util

@@ -6,7 +6,7 @@
 daml 1.2
 module DA.Finance.Types where
 
-import DA.Set
+import DA.Next.Set
 import Prelude hiding (id)
 
 

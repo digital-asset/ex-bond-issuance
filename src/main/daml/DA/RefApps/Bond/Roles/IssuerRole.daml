@@ -7,7 +7,7 @@ daml 1.2
 module DA.RefApps.Bond.Roles.IssuerRole where
 
 import DA.Date
-import DA.Set
+import DA.Next.Set
 
 import DA.Finance.Types
 import DA.Finance.Fact.Asset

@@ -7,9 +7,9 @@ daml 1.2
 module Test.Finance.Market where
 
 import DA.Date
-import DA.Map as M
+import DA.Next.Map as M
 import DA.Optional
-import DA.Set as S
+import DA.Next.Set as S
 
 import DA.Finance.Fact.Asset
 import DA.Finance.Fact.Trade.Dvp

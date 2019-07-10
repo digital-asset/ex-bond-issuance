@@ -8,7 +8,7 @@ module Test.Finance.Helpers where
 
 import DA.Assert
 import DA.Optional
-import DA.Set
+import DA.Next.Set
 
 import DA.Finance.Fact.Trade.Dvp
 import DA.Finance.Rule.Asset
