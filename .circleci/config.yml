@@ -13,7 +13,7 @@ executors:
     docker:
       - image: circleci/buildpack-deps:xenial
 
- only-release-tags: &only-release-tags
+only-release-tags: &only-release-tags
   filters:
     tags:
       only: /^v.*/
