@@ -41,7 +41,7 @@ then
 
     echo "releasing $version"
     hub release create \
-    --attach "/tmp/workspacetarget/$fullname.tar.gz" \
-    --message "Release $version" \
-    "$version"
+        --attach "/tmp/workspacetarget/$fullname.tar.gz" \
+        --message "Release $version" \
+        "$version"
 fi
