@@ -384,7 +384,7 @@ startAuction = \(issuance: TestIssuance) -> scenario do
 
   pass $ seconds 1
 
-  -- An other parallel auction ----------------------------
+  -- Another parallel auction ----------------------------
   (otherAuctionInvitation, _) <- submit issuer do
     otherCommissionedCid <- exercise issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
       bondAssetDepositCid = head remainingAssets

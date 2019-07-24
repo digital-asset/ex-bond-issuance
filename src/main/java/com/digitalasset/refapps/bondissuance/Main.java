@@ -39,106 +39,13 @@ public class Main {
     DamlLedgerClient client =
         DamlLedgerClient.forHostWithLedgerIdDiscovery(
             options.getSandboxHost(), options.getSandboxPort(), Optional.empty());
-    waitForSandbox(options, client);
-
+    System.out.println(
+        String.format(
+            "Connected to Sandbox at %s:%s", options.getSandboxHost(), options.getSandboxPort()));
+    waitForSandbox(client);
+    System.out.println("Connected to Sandbox.");
     try {
-      StringBuilder sb = new StringBuilder("Listing packages:");
-      client.getPackageClient().listPackages().forEach(id -> sb.append(id).append("\n"));
-      logger.info(sb.toString());
-
-      TimeManager timeManager = new TimeManager(client.getTimeClient());
-
-      AuctionFinalizeBot auctionFinalizeBot =
-          new AuctionFinalizeBot(timeManager, applicationId, auctionAgent);
-
-      CommissionBot commissionBot = new CommissionBot(timeManager, applicationId, issuer);
-
-      RedemptionCalculationBot redemptionCalculationBot =
-          new RedemptionCalculationBot(timeManager, applicationId, csd);
-
-      RedemptionFinalizeBot redemptionFinalizeBot =
-          new RedemptionFinalizeBot(timeManager, applicationId, issuer);
-
-      InvestorSettlementBot investorSettlementBot1 =
-          new InvestorSettlementBot(timeManager, applicationId, bank1);
-      InvestorSettlementBot investorSettlementBot2 =
-          new InvestorSettlementBot(timeManager, applicationId, bank2);
-      InvestorSettlementBot investorSettlementBot3 =
-          new InvestorSettlementBot(timeManager, applicationId, bank3);
-
-      PlaceBidBot placeBidBot1 = new PlaceBidBot(timeManager, applicationId, bank1);
-      PlaceBidBot placeBidBot2 = new PlaceBidBot(timeManager, applicationId, bank2);
-      PlaceBidBot placeBidBot3 = new PlaceBidBot(timeManager, applicationId, bank3);
-
-      Bot.wire(
-          applicationId,
-          client,
-          auctionFinalizeBot.transactionFilter,
-          auctionFinalizeBot::calculateCommands,
-          auctionFinalizeBot::getContractInfo);
-
-      Bot.wire(
-          applicationId,
-          client,
-          commissionBot.transactionFilter,
-          commissionBot::calculateCommands,
-          commissionBot::getContractInfo);
-
-      Bot.wire(
-          applicationId,
-          client,
-          redemptionCalculationBot.transactionFilter,
-          redemptionCalculationBot::calculateCommands,
-          redemptionCalculationBot::getContractInfo);
-
-      Bot.wire(
-          applicationId,
-          client,
-          redemptionFinalizeBot.transactionFilter,
-          redemptionFinalizeBot::calculateCommands,
-          redemptionFinalizeBot::getContractInfo);
-
-      Bot.wire(
-          applicationId,
-          client,
-          investorSettlementBot1.transactionFilter,
-          investorSettlementBot1::calculateCommands,
-          investorSettlementBot1::getContractInfo);
-
-      Bot.wire(
-          applicationId,
-          client,
-          investorSettlementBot2.transactionFilter,
-          investorSettlementBot2::calculateCommands,
-          investorSettlementBot2::getContractInfo);
-
-      Bot.wire(
-          applicationId,
-          client,
-          investorSettlementBot3.transactionFilter,
-          investorSettlementBot3::calculateCommands,
-          investorSettlementBot3::getContractInfo);
-
-      Bot.wire(
-          applicationId,
-          client,
-          placeBidBot1.transactionFilter,
-          placeBidBot1::calculateCommands,
-          placeBidBot1::getContractInfo);
-
-      Bot.wire(
-          applicationId,
-          client,
-          placeBidBot2.transactionFilter,
-          placeBidBot2::calculateCommands,
-          placeBidBot2::getContractInfo);
-
-      Bot.wire(
-          applicationId,
-          client,
-          placeBidBot3.transactionFilter,
-          placeBidBot3::calculateCommands,
-          placeBidBot3::getContractInfo);
+      runBots(client);
 
       logger.info("Welcome to Bond Issuance Application!");
       logger.info("Press Ctrl+C to shut down the program.");
@@ -152,25 +59,119 @@ public class Main {
     }
   }
 
-  private static void waitForSandbox(CliOptions options, DamlLedgerClient client) {
+  public static void runBots(DamlLedgerClient client) {
+    StringBuilder sb = new StringBuilder("Listing packages:");
+    client.getPackageClient().listPackages().forEach(id -> sb.append(id).append("\n"));
+    logger.info(sb.toString());
+
+    TimeManager timeManager = new TimeManager(client.getTimeClient());
+
+    AuctionFinalizeBot auctionFinalizeBot =
+        new AuctionFinalizeBot(timeManager, applicationId, auctionAgent);
+
+    CommissionBot commissionBot = new CommissionBot(timeManager, applicationId, issuer);
+
+    RedemptionCalculationBot redemptionCalculationBot =
+        new RedemptionCalculationBot(timeManager, applicationId, csd);
+
+    RedemptionFinalizeBot redemptionFinalizeBot =
+        new RedemptionFinalizeBot(timeManager, applicationId, issuer);
+
+    InvestorSettlementBot investorSettlementBot1 =
+        new InvestorSettlementBot(timeManager, applicationId, bank1);
+    InvestorSettlementBot investorSettlementBot2 =
+        new InvestorSettlementBot(timeManager, applicationId, bank2);
+    InvestorSettlementBot investorSettlementBot3 =
+        new InvestorSettlementBot(timeManager, applicationId, bank3);
+
+    PlaceBidBot placeBidBot1 = new PlaceBidBot(timeManager, applicationId, bank1);
+    PlaceBidBot placeBidBot2 = new PlaceBidBot(timeManager, applicationId, bank2);
+    PlaceBidBot placeBidBot3 = new PlaceBidBot(timeManager, applicationId, bank3);
+
+    Bot.wire(
+        applicationId,
+        client,
+        auctionFinalizeBot.transactionFilter,
+        auctionFinalizeBot::calculateCommands,
+        auctionFinalizeBot::getContractInfo);
+
+    Bot.wire(
+        applicationId,
+        client,
+        commissionBot.transactionFilter,
+        commissionBot::calculateCommands,
+        commissionBot::getContractInfo);
+
+    Bot.wire(
+        applicationId,
+        client,
+        redemptionCalculationBot.transactionFilter,
+        redemptionCalculationBot::calculateCommands,
+        redemptionCalculationBot::getContractInfo);
+
+    Bot.wire(
+        applicationId,
+        client,
+        redemptionFinalizeBot.transactionFilter,
+        redemptionFinalizeBot::calculateCommands,
+        redemptionFinalizeBot::getContractInfo);
+
+    Bot.wire(
+        applicationId,
+        client,
+        investorSettlementBot1.transactionFilter,
+        investorSettlementBot1::calculateCommands,
+        investorSettlementBot1::getContractInfo);
+
+    Bot.wire(
+        applicationId,
+        client,
+        investorSettlementBot2.transactionFilter,
+        investorSettlementBot2::calculateCommands,
+        investorSettlementBot2::getContractInfo);
+
+    Bot.wire(
+        applicationId,
+        client,
+        investorSettlementBot3.transactionFilter,
+        investorSettlementBot3::calculateCommands,
+        investorSettlementBot3::getContractInfo);
+
+    Bot.wire(
+        applicationId,
+        client,
+        placeBidBot1.transactionFilter,
+        placeBidBot1::calculateCommands,
+        placeBidBot1::getContractInfo);
+
+    Bot.wire(
+        applicationId,
+        client,
+        placeBidBot2.transactionFilter,
+        placeBidBot2::calculateCommands,
+        placeBidBot2::getContractInfo);
+
+    Bot.wire(
+        applicationId,
+        client,
+        placeBidBot3.transactionFilter,
+        placeBidBot3::calculateCommands,
+        placeBidBot3::getContractInfo);
+  }
+
+  private static void waitForSandbox(DamlLedgerClient client) {
     boolean connected = false;
     while (!connected) {
       try {
         client.connect();
         connected = true;
       } catch (Exception ignored) {
-        System.out.println(
-            String.format(
-                "Connecting to sandbox at %s:%s",
-                options.getSandboxHost(), options.getSandboxPort()));
+        System.out.println("Connecting to sandbox...");
         try {
           Thread.sleep(1000);
         } catch (InterruptedException ignored2) {
         }
       }
     }
-    System.out.println(
-        String.format(
-            "Connected to sandbox at %s:%s", options.getSandboxHost(), options.getSandboxPort()));
   }
 }
