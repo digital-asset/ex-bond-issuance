@@ -68,7 +68,7 @@ jobs:
       - run:
           name: Run Blackduck Detect
           command: |
-            bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) ci-build digitalasset_ex-bond-issuance master --logging.level.com.synopsys.integration=DEBUG --detect.notices.report=true
+            bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) ci-build digitalasset_ex-bond-issuance master --logging.level.com.synopsys.integration=DEBUG --detect.notices.report=true --detect.report.timeout=480
       - run:
           command: cp digitalasset_ex_bond_issuance_master_Black_Duck_Notices_Report.txt target/NOTICE
       - persist_to_workspace:
@@ -129,10 +129,10 @@ workflows:
     jobs:
       - daml_test:
           <<: *only-release-tags
-          daml_sdk_version: "0.13.12"
+          daml_sdk_version: "0.13.13"
       - mvn_test:
           <<: *only-release-tags
-          daml_sdk_version: "0.13.12"
+          daml_sdk_version: "0.13.13"
           context: blackduck
       - github_release:
           context: github-refapp-repo-context
