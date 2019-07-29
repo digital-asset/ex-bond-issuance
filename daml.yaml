@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-sdk-version: 0.13.15
+sdk-version: 0.13.13
 name: bond-issuance
 source: src/main/daml/DA/RefApps/Bond/Test/MarketSetup.daml
 scenario: DA.RefApps.Bond.Test.MarketSetup:testMarketSetup
