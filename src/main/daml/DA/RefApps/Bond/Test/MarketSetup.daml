@@ -15,6 +15,8 @@ import DA.RefApps.Bond.Roles.BankRole
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.Roles.AuctionAgentRole
 import DA.RefApps.Bond.Test.FullScenario
+import DA.RefApps.Bond.Auction
+import DA.RefApps.Bond.Settlement
 
 -- Initial setup of the market participants and some cash
 testMarketSetup = scenario do
@@ -74,7 +76,7 @@ testMarketSetup = scenario do
   csdRoleCid <- submit csd do
     exercise csdInvitationCid CsdRoleInvitation_Accept
 
-  submit issuer do
+  issuerRole <- submit issuer do
     exercise issuerCid IssuerRoleInvitation_Accept
 
   centralBankRoleCid <- submit centralBank do
@@ -89,8 +91,8 @@ testMarketSetup = scenario do
       bank2BondAccount = createAccount bank2 csd "Bank2BondAccount"
       bank3BondAccount = createAccount bank3 csd "Bank3BondAccount"
 
-  submit centralBank do
-    exercise centralBankRoleCid $ CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0
+  (cashBank1, settIssCash, funBank1Cash, lockBank1) <- submit centralBank do
+    cashBank1 <- exercise centralBankRoleCid $ CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0
     exercise centralBankRoleCid $ CentralBankRole_IssueCash bank2CashAccount "USD" 600000000.0
     exercise centralBankRoleCid $ CentralBankRole_IssueCash bank3CashAccount "USD" 50000000.0
     exercise centralBankRoleCid $ CentralBankRole_IssueCash issuerCashAccount "USD" 100000000.0
@@ -98,28 +100,99 @@ testMarketSetup = scenario do
     exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
     exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount []
     exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount []
-    exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount []
+    settIssCash <- exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount []
 
-    exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1CashAccount
+    funBank1Cash <- exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1CashAccount
     exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank2CashAccount
     exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank3CashAccount
     exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule issuerCashAccount
 
-    exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
+    lockBank1 <- exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
     exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank2CashAccount
     exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank3CashAccount
 
-  submit csd do
+    return (cashBank1, settIssCash, funBank1Cash, lockBank1)
+
+  (funIss, settBank1, settIss) <- submit csd do
     exercise csdRoleCid $ CsdRole_CreateFungibleRule bank1BondAccount []
     exercise csdRoleCid $ CsdRole_CreateFungibleRule bank2BondAccount []
     exercise csdRoleCid $ CsdRole_CreateFungibleRule bank3BondAccount []
-    exercise csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
+    funIss <- exercise csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
 
-    exercise csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount []
+    settBank1 <- exercise csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount []
     exercise csdRoleCid $ CsdRole_CreateSettlementRule bank2BondAccount []
     exercise csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
-    exercise csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
+    settIss <- exercise csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
+    return (funIss, settBank1, settIss)
 
   -- setup time
   now <- getTime
   passToDate $ date 2019 Apr 1
+
+  issuanceReq <- submit issuer do
+    exercise issuerRole $ IssuerRole_Issuance with
+                            issueSize = 100
+                            issueDate = date 2019 Jul 1
+                            currency = "USD"
+                            denomination = 1.0
+                            maturityDate = date 2019 Jul 31
+                            couponRate = 0.01
+                            couponDates = []
+
+  (bondFact, bondAssetDeposit) <- submit csd do
+    exercise issuanceReq $ IssuanceRequest_Accept "BOND007"
+
+  commissionBotTrigger <- submit issuer do
+    exercise issuerRole $ IssuerRole_CommissionAuction with
+          bondAssetDepositCid = bondAssetDeposit
+          startDate = date 2019 Jul 1
+          endDate = date 2019 Jul 2
+          minPrice = 1.0
+          size = 100
+
+  (auctionInv, _) <- submit issuer do
+    exercise commissionBotTrigger $ CommissionBotTrigger_InviteAgent with
+          bondAssetFungibleCid = funIss
+          bondAssetSettlementCid = settIss
+          cashAssetSettlementCid = settIssCash
+          fixedRateBondFactCid = bondFact
+
+  auction <- submit auctionAgent do
+    exercise auctionInv $ AuctionInvitation_Accept "auction1"
+
+  passToDate $ date 2019 Jul 1
+
+  (auction', [bidderPar]) <- submit auctionAgent do
+    exercise auction $ Auction_InviteBidders [bank1]
+
+  pbbTrigger <- submit bank1 do
+    exercise bidderPar $ BidderParticipation_PlaceBid with
+      price = 1.0
+      quantity = 100
+
+  Right(lockedCash, auctionBid, _) <- submit bank1 do
+    exercise pbbTrigger $ PlaceBidBotTrigger_LockCash with
+          cashDepositCids = [cashBank1]
+          cashAssetFungibleCid = funBank1Cash
+          lockRuleCid = lockBank1
+          investorBondAssetSettlementCid = settBank1
+
+  passToDate $ date 2019 Jul 2
+  afTrigger <- submit auctionAgent do
+    exercise auction' Auction_Finalize
+
+  ([settReq], _) <- submit auctionAgent do
+    exercise afTrigger $ AuctionFinalizeBotTrigger_AllocateBond with
+          participationCids = [bidderPar]
+          bidCids = [auctionBid]
+
+  isbTrigger <- submit bank1 do
+    exercise settReq AuctionParticipantSettleRequest_Settle
+
+  submit bank1 do
+    exercise isbTrigger $ InvestorSettlementBotTrigger_Finalize with
+          auctionLockedCashCids = [lockedCash]
+          cashAssetFungible = funBank1Cash
+          investorCashSettlementCid = settBank1
+
+  return ()
