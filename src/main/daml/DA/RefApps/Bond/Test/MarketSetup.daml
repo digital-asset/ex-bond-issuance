@@ -91,16 +91,16 @@ testMarketSetup = scenario do
       bank2BondAccount = createAccount bank2 csd "Bank2BondAccount"
       bank3BondAccount = createAccount bank3 csd "Bank3BondAccount"
 
-  (cashBank1, settIssCash, funBank1Cash, lockBank1) <- submit centralBank do
+  (cashBank1, settIssCash, funBank1Cash, lockBank1, settBank1Cash) <- submit centralBank do
     cashBank1 <- exercise centralBankRoleCid $ CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0
     exercise centralBankRoleCid $ CentralBankRole_IssueCash bank2CashAccount "USD" 600000000.0
     exercise centralBankRoleCid $ CentralBankRole_IssueCash bank3CashAccount "USD" 50000000.0
     exercise centralBankRoleCid $ CentralBankRole_IssueCash issuerCashAccount "USD" 100000000.0
 
-    exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
+    settBank1Cash <- exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
     exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount []
     exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount []
-    settIssCash <- exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount []
+    settIssCash <- exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount [bank1, bank2, bank3]
 
     funBank1Cash <- exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1CashAccount
     exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank2CashAccount
@@ -111,7 +111,7 @@ testMarketSetup = scenario do
     exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank2CashAccount
     exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank3CashAccount
 
-    return (cashBank1, settIssCash, funBank1Cash, lockBank1)
+    return (cashBank1, settIssCash, funBank1Cash, lockBank1, settBank1Cash)
 
   (funIss, settBank1, settIss) <- submit csd do
     exercise csdRoleCid $ CsdRole_CreateFungibleRule bank1BondAccount []
@@ -128,7 +128,14 @@ testMarketSetup = scenario do
   -- setup time
   now <- getTime
   passToDate $ date 2019 Apr 1
+  return (issuer, issuerRole, csd, auctionAgent, bank1, funIss, settIss, settIssCash,
+          cashBank1, funBank1Cash, settBank1, settBank1Cash, lockBank1)
 
+
+testMarketSetupFull = scenario $ do
+  (issuer, issuerRole, csd, auctionAgent, bank1,
+   funIss, settIss, settIssCash, cashBank1,
+   funBank1Cash, settBank1, settBank1Cash, lockBank1) <- testMarketSetup
   issuanceReq <- submit issuer do
     exercise issuerRole $ IssuerRole_Issuance with
                             issueSize = 100
@@ -193,6 +200,6 @@ testMarketSetup = scenario do
     exercise isbTrigger $ InvestorSettlementBotTrigger_Finalize with
           auctionLockedCashCids = [lockedCash]
           cashAssetFungible = funBank1Cash
-          investorCashSettlementCid = settBank1
+          investorCashSettlementCid = settBank1Cash
 
   return ()
