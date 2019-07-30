@@ -196,6 +196,31 @@ public class BondIssuanceIT {
     assertTrue(
         AuctionParticipantSettleRequest.fromValue(settleReq2.record).settleRequestCids.isEmpty());
 
+    AuctionParticipantSettleRequest.ContractId apSettleReq1 =
+        sandbox.getCreatedContractId(
+            BANK1_PARTY,
+            AuctionParticipantSettleRequest.TEMPLATE_ID,
+            AuctionParticipantSettleRequest.ContractId::new);
+    sandbox
+        .getLedgerAdapter()
+        .exerciseChoice(BANK1_PARTY, apSettleReq1.exerciseAuctionParticipantSettleRequest_Settle());
+    AuctionParticipantSettleRequest.ContractId apSettleReq2 =
+        sandbox.getCreatedContractId(
+            BANK2_PARTY,
+            AuctionParticipantSettleRequest.TEMPLATE_ID,
+            AuctionParticipantSettleRequest.ContractId::new);
+    sandbox
+        .getLedgerAdapter()
+        .exerciseChoice(BANK2_PARTY, apSettleReq2.exerciseAuctionParticipantSettleRequest_Settle());
+    AuctionParticipantSettleRequest.ContractId apSettleReq3 =
+        sandbox.getCreatedContractId(
+            BANK3_PARTY,
+            AuctionParticipantSettleRequest.TEMPLATE_ID,
+            AuctionParticipantSettleRequest.ContractId::new);
+    sandbox
+        .getLedgerAdapter()
+        .exerciseChoice(BANK3_PARTY, apSettleReq3.exerciseAuctionParticipantSettleRequest_Settle());
+
     // Requesting redemption at CSD
     sandbox
         .getLedgerAdapter()
