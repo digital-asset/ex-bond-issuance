@@ -192,6 +192,7 @@ template Auction
             size = size
             issuerCashAccountProvider = issuerCashAccountProvider
             bondBundleData = bondBundleData
+            cashAssetId = cashAssetId
             invitedBidders = invitedBidders
             auctionName = auctionName
 
@@ -208,6 +209,7 @@ template AuctionFinalizeBotTrigger
     size: Int
     issuerCashAccountProvider: Party
     bondBundleData: BondBundleData
+    cashAssetId: Id
     invitedBidders: [Party]
     auctionName: Text
   where
@@ -294,6 +296,7 @@ template AuctionFinalizeBotTrigger
               cashAmountToPay = auctionResult.price * intToDecimal bidWithAsset.bidData.quantity
               bondSettlementChainCid = allocatedBondChain
               issuerCashSettlementCid = bondBundleData.cashSettlementCid
+              cashAssetId = cashAssetId
               regulators = regulators
             return (auctionBid.bidder, request)
 

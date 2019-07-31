@@ -179,7 +179,7 @@ const pendingSettlementsViewForIssuer = createTab("Pending Settlements", ":Aucti
     createCol("quantity", "Quantity", null, r => r.issuerBondAssetDeposit.asset.quantity),
     createCol("price", "Price", null, r => r.cashAmountToPay / r.issuerBondAssetDeposit.asset.quantity),
     createCol("amount", "Consideration", null, r => r.cashAmountToPay),
-    createCol("currency", "Currency", null, r => r.issuerCashAccount.id.label),
+    createCol("currency", "Currency", null, r => r.cashAssetId.label),
 ]);
 
 const auctionRequestView = createTab("Auction Request", ":AuctionInvitation@", [
