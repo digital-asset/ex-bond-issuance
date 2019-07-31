@@ -36,6 +36,7 @@ template AuctionSettleRequest
     cashAmountToPay: Decimal
     bondSettlementChainCid: ContractId AssetSettlementChain
     issuerCashSettlementCid: ContractId AssetSettlement
+    cashAssetId: Id
     regulators: [Party]
   where
     signatory issuer

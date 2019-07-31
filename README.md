@@ -46,7 +46,7 @@ Make sure you have built the application with Maven (see Build with Maven step).
 1.  Start the DA Sandbox and the Navigator.
 Type:
 ```
-DAML_PROJECT="$(pwd)" da start
+DAML_PROJECT="$(pwd)" daml start
 ```
 The Navigator automatically opens in a new browser tab
 

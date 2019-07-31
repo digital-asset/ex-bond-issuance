@@ -22,6 +22,7 @@ import com.digitalasset.refapps.bondissuance.LedgerTestView;
 import da.finance.fact.asset.AssetDeposit;
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;
+import da.finance.types.Id;
 import da.refapps.bond.auction.AuctionBid;
 import da.refapps.bond.auction.AuctionFinalizeBotTrigger;
 import da.refapps.bond.auction.BidData;
@@ -141,6 +142,7 @@ public class AuctionFinalizeBotTest {
             size,
             CENTRAL_BANK,
             bondBundleData,
+            new Id(new da.next.set.Set(Collections.emptyMap()), "USD", 1L),
             invitedBidders,
             AUCTION_NAME));
 
