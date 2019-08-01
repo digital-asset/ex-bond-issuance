@@ -13,7 +13,7 @@ import Test.Finance.Helpers
 import Test.Finance.Market
 
 startup = scenario do
-  scenario do initMarket marketTrustModelBilateral
+  initMarket marketTrustModelBilateral
 
 all = scenario do
   Test.Finance.Rule.Asset.testAssetFungible
