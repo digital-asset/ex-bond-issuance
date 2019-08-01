@@ -198,15 +198,16 @@ public class BondIssuanceIT {
         .exerciseChoice(BANK1_PARTY, apSettleReq1.exerciseAuctionParticipantSettleRequest_Settle());
 
     ContractWithId<AuctionParticipantSettleRequest.ContractId> apSettleReq2 =
-            sandbox.getMatchedContract(
-                    BANK2_PARTY,
-                    AuctionParticipantSettleRequest.TEMPLATE_ID,
-                    AuctionParticipantSettleRequest.ContractId::new);
+        sandbox.getMatchedContract(
+            BANK2_PARTY,
+            AuctionParticipantSettleRequest.TEMPLATE_ID,
+            AuctionParticipantSettleRequest.ContractId::new);
     assertTrue(
-            AuctionParticipantSettleRequest.fromValue(apSettleReq2.record).settleRequestCids.isEmpty());
+        AuctionParticipantSettleRequest.fromValue(apSettleReq2.record).settleRequestCids.isEmpty());
     sandbox
         .getLedgerAdapter()
-        .exerciseChoice(BANK2_PARTY, apSettleReq2.contractId.exerciseAuctionParticipantSettleRequest_Settle());
+        .exerciseChoice(
+            BANK2_PARTY, apSettleReq2.contractId.exerciseAuctionParticipantSettleRequest_Settle());
 
     // Requesting redemption at CSD
     sandbox
@@ -226,26 +227,16 @@ public class BondIssuanceIT {
         .getLedgerAdapter()
         .exerciseChoice(CSD_PARTY, redemptionRequest.exerciseRedemptionRequest_Accept());
 
-    ContractWithId<AssetDeposit.ContractId> assetDepositFinal1 =
-        sandbox.getMatchedContract(
-            BANK1_PARTY, AssetDeposit.TEMPLATE_ID, AssetDeposit.ContractId::new);
-    assertEquals(
-        50000000L,
-        AssetDeposit.fromValue(assetDepositFinal1.record)
-            .asset
-            .quantity
-            .toBigInteger()
-            .longValue());
-    ContractWithId<AssetDeposit.ContractId> assetDepositFinal2 =
-        sandbox.getMatchedContract(
-            BANK1_PARTY, AssetDeposit.TEMPLATE_ID, AssetDeposit.ContractId::new);
-    assertEquals(
-            8400000L,
-        AssetDeposit.fromValue(assetDepositFinal2.record)
-            .asset
-            .quantity
-            .toBigInteger()
-            .longValue());
+    assertTrue(
+        sandbox.observeMatchingContracts(
+            BANK1_PARTY,
+            AssetDeposit.TEMPLATE_ID,
+            AssetDeposit::fromValue,
+            false,
+            assetDepositFinal ->
+                assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(50000000L)) == 0,
+            assetDepositFinal ->
+                assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(8400000L)) == 0));
   }
 
   AssetDeposit.ContractId findBondAssetDeposit(String expectedLabel) {
