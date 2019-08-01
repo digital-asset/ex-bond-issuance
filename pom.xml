@@ -99,6 +99,7 @@
             <groupId>com.digitalasset</groupId>
             <artifactId>functest-java_2.12</artifactId>
             <version>0.1.4</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
