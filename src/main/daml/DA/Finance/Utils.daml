@@ -20,13 +20,6 @@ infixl 1 &
 (&) : a -> (a -> b) -> b
 x & f = f x
 
--- | Fetches a contract, archives it and returns its value.
-fetchAndArchive : Template a => ContractId a -> Update a
-fetchAndArchive cid = do
-  c <- fetch cid
-  exercise cid Archive
-  return c
-
 -- | Checks that the ledger time is on or after the provided date.
 assertOnOrAfterDateMsg : (CanAbort m, HasTime m) => Text -> Date -> m ()
 assertOnOrAfterDateMsg msg date = do

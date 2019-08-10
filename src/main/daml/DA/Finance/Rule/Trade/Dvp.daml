@@ -52,11 +52,12 @@ template DvpSettlement
     observer observers
 
     let process (param : DvpSettlement_Process_Param) = do
-          dvp <- fetchAndArchive param.dvpCid
+          dvp <- fetch param.dvpCid
+          archive param.dvpCid
           dvp.masterAgreement === masterAgreement
           dvp.status === SettlementStatus_Instructed
           whenSome dvp.settlementDate (\d -> assertOnOrAfterDateMsg "expects settlementDate <= now" d)
-          
+
           let seller = if dvp.buyer == masterAgreement.party1 then masterAgreement.party2 else masterAgreement.party1
 
           let work sender receiver ((asset, settlementChainCid) : (Asset, ContractId AssetSettlementChain)) = do
@@ -71,7 +72,7 @@ template DvpSettlement
           dvpNewCid <- create dvp with status = SettlementStatus_Settled
           paymentDepositCids <- mapA (work dvp.buyer seller) $ zipChecked dvp.payments param.paymentChainCids
           deliveryDepositCids <- mapA (work seller dvp.buyer) $ zipChecked dvp.deliveries param.deliveryChainCids
-          
+
           return DvpSettlement_Process_Result with dvpCid = dvpNewCid; paymentDepositCids; deliveryDepositCids
 
     controller masterAgreement.party1 can
@@ -107,7 +108,8 @@ template DvpLifecycle
     observer observers
 
     let lifecycle (param : DvpLifecycle_Process_Param) = do
-          dvp <- fetchAndArchive param.dvpCid
+          dvp <- fetch param.dvpCid
+          archive param.dvpCid
           decomposition <- fetch param.decompositionCid
           dvp.masterAgreement === masterAgreement
 
@@ -116,7 +118,7 @@ template DvpLifecycle
                 then decomposition.factors & map (over quantityL (*asset.quantity))
                 else [asset]
 
-          create dvp with 
+          create dvp with
             tradeId = dvp.tradeId with version = dvp.tradeId.version + 1
             payments = concatMap work dvp.payments
             deliveries = concatMap work dvp.deliveries

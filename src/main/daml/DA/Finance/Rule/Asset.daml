@@ -37,23 +37,26 @@ template AssetFungible
             -- ^ The quantities of the newly created asset deposits. The total quantity
             -- needs to match the quantity of the provided asset.
         do
-          deposit <- fetchAndArchive depositCid
+          deposit <- fetch depositCid
+          archive depositCid
           deposit.account === account
           foldl (+) 0.0 quantities === deposit.asset.quantity
           mapA (\q -> create (deposit & update (assetL ~>> quantityL) q)) quantities
 
       nonconsuming AssetFungible_Merge : ContractId AssetDeposit
         -- ^ Merges a list of asset deposits into one.
-        with 
+        with
           depositCids : [ContractId AssetDeposit]
             -- ^ The asset deposits that will be consumed. All fields except for the quantity
             -- need to match.
         do
-          depositHead <- fetchAndArchive $ head depositCids
+          depositHead <- fetch $ head depositCids
+          archive $ head depositCids
           depositHead.account === account
           deposit <- foldlA
             (\acc cid -> do
-              c <- fetchAndArchive cid
+              c <- fetch cid
+              archive cid
               c === (acc & update (assetL ~>> quantityL) c.asset.quantity)
               return (acc & update (assetL ~>> quantityL) (acc.asset.quantity + c.asset.quantity)))
             depositHead (tail depositCids)
@@ -77,7 +80,8 @@ template AssetSettlement
           depositCid : ContractId AssetDeposit
             -- ^ The asset deposit that will be consumed.
         do
-          deposit <- fetchAndArchive depositCid
+          deposit <- fetch depositCid
+          archive depositCid
           deposit.account === account
           return deposit.asset
 
@@ -108,7 +112,7 @@ template AssetSettlement
       nonconsuming AssetSettlement_Debit : ContractId AssetDeposit
         -- ^ Gives the provider the right to create an asset deposit signed by the
         -- account.id.signatories.
-        with 
+        with
           asset : Asset
             -- ^ The asset id and amount to be created.
         do
@@ -156,12 +160,12 @@ template AssetSettlementChain
     observers : Set Party
   where
     signatory union masterAgreement.id.signatories $ fromList sendersDone
-    observer insert masterAgreement.party1 $ insert masterAgreement.party2 
+    observer insert masterAgreement.party1 $ insert masterAgreement.party2
       $ union observers $ fromList sendersPending
     ensure length steps > 0 && asset.quantity > 0.0
       && all (\(s1,s2) -> s1.receiver == s2.sender) (zip steps $ tail steps)
 
-    let (sendersDone, sendersPending) = partitionEithers $ 
+    let (sendersDone, sendersPending) = partitionEithers $
           map (\x -> if isSome x.depositCid then Left x.sender else Right x.sender) steps
 
     controller head $ sendersPending ++ sendersDone can
@@ -178,10 +182,10 @@ template AssetSettlementChain
           let currNew = curr with depositCid = Some depositCid
           create this with steps = done ++ currNew :: next
 
-    controller masterAgreement.id.signatories can 
+    controller masterAgreement.id.signatories can
       AssetSettlementChain_Process : [ContractId AssetDeposit]
         -- ^ Processes a settlement chain by transferring all allocated asset deposits.
-        do 
+        do
           steps & mapA (\x -> do
             exercise x.creditSettlementCid AssetSettlement_Transfer with
               receiver = x.receiver; depositCid = fromSome x.depositCid; debitSettlementCid = x.debitSettlementCid)
@@ -210,11 +214,12 @@ template AssetLifecycle
           decompositionCid : ContractId AssetDecomposition
             -- ^ Asset decomposition describing the lifecycle effects.
         do
-          deposit <- fetchAndArchive depositCid
+          deposit <- fetch depositCid
+          archive depositCid
           decomposition <- fetch decompositionCid
-          
+
           deposit.account === account
           deposit.asset.id === decomposition.id
 
-          decomposition.factors & mapA (\factor -> 
+          decomposition.factors & mapA (\factor ->
             create deposit with asset = factor & over quantityL (*deposit.asset.quantity))
