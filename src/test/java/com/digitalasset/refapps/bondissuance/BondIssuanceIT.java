@@ -32,8 +32,6 @@ import org.junit.rules.ExternalResource;
 
 public class BondIssuanceIT {
   private static final Path RELATIVE_DAR_PATH = Paths.get("./target/bond-issuance.dar");
-  private static final Integer sandboxPort = 6865;
-  private static final int WAIT_TIMEOUT = 20;
   private static final String TEST_MODULE = "DA.RefApps.Bond.Test.MarketSetup";
   private static final String TEST_SCENARIO = "testMarketSetup";
 
