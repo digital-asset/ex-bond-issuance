@@ -16,7 +16,7 @@ import DA.Finance.Types
 import DA.Finance.Utils
 
 
-initAssetId partyMap label version = 
+initAssetId partyMap label version =
   Id with signatories = singleton $ partyMap ! "Reuters"; label; version
 
 initAsset partyMap label version quantity =
@@ -46,18 +46,19 @@ template DvpInstruction
     observer observers
 
     let process (param : DvpInstruction_Process_Param) = do
-          dvp <- fetchAndArchive param.dvpCid
+          dvp <- fetch param.dvpCid
+          archive param.dvpCid
           dvp.masterAgreement === masterAgreement
           dvp.status === SettlementStatus_Pending
           whenSome dvp.settlementDate (\d -> assertOnOrAfterDateMsg "expects settlementDate <= now" d)
-          
+
           let work ((asset, steps) : (Asset, [AssetSettlementStep])) = do
                 create AssetSettlementChain with masterAgreement; tradeId = dvp.tradeId; asset; steps; observers = empty
 
           dvpNewCid <- create dvp with status = SettlementStatus_Instructed
           paymentChainCids <- mapA work $ zipChecked dvp.payments param.paymentSteps
           deliveryChainCids <- mapA work $ zipChecked dvp.deliveries param.deliverySteps
-          
+
           return DvpInstruction_Process_Result with
             dvpCid = dvpNewCid; paymentChainCids; deliveryChainCids
 
