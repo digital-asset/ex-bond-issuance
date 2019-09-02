@@ -10,7 +10,6 @@ export const version = {
     minor: 0
 };
 
-
 // --- Creating views --------------------------------------------------------------------
 
 const auctionAgentInvitationView = createTab("Auction Agent Invitations", ":AuctionAgentRoleInvitation@", [
@@ -193,7 +192,7 @@ const auctionRequestView = createTab("Auction Request", ":AuctionInvitation@", [
 // --- Assigning vievs to parties --------------------------------------------------------------------
 
 export const customViews = (userId, party, role) => {
-    if (party == 'Operator') {
+    if (userId == 'Operator') {
         return {
             issuerInvitationView,
             centralBankInvitationView,
@@ -209,7 +208,7 @@ export const customViews = (userId, party, role) => {
     }
 
     var balanceView = accountBalanceView(party)
-    if (party == 'Issuer') {
+    if (userId == 'Issuer') {
         return {
             issuerRoleView,
             balanceView,
@@ -218,7 +217,7 @@ export const customViews = (userId, party, role) => {
         };
     }
 
-    if (party == 'AuctionAgent') {
+    if (userId == 'AuctionAgent') {
         return {
             auctionAgentRoleView,
             balanceView,
@@ -230,7 +229,7 @@ export const customViews = (userId, party, role) => {
         };
     }
 
-    if (party == 'CentralBank') {
+    if (userId == 'CentralBank') {
         return {
             centralBankRoleView,
             balanceView,
