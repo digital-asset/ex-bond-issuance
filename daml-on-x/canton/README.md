@@ -20,7 +20,7 @@ Installation & startup
 `./canton-0.0.27/bin/canton -c daml-on-x/canton/topology.conf --bootstrap-script daml-on-x/canton/bootstrap.canton`
 
 4) [Terminal 2] Start the bots:
-`java -jar target/healthcare-claims-processing-0.0.1-SNAPSHOT.jar`
+`java -jar target/bond-issuance-0.0.1-SNAPSHOT.jar`
 
 5) [Terminal 3] Start Navigator:
 The DAML assistant automatically supplies the `daml.yaml` parties that won't work for Canton as their party ids are designed to be unique.

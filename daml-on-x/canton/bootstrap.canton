@@ -2,7 +2,7 @@ import better.files._
 import better.files.Dsl._
 import java.io.{File => JFile}
 
-val dar = pwd / "target" / "healthcare-claims-processing.dar"
+val dar = pwd / "target" / "bond-issuance.dar"
 val parties = Seq("ClearingHouse", "PrimaryCareProvider", "Patient1", "Radiologist", "InsuranceCompany")
 
 require(dar.exists, s"DAR must first be built [$dar.toString]")
@@ -21,7 +21,7 @@ scenario load dar.toString
 parties foreach { enable_party(participant1, _) }
 
 // Run market setup
-scenario run "DemoOnboardScenario.InsurancePolicies:insurancePoliciesSetSingle"
+scenario run "DA.RefApps.Bond.Test.MarketSetup:testMarketSetup"
 
 // Generate Navigator config
 val usersConfig = participant1.list_parties().map(_.party)
