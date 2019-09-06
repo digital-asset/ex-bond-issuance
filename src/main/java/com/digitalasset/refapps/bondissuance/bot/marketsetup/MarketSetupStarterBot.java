@@ -24,9 +24,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
 
 /**
- * An automation bot to exercise the <i>CommissionBotTrigger_InviteAgent</i> choice when
- * <i>CommissionBotTrigger</i> contracts created on the ledger. It accumulates and filters the
- * necessary parameters.
+ * A bot starting the market setup process by instantiating a market setup contract and ending
+ * it by executing its last step (market setup itself, having all the needed signatories).
  */
 public class MarketSetupStarterBot {
 
@@ -90,7 +89,6 @@ public class MarketSetupStarterBot {
 
   public Flowable<CommandsAndPendingSet> calculateCommands(
           LedgerViewFlowable.LedgerView<Template> ledgerView) {
-    // collecting the trigger contracts from the ledger
     Map<String, MarketSetup> marketSetupMap =
             BotUtil.filterTemplates(
                     MarketSetup.class, ledgerView.getContracts(MarketSetup.TEMPLATE_ID));

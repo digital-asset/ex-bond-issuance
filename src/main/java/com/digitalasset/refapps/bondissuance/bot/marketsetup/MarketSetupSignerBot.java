@@ -23,9 +23,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 
 /**
- * An automation bot to exercise the <i>CommissionBotTrigger_InviteAgent</i> choice when
- * <i>CommissionBotTrigger</i> contracts created on the ledger. It accumulates and filters the
- * necessary parameters.
+ * A bot to auto-sign market setup requests.
  */
 public class MarketSetupSignerBot {
 
@@ -77,7 +75,6 @@ public class MarketSetupSignerBot {
 
   public Flowable<CommandsAndPendingSet> calculateCommands(
       LedgerViewFlowable.LedgerView<Template> ledgerView) {
-    // collecting the trigger contracts from the ledger
     Map<String, MarketSetup> marketSetupMap =
         BotUtil.filterTemplates(
             MarketSetup.class, ledgerView.getContracts(MarketSetup.TEMPLATE_ID));
@@ -86,7 +83,6 @@ public class MarketSetupSignerBot {
       throw new IllegalStateException("More than one market setup contracts are visible.");
     }
 
-    // processing trigger contracts
     CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
     for (Map.Entry<String, MarketSetup> marketSetup : marketSetupMap.entrySet()) {
       // Only send command if we are the next in the group
