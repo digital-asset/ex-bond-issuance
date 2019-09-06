@@ -94,6 +94,7 @@ template MarketSetup
           centralBankCid
             <- exercise operatorCid OperatorRole_InviteCentralBank with
                   centralBank = centralBank
+          exercise auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
           exercise bankInvitationCid1 BankRoleInvitation_Accept
           exercise bankInvitationCid2 BankRoleInvitation_Accept
           exercise bankInvitationCid3 BankRoleInvitation_Accept

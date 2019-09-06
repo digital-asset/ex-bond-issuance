@@ -4,72 +4,209 @@
  */
 package com.digitalasset.refapps.bondissuance.bot;
 
+import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.*;
+import static org.junit.Assert.*;
+
 import com.daml.ledger.javaapi.data.Command;
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.rxjava.CommandSubmissionClient;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
-import com.digitalasset.refapps.bondissuance.bot.data.MarketParties;
+import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupSignerBot;
+import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupStarterBot;
+import com.digitalasset.refapps.bondissuance.bot.marketsetup.data.MarketParties;
 import com.google.protobuf.Empty;
-import da.finance.fact.asset.AssetDeposit;
-import da.finance.rule.asset.AssetFungible;
-import da.finance.rule.asset.AssetSettlement;
-import da.refapps.bond.auction.BidData;
-import da.refapps.bond.auction.PlaceBidBotTrigger;
-import da.refapps.bond.lock.AssetLockRule;
 import da.refapps.bond.test.marketsetup.MarketSetup;
 import io.reactivex.Single;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import java.lang.reflect.InvocationTargetException;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.lang.reflect.InvocationTargetException;
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListSet;
-
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 @RunWith(JUnit4.class)
 public class MarketSetupStarterBotTest {
 
-  private MarketSetupStarterBot bot;
+  private MarketSetupStarterBot marketSetupBot;
   private final String BANK1 = "bank1";
   private final ConcurrentLinkedQueue<List<Command>> sentIn = new ConcurrentLinkedQueue<>();
 
   @Before
   public void setupTests() {
-    CommandSubmissionClient client = new CommandSubmissionClient() {
-      @Override
-      public Single<Empty> submit(String workflowId, String applicationId, String commandId,
-                                  String party, Instant ledgerEffectiveTime,
-                                  Instant maximumRecordTime, List<Command> commands) {
-        sentIn.add(commands);
-        return Single.just(Empty.getDefaultInstance());
-      }
-    };
+    CommandSubmissionClient client =
+        new CommandSubmissionClient() {
+          {
+            sentIn.clear();
+          }
+          @Override
+          public Single<Empty> submit(
+              String workflowId,
+              String applicationId,
+              String commandId,
+              String party,
+              Instant ledgerEffectiveTime,
+              Instant maximumRecordTime,
+              List<Command> commands) {
+            sentIn.add(commands);
+            return Single.just(Empty.getDefaultInstance());
+          }
+        };
     MarketParties marketParties =
-            new MarketParties("operator", "regulator", "auctionAgent", BANK1,
-                      "bank2", "bank3", "csd", "issuer", "centralBank");
-    bot = new MarketSetupStarterBot(TIME_MANAGER, client, APP_ID, BANK1, marketParties);
+        new MarketParties(
+            "operator",
+            "regulator",
+            "auctionAgent",
+            BANK1,
+            "bank2",
+            "bank3",
+            "csd",
+            "issuer",
+            "centralBank");
+    marketSetupBot = new MarketSetupStarterBot(TIME_MANAGER, client, APP_ID, OPERATOR, marketParties);
   }
 
   @Test
-  public void testBotHasSentInCommand() throws InvocationTargetException, IllegalAccessException {
-    bot.startMarketSetup();
+  public void testBotSendsInCommand() throws InvocationTargetException, IllegalAccessException {
+    marketSetupBot.startMarketSetup();
     assertEquals(1, sentIn.size());
     List<Command> commands = sentIn.poll();
     assertEquals(1, commands.size());
     Command firstCommand = commands.get(0);
     assertTrue(firstCommand.asCreateCommand().isPresent());
-    assertEquals("MarketSetup", firstCommand.asCreateCommand().get().getTemplateId().getEntityName());
+    assertEquals(
+        "MarketSetup", firstCommand.asCreateCommand().get().getTemplateId().getEntityName());
+  }
+
+  @Test
+  public void testMarketSetupCompletes() throws InvocationTargetException, IllegalAccessException {
+    MarketSetupSignerBot signerBot = marketSetupBot.addNextSignerBot(BANK1);
+
+    marketSetupBot.startMarketSetup();
+    assertEquals(1, sentIn.size());
+
+    LedgerTestView<Template> ledgerView = new LedgerTestView<>();
+    String marketSetupCid = "marketSetupCid";
+    ledgerView.addActiveContract(
+            MarketSetup.TEMPLATE_ID,
+            marketSetupCid,
+            new MarketSetup(
+                    OPERATOR,
+                    "regulator",
+                    "auctionAgent",
+                    BANK1,
+                    "bank2",
+                    "bank3",
+                    "csd",
+                    "issuer",
+                    "centralBank",
+                    Collections.singletonList(OPERATOR)));
+
+    try {
+      marketSetupBot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
+      fail("No commands should have been generated by Market Setup bot at this point.");
+    } catch (NoSuchElementException e) {};
+    signerBot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
+
+    ledgerView = new LedgerTestView<>();
+    marketSetupCid = "marketSetupCid2";
+    ledgerView.addActiveContract(
+            MarketSetup.TEMPLATE_ID,
+            marketSetupCid,
+            new MarketSetup(
+                    OPERATOR,
+                    "regulator",
+                    "auctionAgent",
+                    BANK1,
+                    "bank2",
+                    "bank3",
+                    "csd",
+                    "issuer",
+                    "centralBank",
+                    Arrays.asList(OPERATOR, BANK1)));
+    CommandsAndPendingSet cmds =
+            marketSetupBot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
+
+    assertHasSingleExercise(cmds, marketSetupCid, "MarketSetup_SetupMarket");
+  }
+
+  @Test
+  public void testBotSigns() throws InvocationTargetException, IllegalAccessException {
+    MarketSetupSignerBot bot2 = marketSetupBot.addNextSignerBot(BANK1);
+    LedgerTestView<Template> ledgerView = new LedgerTestView<>();
+
+    String marketSetupCid = "marketSetupCid";
+    ledgerView.addActiveContract(
+        MarketSetup.TEMPLATE_ID,
+        marketSetupCid,
+        new MarketSetup(
+            OPERATOR,
+            "regulator",
+            "auctionAgent",
+            BANK1,
+            "bank2",
+            "bank3",
+            "csd",
+            "issuer",
+            "centralBank",
+            Collections.singletonList(OPERATOR)));
+
+    CommandsAndPendingSet cmds =
+        bot2.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
+
+    assertHasSingleExercise(cmds, marketSetupCid, "MarketSetup_Sign");
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testBotSignsOnlyOnce() throws InvocationTargetException, IllegalAccessException {
+    MarketSetupSignerBot bot2 = marketSetupBot.addNextSignerBot(BANK1);
+    LedgerTestView<Template> ledgerView = new LedgerTestView<>();
+
+    String marketSetupCid = "marketSetupCid";
+    ledgerView.addActiveContract(
+        MarketSetup.TEMPLATE_ID,
+        marketSetupCid,
+        new MarketSetup(
+            "operator",
+            "regulator",
+            "auctionAgent",
+            BANK1,
+            "bank2",
+            "bank3",
+            "csd",
+            "issuer",
+            "centralBank",
+            Arrays.asList(OPERATOR, BANK1)));
+
+    bot2.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testBotSignsOnlyOnce2() throws InvocationTargetException, IllegalAccessException {
+    MarketSetupSignerBot bot2 = marketSetupBot.addNextSignerBot(BANK1);
+    LedgerTestView<Template> ledgerView = new LedgerTestView<>();
+
+    String marketSetupCid = "marketSetupCid";
+    ledgerView.addActiveContract(
+        MarketSetup.TEMPLATE_ID,
+        marketSetupCid,
+        new MarketSetup(
+            "operator",
+            "regulator",
+            "auctionAgent",
+            BANK1,
+            "bank2",
+            "bank3",
+            "csd",
+            "issuer",
+            "centralBank",
+            Arrays.asList(OPERATOR, BANK1, CSD)));
+
+    bot2.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
   }
 }

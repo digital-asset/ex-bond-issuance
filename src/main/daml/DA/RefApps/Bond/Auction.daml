@@ -182,7 +182,7 @@ template Auction
       Auction_Finalize: ContractId AuctionFinalizeBotTrigger
         do
           now <- toDateUTC <$> getTime
-          assertMsg "The auction sould be finalized on end date" $ now == endDate
+          assertMsg "The auction should be finalized on end date" $ now == endDate
           -- create a new contract that a bot can exercise on with the collected participations
           create AuctionFinalizeBotTrigger with
             auctionAgent = auctionAgent

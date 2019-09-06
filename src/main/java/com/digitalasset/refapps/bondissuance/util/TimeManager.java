@@ -18,8 +18,10 @@ public class TimeManager {
     this.time = Instant.ofEpochMilli(epochTimeMillis);
   }
 
-  public TimeManager(TimeClient timeClient) {
-    timeClient.getTime().forEach(t -> time = t);
+  public static TimeManager getTimeClientBasedTimeManager(TimeClient timeClient) {
+    TimeManager tm = new TimeManager(0);
+    timeClient.getTime().forEach(t -> tm.time = t);
+    return tm;
   }
 
   public Instant getTime() {
