@@ -14,7 +14,6 @@ import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupStarterB
 import com.digitalasset.refapps.bondissuance.bot.marketsetup.data.MarketParties;
 import com.digitalasset.refapps.bondissuance.util.CliOptions;
 import com.digitalasset.refapps.bondissuance.util.TimeManager;
-
 import java.time.Instant;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -70,7 +69,10 @@ public class Main {
     logger.info(sb.toString());
 
     TimeManager timeManager = getTimeClientBasedTimeManager(client.getTimeClient());
-    client.getTimeClient().setTime(timeManager.getTime(), Instant.parse("2019-03-21T10:00:00.00Z")).blockingGet();
+    client
+        .getTimeClient()
+        .setTime(timeManager.getTime(), Instant.parse("2019-03-21T10:00:00.00Z"))
+        .blockingGet();
 
     AuctionFinalizeBot auctionFinalizeBot =
         new AuctionFinalizeBot(timeManager, applicationId, auctionAgent);
@@ -96,13 +98,13 @@ public class Main {
 
     MarketParties marketParties =
         new MarketParties(
-                operator, regulator, auctionAgent, bank1, bank2, bank3, csd, issuer, centralBank);
+            operator, regulator, auctionAgent, bank1, bank2, bank3, csd, issuer, centralBank);
     MarketSetupStarterBot marketSetupStarterBot =
         new MarketSetupStarterBot(
             timeManager,
             client.getCommandSubmissionClient(),
             applicationId,
-                operator,
+            operator,
             marketParties);
     MarketSetupSignerBot signer1 = marketSetupStarterBot.addNextSignerBot(bank1);
     MarketSetupSignerBot signer2 = marketSetupStarterBot.addNextSignerBot(bank2);
@@ -172,8 +174,8 @@ public class Main {
         applicationId,
         client,
         marketSetupStarterBot.transactionFilter,
-            marketSetupStarterBot::calculateCommands,
-            marketSetupStarterBot::getContractInfo);
+        marketSetupStarterBot::calculateCommands,
+        marketSetupStarterBot::getContractInfo);
     marketSetupStarterBot.startMarketSetup();
 
     Bot.wire(

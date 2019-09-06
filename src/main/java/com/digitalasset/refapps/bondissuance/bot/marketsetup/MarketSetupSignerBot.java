@@ -22,9 +22,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 
-/**
- * A bot to auto-sign market setup requests.
- */
+/** A bot to auto-sign market setup requests. */
 public class MarketSetupSignerBot {
 
   public final TransactionFilter transactionFilter;
@@ -39,8 +37,7 @@ public class MarketSetupSignerBot {
     private int botNumber = 0;
 
     // There is an ordering between signatories
-    MarketSetupSignerBotGroup(
-        TimeManager timeManager, String appId, int initialBotNumber) {
+    MarketSetupSignerBotGroup(TimeManager timeManager, String appId, int initialBotNumber) {
       this.timeManager = timeManager;
       this.appId = appId;
       this.botNumber = initialBotNumber;
