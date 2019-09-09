@@ -76,7 +76,7 @@ Reset the application by following these steps:
 1.  Stop the App by following the steps in Stopping the App section.
 2.  Start the App in Docker or Standalone by following the steps in the relevant section.
 
-## This Guide
+## User Guide
 
 This User Guide will take you step-by-step through the whole bond issuance, bond auction, and redemption process. It will lead you through all the major Navigator screens and data fields that you will need to use.
 
