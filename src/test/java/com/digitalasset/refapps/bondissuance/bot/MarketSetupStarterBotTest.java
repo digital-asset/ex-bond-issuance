@@ -167,32 +167,33 @@ public class MarketSetupStarterBotTest {
   }
 
   @Test(expected = NoSuchElementException.class)
-  public void testBotDoesNotSignPrematurely() throws InvocationTargetException, IllegalAccessException {
+  public void testBotDoesNotSignPrematurely()
+      throws InvocationTargetException, IllegalAccessException {
     MarketSetupSignerBot bot2 = marketSetupBot.addNextSignerBot(BANK1);
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 
     String marketSetupCid = "marketSetupCid";
     ledgerView.addActiveContract(
-            MarketSetup.TEMPLATE_ID,
-            marketSetupCid,
-            new MarketSetup(
-                    OPERATOR,
-                    "regulator",
-                    "auctionAgent",
-                    BANK1,
-                    "bank2",
-                    "bank3",
-                    "csd",
-                    "issuer",
-                    "centralBank",
-                    Collections.emptyList()));
+        MarketSetup.TEMPLATE_ID,
+        marketSetupCid,
+        new MarketSetup(
+            OPERATOR,
+            "regulator",
+            "auctionAgent",
+            BANK1,
+            "bank2",
+            "bank3",
+            "csd",
+            "issuer",
+            "centralBank",
+            Collections.emptyList()));
 
     bot2.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
-
   }
 
   @Test(expected = NoSuchElementException.class)
-  public void testBotSignsOnlyOnceWhenItWasTheLastSignatory() throws InvocationTargetException, IllegalAccessException {
+  public void testBotSignsOnlyOnceWhenItWasTheLastSignatory()
+      throws InvocationTargetException, IllegalAccessException {
     MarketSetupSignerBot bot2 = marketSetupBot.addNextSignerBot(BANK1);
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 
@@ -216,7 +217,8 @@ public class MarketSetupStarterBotTest {
   }
 
   @Test(expected = NoSuchElementException.class)
-  public void testBotSignsOnlyOnceWhenThereWereMoreSignatoriesAfterIt() throws InvocationTargetException, IllegalAccessException {
+  public void testBotSignsOnlyOnceWhenThereWereMoreSignatoriesAfterIt()
+      throws InvocationTargetException, IllegalAccessException {
     MarketSetupSignerBot bot2 = marketSetupBot.addNextSignerBot(BANK1);
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 
