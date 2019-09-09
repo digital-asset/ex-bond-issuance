@@ -38,6 +38,11 @@ data MarketSetupData =
   , lockBank1: ContractId AssetLockRule
   }
 
+-- A contract that can perform market setup via its "Setup Market" choice
+-- if every market participant has signed it. Signing is done by the market
+-- participants via the "Sign" choice.
+-- One needs to use this pattern to avoid having to write a market setup
+-- scenario which can only by used in Sandbox (no production ledger supports this).
 template MarketSetup
   with
     operator : Party

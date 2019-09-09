@@ -34,7 +34,7 @@ import org.junit.runners.JUnit4;
 public class MarketSetupStarterBotTest {
 
   private MarketSetupStarterBot marketSetupBot;
-  private final String BANK1 = "bank1";
+  private final String BANK1 = "BANK_1";
   private final ConcurrentLinkedQueue<List<Command>> sentIn = new ConcurrentLinkedQueue<>();
 
   @Before
@@ -60,17 +60,36 @@ public class MarketSetupStarterBotTest {
         };
     MarketParties marketParties =
         new MarketParties(
-            "operator",
-            "regulator",
-            "auctionAgent",
+            "OPERATOR",
+            "REGULATOR",
+            "AUCTION_AGENT",
             BANK1,
-            "bank2",
-            "bank3",
-            "csd",
-            "issuer",
-            "centralBank");
+            "BANK_2",
+            "BANK_3",
+            "CSD",
+            "ISSUER",
+            "CENTRAL_BANK");
     marketSetupBot =
         new MarketSetupStarterBot(TIME_MANAGER, client, APP_ID, OPERATOR, marketParties);
+  }
+
+  private void addActiveMarketSetupContract(
+      LedgerTestView<Template> ledgerView, String marketSetupCid, List<String> signatories)
+      throws InvocationTargetException, IllegalAccessException {
+    ledgerView.addActiveContract(
+        MarketSetup.TEMPLATE_ID,
+        marketSetupCid,
+        new MarketSetup(
+            OPERATOR,
+            "REGULATOR",
+            "AUCTION_AGENT",
+            BANK1,
+            "BANK_2",
+            "BANK_3",
+            "CSD",
+            "ISSUER",
+            "CENTRAL_BANK",
+            signatories));
   }
 
   @Test
@@ -94,20 +113,7 @@ public class MarketSetupStarterBotTest {
 
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
     String marketSetupCid = "marketSetupCid";
-    ledgerView.addActiveContract(
-        MarketSetup.TEMPLATE_ID,
-        marketSetupCid,
-        new MarketSetup(
-            OPERATOR,
-            "regulator",
-            "auctionAgent",
-            BANK1,
-            "bank2",
-            "bank3",
-            "csd",
-            "issuer",
-            "centralBank",
-            Collections.singletonList(OPERATOR)));
+    addActiveMarketSetupContract(ledgerView, marketSetupCid, Collections.singletonList(OPERATOR));
 
     try {
       marketSetupBot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
@@ -119,20 +125,7 @@ public class MarketSetupStarterBotTest {
 
     ledgerView = new LedgerTestView<>();
     marketSetupCid = "marketSetupCid2";
-    ledgerView.addActiveContract(
-        MarketSetup.TEMPLATE_ID,
-        marketSetupCid,
-        new MarketSetup(
-            OPERATOR,
-            "regulator",
-            "auctionAgent",
-            BANK1,
-            "bank2",
-            "bank3",
-            "csd",
-            "issuer",
-            "centralBank",
-            Arrays.asList(OPERATOR, BANK1)));
+    addActiveMarketSetupContract(ledgerView, marketSetupCid, Arrays.asList(OPERATOR, BANK1));
     CommandsAndPendingSet cmds =
         marketSetupBot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
 
@@ -145,20 +138,7 @@ public class MarketSetupStarterBotTest {
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 
     String marketSetupCid = "marketSetupCid";
-    ledgerView.addActiveContract(
-        MarketSetup.TEMPLATE_ID,
-        marketSetupCid,
-        new MarketSetup(
-            OPERATOR,
-            "regulator",
-            "auctionAgent",
-            BANK1,
-            "bank2",
-            "bank3",
-            "csd",
-            "issuer",
-            "centralBank",
-            Collections.singletonList(OPERATOR)));
+    addActiveMarketSetupContract(ledgerView, marketSetupCid, Collections.singletonList(OPERATOR));
 
     CommandsAndPendingSet cmds =
         bot2.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
@@ -173,20 +153,8 @@ public class MarketSetupStarterBotTest {
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 
     String marketSetupCid = "marketSetupCid";
-    ledgerView.addActiveContract(
-        MarketSetup.TEMPLATE_ID,
-        marketSetupCid,
-        new MarketSetup(
-            OPERATOR,
-            "regulator",
-            "auctionAgent",
-            BANK1,
-            "bank2",
-            "bank3",
-            "csd",
-            "issuer",
-            "centralBank",
-            Collections.emptyList()));
+    List<String> signatories = Collections.emptyList();
+    addActiveMarketSetupContract(ledgerView, marketSetupCid, signatories);
 
     bot2.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
   }
@@ -198,20 +166,7 @@ public class MarketSetupStarterBotTest {
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 
     String marketSetupCid = "marketSetupCid";
-    ledgerView.addActiveContract(
-        MarketSetup.TEMPLATE_ID,
-        marketSetupCid,
-        new MarketSetup(
-            "operator",
-            "regulator",
-            "auctionAgent",
-            BANK1,
-            "bank2",
-            "bank3",
-            "csd",
-            "issuer",
-            "centralBank",
-            Arrays.asList(OPERATOR, BANK1)));
+    addActiveMarketSetupContract(ledgerView, marketSetupCid, Arrays.asList(OPERATOR, BANK1));
 
     bot2.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
   }
@@ -223,20 +178,7 @@ public class MarketSetupStarterBotTest {
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 
     String marketSetupCid = "marketSetupCid";
-    ledgerView.addActiveContract(
-        MarketSetup.TEMPLATE_ID,
-        marketSetupCid,
-        new MarketSetup(
-            "operator",
-            "regulator",
-            "auctionAgent",
-            BANK1,
-            "bank2",
-            "bank3",
-            "csd",
-            "issuer",
-            "centralBank",
-            Arrays.asList(OPERATOR, BANK1, CSD)));
+    addActiveMarketSetupContract(ledgerView, marketSetupCid, Arrays.asList(OPERATOR, BANK1, CSD));
 
     bot2.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
   }

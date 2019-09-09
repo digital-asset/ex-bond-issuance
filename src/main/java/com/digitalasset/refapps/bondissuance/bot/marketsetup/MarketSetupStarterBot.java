@@ -101,7 +101,7 @@ public class MarketSetupStarterBot {
 
     CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
     for (Map.Entry<String, MarketSetup> marketSetup : marketSetupMap.entrySet()) {
-      // Only send command if every bot in the group signed the contract
+      // Only send command if every bot in the signer group signed the contract
       if (marketSetup.getValue().signatories.size() == signerBotGroup.getBotNumber()) {
         MarketSetup.ContractId marketSetupCid = new MarketSetup.ContractId(marketSetup.getKey());
         builder.addCommand(marketSetupCid.exerciseMarketSetup_SetupMarket());
