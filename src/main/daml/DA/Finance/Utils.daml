@@ -8,7 +8,6 @@
 daml 1.2
 module DA.Finance.Utils where
 
-import DA.Date
 import DA.Next.Map as M
 import DA.Optional
 import DA.Record
@@ -19,12 +18,6 @@ infixl 1 &
 -- which allows `&` to be nested in `$`.
 (&) : a -> (a -> b) -> b
 x & f = f x
-
--- | Checks that the ledger time is on or after the provided date.
-assertOnOrAfterDateMsg : (CanAbort m, HasTime m) => Text -> Date -> m ()
-assertOnOrAfterDateMsg msg date = do
-  now <- getTime
-  assertMsg msg $ date <= toDateUTC now
 
 -- | Replaces the first element of a list for which the provided function returns Some x.
 mapOnce : (a -> Optional a) -> [a] -> [a]

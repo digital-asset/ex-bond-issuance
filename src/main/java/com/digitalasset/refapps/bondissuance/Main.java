@@ -69,10 +69,6 @@ public class Main {
     logger.info(sb.toString());
 
     TimeManager timeManager = getTimeClientBasedTimeManager(client.getTimeClient());
-    client
-        .getTimeClient()
-        .setTime(timeManager.getTime(), Instant.parse("2019-03-21T10:00:00.00Z"))
-        .blockingGet();
 
     AuctionFinalizeBot auctionFinalizeBot =
         new AuctionFinalizeBot(timeManager, APPLICATION_ID, AUCTION_AGENT);

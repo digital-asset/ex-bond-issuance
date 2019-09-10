@@ -6,7 +6,6 @@
 daml 1.2
 module DA.RefApps.Bond.Roles.IssuerRole where
 
-import DA.Date
 import DA.Next.Set
 
 import DA.Finance.Types
@@ -74,9 +73,6 @@ template IssuerRole
         do
           assertMsg "Denomination should be positive" $ denomination > 0.0
           assertMsg "Coupon rate should be positive" $ couponRate > 0.0
-          now <- getTime
-          let today = toDateUTC now
-          assertMsg "Issue date should not be in the past" $ issueDate >= today
           -- coupon dates should happen earlier than maturity, since maturity is added to couponDates implicitly
           forA couponDates $ \date -> assertMsg
             ("Coupon dates should be between the issue date and maturity. Issue date: " <> show issueDate <> " Maturity: " <> show maturityDate <> " current date: " <> show date) $
@@ -101,10 +97,6 @@ template IssuerRole
         do
           assertMsg "Minimum price should be positive" $ minPrice > 0.0
           assertMsg "Size price should be positive" $ size > 0
-          time <- getTime
-          let today = toDateUTC time
-          assertMsg "Start date should not be in the past" $ startDate >= today
-          assertMsg "End date should be after start date" $ endDate >= startDate
           asset <- fetch bondAssetDepositCid
           assertMsg ("Asset quantity [" <> show asset.asset.quantity <> "] should be greater than or equal to issue size [" <> show size <> "]") $
             asset.asset.quantity >= intToDecimal size
@@ -127,10 +119,7 @@ template IssuerRole
         with
           fixedRateBondFactCid: ContractId FixedRateBondFact
         do
-          now <- getTime
-          let today = toDateUTC now
           fact <- fetch fixedRateBondFactCid
-          assertMsg ("Redemption should happen at maturity date: " <> show fact.maturityDate) $ fact.maturityDate == today
           create RedemptionRequest with
             provider = fact.provider
             issuer = issuer

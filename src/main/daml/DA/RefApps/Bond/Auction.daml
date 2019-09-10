@@ -13,7 +13,6 @@ import DA.Finance.Types
 import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Lock
-import DA.Date
 import DA.List as List
 import DA.Next.Set as Set
 import DA.RefApps.Bond.Util
@@ -159,8 +158,6 @@ template Auction
         with
           bidders: [Party]
         do
-          now <- toDateUTC <$> getTime
-          assertMsg "The bidder should be added before the end of the auction." $ now <= endDate
           participations
             <- forA bidders $ \bidder -> do
               create BidderParticipation with
@@ -181,8 +178,6 @@ template Auction
 
       Auction_Finalize: ContractId AuctionFinalizeBotTrigger
         do
-          now <- toDateUTC <$> getTime
-          assertMsg "The auction should be finalized on end date" $ now == endDate
           -- create a new contract that a bot can exercise on with the collected participations
           create AuctionFinalizeBotTrigger with
             auctionAgent = auctionAgent
@@ -353,12 +348,9 @@ template BidderParticipation
           price: Decimal
           quantity: Int
         do
-          now <- getTime
-          let today = toDateUTC now
-          assertMsg "The bid should be placed after the auction has started." $ today >= startDate
-          assertMsg "The bid should be added before the end of the auction." $ today <= endDate
           assertMsg "Price should be positive" $ price > 0.0
           assertMsg "Quantity should be positive" $ quantity > 0
+          now <- getTime
           let bidData = BidData price quantity now
           create PlaceBidBotTrigger with
             cashAssetId = cashAssetId
