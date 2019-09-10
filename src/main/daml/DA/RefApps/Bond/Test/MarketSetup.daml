@@ -38,7 +38,7 @@ data MarketSetupData =
   , lockBank1: ContractId AssetLockRule
   }
 
--- A contract that can perform market setup via its "Setup Market" choice
+-- | A contract that can perform market setup via its "Setup Market" choice
 -- if every market participant has signed it. Signing is done by the market
 -- participants via the "Sign" choice.
 -- One needs to use this pattern to avoid having to write a market setup
@@ -203,7 +203,7 @@ testMarketSetupContract = scenario do
     exercise marketSetupCid MarketSetup_SetupMarket
   return ()
 
--- Initial setup of the market participants and some cash
+-- | Initial setup of the market participants and some cash
 testMarketSetup = scenario do
   operator <- getParty "Operator"
   regulator <- getParty "Regulator"
