@@ -261,7 +261,7 @@ To create an auction request:
 3. Click on the Issuer **role contract.**
 4. Select the **IssuerRole_CommissionAuction** choice.
 5. Enter parameters of New Bond Auction:
-    *  Bond asset deposit ID: #12:2 (Copy contract id for the Bond from the **Balance** tab).
+    *  Bond asset deposit ID: #13:2 (Copy contract id for the Bond from the **Balance** tab).
     *  Start date
     *  End date
     *  Minimum price: e.g: 96 (must be smaller the the bond's denomination)

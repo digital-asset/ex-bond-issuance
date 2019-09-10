@@ -17,4 +17,4 @@ RUN /home/sdk/install-daml.sh ${sdk_version}
 
 EXPOSE 7600
 
-CMD ~/.daml/bin/daml sandbox -- --port 7600 --scenario DA.RefApps.Bond.Test.MarketSetup:testMarketSetup  bond-issuance.dar
+CMD ~/.daml/bin/daml sandbox -- --port 7600 bond-issuance.dar
