@@ -14,7 +14,6 @@ import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupStarterB
 import com.digitalasset.refapps.bondissuance.bot.marketsetup.data.MarketParties;
 import com.digitalasset.refapps.bondissuance.util.CliOptions;
 import com.digitalasset.refapps.bondissuance.util.TimeManager;
-import java.time.Instant;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
