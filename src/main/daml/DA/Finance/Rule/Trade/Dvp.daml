@@ -8,7 +8,6 @@ module DA.Finance.Rule.Trade.Dvp where
 
 import DA.Assert
 import DA.List
-import DA.Optional
 import DA.Next.Set
 
 import DA.Finance.Fact.Asset
@@ -56,7 +55,6 @@ template DvpSettlement
           archive param.dvpCid
           dvp.masterAgreement === masterAgreement
           dvp.status === SettlementStatus_Instructed
-          whenSome dvp.settlementDate (\d -> assertOnOrAfterDateMsg "expects settlementDate <= now" d)
 
           let seller = if dvp.buyer == masterAgreement.party1 then masterAgreement.party2 else masterAgreement.party1
 

@@ -6,7 +6,6 @@
 daml 1.2
 module DA.RefApps.Bond.Redemption where
 
-import DA.Date
 import DA.List
 import DA.Optional
 
@@ -56,12 +55,7 @@ template RedemptionPayoutInfo
           bondArchivalRequestCid: ContractId BondArchivalRequest
           fixedRateBondFactCid: ContractId FixedRateBondFact
         do
-          -- date check
-          now <- getTime
-          let today = toDateUTC now
           fixedRateBondFact <- fetch fixedRateBondFactCid
-          let maturityDate = fixedRateBondFact.maturityDate
-          assertMsg ("Only final redemption supported: " <> show maturityDate) $ maturityDate == today
 
           -- quantity check
           bondDeposit <- fetch $ head $ head settlementResult.deliveryDepositCids

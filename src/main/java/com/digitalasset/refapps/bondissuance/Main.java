@@ -14,7 +14,6 @@ import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupStarterB
 import com.digitalasset.refapps.bondissuance.bot.marketsetup.data.MarketParties;
 import com.digitalasset.refapps.bondissuance.util.CliOptions;
 import com.digitalasset.refapps.bondissuance.util.TimeManager;
-import java.time.Instant;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,10 +68,6 @@ public class Main {
     logger.info(sb.toString());
 
     TimeManager timeManager = getTimeClientBasedTimeManager(client.getTimeClient());
-    client
-        .getTimeClient()
-        .setTime(timeManager.getTime(), Instant.parse("2019-03-21T10:00:00.00Z"))
-        .blockingGet();
 
     AuctionFinalizeBot auctionFinalizeBot =
         new AuctionFinalizeBot(timeManager, APPLICATION_ID, AUCTION_AGENT);
