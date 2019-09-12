@@ -386,12 +386,5 @@ To approve:
 
 After completing the workflow, you can explore the application to try other paths, submit higher or lower bids, revoke a bid once entered, and so on.
 
-## Alternative ledgers
-
-### Sandbox with Postgres
-
-- To start, use: `docker-compose -f docker-compose-postgres.yml up --build`
-- To stop, press **Ctrl+C** then execute `docker-compose -f docker-compose-postgres.yml down`
-
 CONFIDENTIAL © 2019 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 Any unauthorized use, duplication or distribution is strictly prohibited.
