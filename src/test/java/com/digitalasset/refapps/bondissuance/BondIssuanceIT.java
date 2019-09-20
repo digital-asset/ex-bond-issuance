@@ -32,8 +32,6 @@ import org.junit.rules.ExternalResource;
 
 public class BondIssuanceIT {
   private static final Path RELATIVE_DAR_PATH = Paths.get("./target/bond-issuance.dar");
-  private static final String TEST_MODULE = "DA.RefApps.Bond.Test.MarketSetup";
-  private static final String TEST_SCENARIO = "testMarketSetup";
 
   private static final Party ISSUER_PARTY = new Party("Issuer");
   private static final Party CSD_PARTY = new Party("CSD");
@@ -43,12 +41,9 @@ public class BondIssuanceIT {
   private static final Party BANK3_PARTY = new Party("Bank3");
   private static final Party CENTRALBANK_PARTY = new Party("CentralBank");
 
-  private static Sandbox sandboxC =
+  private static Sandbox sandbox =
       Sandbox.builder()
           .dar(RELATIVE_DAR_PATH)
-          .projectDir(Paths.get("."))
-          .module(TEST_MODULE)
-          .scenario(TEST_SCENARIO)
           .parties(
               BANK1_PARTY.getValue(),
               BANK2_PARTY.getValue(),
@@ -60,8 +55,8 @@ public class BondIssuanceIT {
           .setupAppCallback(Main::runBots)
           .build();
 
-  @ClassRule public static ExternalResource compile = sandboxC.compilation();
-  @Rule public Sandbox.Process sandbox = sandboxC.process();
+  @ClassRule public static ExternalResource sandboxClassRule = sandbox.getClassRule();
+  @Rule public ExternalResource sandboxRule = sandbox.getRule();
 
   @Test
   public void testFullWorkflow() throws InvalidProtocolBufferException {

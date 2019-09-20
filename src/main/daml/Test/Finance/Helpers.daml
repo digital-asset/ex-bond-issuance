@@ -50,7 +50,6 @@ template DvpInstruction
           archive param.dvpCid
           dvp.masterAgreement === masterAgreement
           dvp.status === SettlementStatus_Pending
-          whenSome dvp.settlementDate (\d -> assertOnOrAfterDateMsg "expects settlementDate <= now" d)
 
           let work ((asset, steps) : (Asset, [AssetSettlementStep])) = do
                 create AssetSettlementChain with masterAgreement; tradeId = dvp.tradeId; asset; steps; observers = empty
