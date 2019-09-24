@@ -26,47 +26,46 @@ mvn clean package
 **Note:** If you change the DAML models locally, you need to run re-run this command before starting the application.
 
 ### Starting the App
+
+**Note:** Make sure you have built the application with Maven (see Build with Maven step)
+
 There are two options:
 
 #### Option 1: Start App with Docker
 
-1.  Make sure you have built the application with Maven (see Build with Maven step)
-2.  Type:
+1.  Type:
 ```
 docker-compose up --build
 ```
-3.  Open UI in a new browser tab with http://localhost:7500.
+2.  Open UI in a new browser tab with http://localhost:7500.
 
 **Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
 
-#### Option 2: Start App in Stand-Alone
-
-Make sure you have built the application with Maven (see Build with Maven step).
+#### Option 2: Start App in Standalone
 
 1.  Start the DA Sandbox and the Navigator.
 Type:
 ```
-DAML_PROJECT="$(pwd)" daml start
+daml start
 ```
-The Navigator automatically opens in a new browser tab
+The Navigator automatically opens in a new browser tab with http://localhost:7500.
 
 2.  Start the automation logic by starting bots. Type:
 ```
-java -jar ./target/bond-issuance-0.0.1-SNAPSHOT.jar -p 6865
+java -jar ./target/bond-issuance-0.0.1-SNAPSHOT.jar
 ```
 
 ### Stopping the App
 
 #### Stopping Dockerized Run
-1.  Close the browser tab
-2.  Stop the Docker containers or bots by pressing **Ctrl+C**.
+1.  Stop the Docker containers or bots by pressing **Ctrl+C**.
+    (Alternatively, you can also stop it by typing `docker-compose down`.)
 
 #### Stopping Stand-Alone Run
-1.  Close the browser tab.
-2.  Stop the bots by pressing **Ctrl+C**.
-3.  Stop the Sandbox: type:
+1.  Stop the bots by pressing **Ctrl+C**.
+2.  Stop the Sandbox: type:
 ```
-da stop
+daml stop
 ```
 
 ### Resetting the Prototype
