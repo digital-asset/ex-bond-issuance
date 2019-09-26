@@ -34,26 +34,25 @@ There are two options:
 #### Option 1: Start App with Docker
 
 1.  Type:
-```
-docker-compose up --build
-```
+    ```
+    docker-compose up --build
+    ```
 2.  Open UI in a new browser tab with http://localhost:7500.
 
 **Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
 
 #### Option 2: Start App in Standalone
 
-1.  Start the DA Sandbox and the Navigator.
-Type:
-```
-daml start
-```
-The Navigator automatically opens in a new browser tab with http://localhost:7500.
+1.  Start the DA Sandbox and the Navigator. Type:
+    ```
+    daml start
+    ```
+    The Navigator automatically opens in a new browser tab with http://localhost:7500.
 
 2.  Start the automation logic by starting bots. Type:
-```
-java -jar ./target/bond-issuance-0.0.1-SNAPSHOT.jar
-```
+    ```
+    java -jar ./target/bond-issuance-0.0.1-SNAPSHOT.jar
+    ```
 
 ### Stopping the App
 
@@ -64,9 +63,9 @@ java -jar ./target/bond-issuance-0.0.1-SNAPSHOT.jar
 #### Stopping Stand-Alone Run
 1.  Stop the bots by pressing **Ctrl+C**.
 2.  Stop the Sandbox: type:
-```
-daml stop
-```
+    ```
+    daml stop
+    ```
 
 ### Resetting the Prototype
 
