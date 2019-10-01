@@ -22,7 +22,7 @@ import java.util.Optional;
 public class BotTestUtils {
   public static final String APP_ID = "appId";
   public static final TimeManager TIME_MANAGER =
-      new TimeManager(Instant.EPOCH.plusSeconds(7).toEpochMilli());
+      new TimeManager();
 
   public static final String OPERATOR = "Operator";
   public static final String CENTRAL_BANK = "CentralBank";

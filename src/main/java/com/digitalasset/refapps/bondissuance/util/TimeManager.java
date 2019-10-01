@@ -4,7 +4,6 @@
  */
 package com.digitalasset.refapps.bondissuance.util;
 
-import com.daml.ledger.rxjava.TimeClient;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -12,23 +11,19 @@ import java.time.ZoneOffset;
 /** Utility to obtain the current ledger time */
 public class TimeManager {
 
-  private Instant time;
-
-  public TimeManager(long epochTimeMillis) {
-    this.time = Instant.ofEpochMilli(epochTimeMillis);
+  public TimeManager() {
   }
 
-  public static TimeManager getTimeClientBasedTimeManager(TimeClient timeClient) {
-    TimeManager tm = new TimeManager(0);
-    timeClient.getTime().forEach(t -> tm.time = t);
+  public static TimeManager getTimeClientBasedTimeManager() {
+    TimeManager tm = new TimeManager();
     return tm;
   }
 
   public Instant getTime() {
-    return time;
+    return Instant.ofEpochMilli(System.currentTimeMillis());
   }
 
   public LocalDate getLocalDate() {
-    return time.atOffset(ZoneOffset.UTC).toLocalDate();
+    return getTime().atOffset(ZoneOffset.UTC).toLocalDate();
   }
 }

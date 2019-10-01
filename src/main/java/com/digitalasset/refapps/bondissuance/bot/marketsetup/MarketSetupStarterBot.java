@@ -33,7 +33,7 @@ public class MarketSetupStarterBot {
   private final String partyName;
   private final CommandSubmissionClient client;
   private final String appId;
-  private final MarketParties marketParties;
+  private final PartyAllocator.AllocatedParties marketParties;
   private final TimeManager timeManager;
   private final CommandsAndPendingSetBuilder commandBuilder;
   public final TransactionFilter transactionFilter;
@@ -44,7 +44,7 @@ public class MarketSetupStarterBot {
       CommandSubmissionClient client,
       String appId,
       String partyName,
-      MarketParties marketParties) {
+      PartyAllocator.AllocatedParties marketParties) {
     String workflowId =
         "WORKFLOW-" + partyName + "-MarketSetupStarterBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(MarketSetupStarterBot.class, workflowId);
@@ -78,11 +78,11 @@ public class MarketSetupStarterBot {
     List<Command> commands =
         Collections.singletonList(
             MarketSetup.create(
-                marketParties.operator, marketParties.regulator,
-                marketParties.auctionAgent, marketParties.bank1,
-                marketParties.bank2, marketParties.bank3,
-                marketParties.csd, marketParties.issuer,
-                marketParties.centralBank, Collections.singletonList(partyName)));
+                marketParties.getOperator(), marketParties.getRegulator(),
+                marketParties.getAuctionAgent(), marketParties.getBank1(),
+                marketParties.getBank2(), marketParties.getBank3(),
+                marketParties.getCSD(), marketParties.getIssuer(),
+                marketParties.getCentralBank(), Collections.singletonList(partyName)));
     Instant time = timeManager.getTime();
     client.submit(
         "marketSetupWorkflow", appId, cmdId, partyName, time, time.plusSeconds(MRT), commands);
