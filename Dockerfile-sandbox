@@ -13,4 +13,4 @@ COPY target/bond-issuance.dar /home/sdk/
 
 EXPOSE 7600
 
-CMD ~/.daml/bin/daml sandbox -- --port 7600 bond-issuance.dar
+CMD ~/.daml/bin/daml sandbox -- --wall-clock-time --port 7600 bond-issuance.dar
