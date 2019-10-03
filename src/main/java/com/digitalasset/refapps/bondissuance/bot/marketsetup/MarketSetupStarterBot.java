@@ -9,7 +9,6 @@ import com.daml.ledger.rxjava.CommandSubmissionClient;
 import com.daml.ledger.rxjava.components.LedgerViewFlowable;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.daml.ledger.rxjava.components.helpers.CreatedContract;
-import com.digitalasset.refapps.bondissuance.bot.marketsetup.data.MarketParties;
 import com.digitalasset.refapps.bondissuance.util.*;
 import com.google.common.collect.Sets;
 import da.refapps.bond.test.marketsetup.MarketSetup;

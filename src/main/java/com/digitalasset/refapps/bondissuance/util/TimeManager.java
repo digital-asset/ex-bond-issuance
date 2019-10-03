@@ -4,23 +4,29 @@
  */
 package com.digitalasset.refapps.bondissuance.util;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.*;
 
 /** Utility to obtain the current ledger time */
 public class TimeManager {
 
-  public TimeManager() {
+  private Clock clock;
+
+  private TimeManager(Clock clock) {
+    this.clock = clock;
   }
 
-  public static TimeManager getTimeClientBasedTimeManager() {
-    TimeManager tm = new TimeManager();
+  public static TimeManager getWallclockTimeManager() {
+    TimeManager tm = new TimeManager(Clock.systemUTC());
+    return tm;
+  }
+
+  public static TimeManager getStaticTimeManager() {
+    TimeManager tm = new TimeManager(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()));
     return tm;
   }
 
   public Instant getTime() {
-    return Instant.ofEpochMilli(System.currentTimeMillis());
+    return clock.instant();
   }
 
   public LocalDate getLocalDate() {

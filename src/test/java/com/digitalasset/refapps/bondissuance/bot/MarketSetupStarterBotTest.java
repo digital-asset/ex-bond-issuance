@@ -14,7 +14,6 @@ import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
 import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupSignerBot;
 import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupStarterBot;
-import com.digitalasset.refapps.bondissuance.bot.marketsetup.data.MarketParties;
 import com.digitalasset.refapps.bondissuance.util.PartyAllocator;
 import com.google.protobuf.Empty;
 import da.refapps.bond.test.marketsetup.MarketSetup;

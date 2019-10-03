@@ -4,11 +4,12 @@
  */
 package com.digitalasset.refapps.bondissuance;
 
+import static com.digitalasset.refapps.bondissuance.util.TimeManager.getWallclockTimeManager;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.daml.ledger.javaapi.data.Party;
-import com.daml.ledger.rxjava.DamlLedgerClient;
+import com.digitalasset.refapps.bondissuance.util.PartyAllocator;
 import com.digitalasset.testing.junit4.Sandbox;
 import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
 import com.digitalasset.testing.utils.ContractWithId;
@@ -24,12 +25,9 @@ import da.refapps.bond.settlement.AuctionSettleRequest;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
-
-import io.grpc.ManagedChannel;
 import org.junit.*;
 import org.junit.rules.ExternalResource;
 
@@ -55,18 +53,31 @@ public class BondIssuanceIT {
               CENTRALBANK_PARTY.getValue(),
               ISSUER_PARTY.getValue(),
               CSD_PARTY.getValue())
-          .setupAppCallback(Main::runBots)
+          .useWallclockTime()
+          .setupAppCallback(
+              Main.runBots(
+                  new PartyAllocator.AllocatedParties(
+                      AGENT_PARTY.getValue(),
+                      BANK1_PARTY.getValue(),
+                      BANK2_PARTY.getValue(),
+                      BANK3_PARTY.getValue(),
+                      CENTRALBANK_PARTY.getValue(),
+                      CSD_PARTY.getValue(),
+                      ISSUER_PARTY.getValue(),
+                      "Operator",
+                      "Regulator"),
+                  getWallclockTimeManager()))
           .build();
 
   @ClassRule public static ExternalResource sandboxClassRule = sandbox.getClassRule();
   @Rule public ExternalResource sandboxRule = sandbox.getRule();
 
   @Test
-  public void testFullWorkflow() throws InvalidProtocolBufferException {
+  public void testFullWorkflow() throws InvalidProtocolBufferException, InterruptedException {
     DefaultLedgerAdapter ledgerAdapter = sandbox.getLedgerAdapter();
 
     // Issuance of a bond
-    LocalDate now = LocalDate.now();
+    LocalDate now = LocalDate.now().plusDays(1);
     LocalDate maturityDate = now.plusDays(365);
     BigDecimal couponRate = BigDecimal.valueOf(0.1);
     BigDecimal denomination = BigDecimal.valueOf(40.1);
@@ -113,8 +124,6 @@ public class BondIssuanceIT {
         AGENT_PARTY,
         auction1.exerciseAuction_InviteBidders(
             Arrays.asList(BANK1_PARTY.getValue(), BANK2_PARTY.getValue(), BANK3_PARTY.getValue())));
-
-    ledgerAdapter.setCurrentTime(Instant.ofEpochSecond(auctionEndDate.toEpochDay() * 24 * 60 * 60));
 
     // Bidding
     BidderParticipation.ContractId bidderParticipationBank1 =
@@ -189,7 +198,6 @@ public class BondIssuanceIT {
         BANK2_PARTY, apSettleReq2.contractId.exerciseAuctionParticipantSettleRequest_Settle());
 
     // Requesting redemption at CSD
-    ledgerAdapter.setCurrentTime(Instant.ofEpochSecond(maturityDate.toEpochDay() * 24 * 60 * 60));
     FixedRateBondFact.ContractId fixedRateBondFact =
         ledgerAdapter.getCreatedContractId(
             ISSUER_PARTY, FixedRateBondFact.TEMPLATE_ID, FixedRateBondFact.ContractId::new);
