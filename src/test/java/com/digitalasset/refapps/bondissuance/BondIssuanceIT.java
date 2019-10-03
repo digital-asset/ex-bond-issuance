@@ -73,7 +73,7 @@ public class BondIssuanceIT {
   @Rule public ExternalResource sandboxRule = sandbox.getRule();
 
   @Test
-  public void testFullWorkflow() throws InvalidProtocolBufferException, InterruptedException {
+  public void testFullWorkflow() throws InvalidProtocolBufferException {
     DefaultLedgerAdapter ledgerAdapter = sandbox.getLedgerAdapter();
 
     // Issuance of a bond
