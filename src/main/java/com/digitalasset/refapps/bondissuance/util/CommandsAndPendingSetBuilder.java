@@ -70,7 +70,7 @@ public class CommandsAndPendingSetBuilder {
                 UUID.randomUUID().toString(),
                 party,
                 time,
-                time.plusSeconds(10),
+                time.plusSeconds(30),
                 commands);
         return Optional.of(
             new CommandsAndPendingSet(commandsRequest, HashTreePMap.from(pendingContractIds)));
