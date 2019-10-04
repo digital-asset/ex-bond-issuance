@@ -27,7 +27,7 @@ import org.slf4j.Logger;
  */
 public class MarketSetupStarterBot {
 
-  public static final int MRT = 15;
+  public static final int MRT = 40;
   private final Logger logger;
   private final String partyName;
   private final CommandSubmissionClient client;
