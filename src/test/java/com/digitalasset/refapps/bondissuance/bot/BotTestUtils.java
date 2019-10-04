@@ -15,14 +15,12 @@ import da.finance.types.Account;
 import da.finance.types.Asset;
 import da.finance.types.Id;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 public class BotTestUtils {
   public static final String APP_ID = "appId";
-  public static final TimeManager TIME_MANAGER =
-      new TimeManager(Instant.EPOCH.plusSeconds(7).toEpochMilli());
+  public static final TimeManager TIME_MANAGER = TimeManager.getStaticTimeManager();
 
   public static final String OPERATOR = "Operator";
   public static final String CENTRAL_BANK = "CentralBank";

@@ -43,16 +43,22 @@ There are two options:
 
 #### Option 2: Start App in Standalone
 
-1.  Start the DA Sandbox and the Navigator. Type:
-    ```
-    daml start
-    ```
-    The Navigator automatically opens in a new browser tab with http://localhost:7500.
+1.  Start the DA Sandbox.
+Type:
+```
+DAML_PROJECT="$(pwd)" daml sandbox -w --port 6865 target/bond-issuance.dar
+```
 
-2.  Start the automation logic by starting bots. Type:
-    ```
-    java -jar ./target/bond-issuance-0.0.1-SNAPSHOT.jar
-    ```
+2. Start DA Navigator by typing:
+```
+daml navigator server localhost 6865
+```
+Open a browser tab and navigate to `http://localhost:4000`.
+
+3.  Start the automation logic by starting bots. Type:
+```
+java -jar ./target/bond-issuance-0.0.1-SNAPSHOT.jar -p 6865
+```
 
 ### Stopping the App
 

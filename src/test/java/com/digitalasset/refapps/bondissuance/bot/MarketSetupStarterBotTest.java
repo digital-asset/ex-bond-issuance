@@ -14,7 +14,7 @@ import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.digitalasset.refapps.bondissuance.LedgerTestView;
 import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupSignerBot;
 import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupStarterBot;
-import com.digitalasset.refapps.bondissuance.bot.marketsetup.data.MarketParties;
+import com.digitalasset.refapps.bondissuance.util.PartyAllocator;
 import com.google.protobuf.Empty;
 import da.refapps.bond.test.marketsetup.MarketSetup;
 import io.reactivex.Single;
@@ -34,7 +34,7 @@ import org.junit.runners.JUnit4;
 public class MarketSetupStarterBotTest {
 
   private MarketSetupStarterBot marketSetupBot;
-  private final String BANK1 = "BANK_1";
+  private final String BANK1 = "bank1";
   private final ConcurrentLinkedQueue<List<Command>> sentIn = new ConcurrentLinkedQueue<>();
 
   @Before
@@ -58,17 +58,17 @@ public class MarketSetupStarterBotTest {
             return Single.just(Empty.getDefaultInstance());
           }
         };
-    MarketParties marketParties =
-        new MarketParties(
-            "OPERATOR",
-            "REGULATOR",
-            "AUCTION_AGENT",
+    PartyAllocator.AllocatedParties marketParties =
+        new PartyAllocator.AllocatedParties(
+            "operator",
+            "regulator",
+            "auctionAgent",
             BANK1,
-            "BANK_2",
-            "BANK_3",
+            "bank2",
+            "bank3",
             "CSD",
-            "ISSUER",
-            "CENTRAL_BANK");
+            "issuer",
+            "centralBank");
     marketSetupBot =
         new MarketSetupStarterBot(TIME_MANAGER, client, APP_ID, OPERATOR, marketParties);
   }
@@ -81,14 +81,14 @@ public class MarketSetupStarterBotTest {
         marketSetupCid,
         new MarketSetup(
             OPERATOR,
-            "REGULATOR",
-            "AUCTION_AGENT",
+            "regulator",
+            "auctionAgent",
             BANK1,
-            "BANK_2",
-            "BANK_3",
+            "bank2",
+            "bank3",
             "CSD",
-            "ISSUER",
-            "CENTRAL_BANK",
+            "issuer",
+            "centralBank",
             signatories));
   }
 

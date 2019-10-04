@@ -193,7 +193,7 @@ const auctionRequestView = createTab("Auction Request", ":AuctionInvitation@", [
 // --- Assigning vievs to parties --------------------------------------------------------------------
 
 export const customViews = (userId, party, role) => {
-    if (party == 'Operator') {
+    if (party == 'Operator' || userId == 'Operator') {
         return {
             issuerInvitationView,
             centralBankInvitationView,
@@ -209,7 +209,7 @@ export const customViews = (userId, party, role) => {
     }
 
     var balanceView = accountBalanceView(party)
-    if (party == 'Issuer') {
+    if (party == 'Issuer' || userId == 'Issuer') {
         return {
             issuerRoleView,
             balanceView,
@@ -218,7 +218,7 @@ export const customViews = (userId, party, role) => {
         };
     }
 
-    if (party == 'AuctionAgent') {
+    if (party == 'AuctionAgent' || userId == 'AuctionAgent') {
         return {
             auctionAgentRoleView,
             balanceView,
@@ -230,14 +230,14 @@ export const customViews = (userId, party, role) => {
         };
     }
 
-    if (party == 'CentralBank') {
+    if (party == 'CentralBank' || userId == 'CentralBank') {
         return {
             centralBankRoleView,
             balanceView,
         };
     }
 
-    if (party == 'CSD') {
+    if (party == 'CSD' || userId == 'CSD') {
         return {
             csdRoleView,
             balanceView,
@@ -246,7 +246,7 @@ export const customViews = (userId, party, role) => {
         };
     }
 
-    if (party == 'Regulator') {
+    if (party == 'Regulator' || userId == 'Regulator') {
         return {
             operatorRoleView,
             balanceView,
@@ -258,7 +258,7 @@ export const customViews = (userId, party, role) => {
         };
     }
 
-    if (party == "Bank1" || party == 'Bank2' || party == 'Bank3') {
+    if (party == "Bank1" || party == 'Bank2' || party == 'Bank3' || userId == "Bank1" || userId == 'Bank2' || userId == 'Bank3') {
         return {
             bankRoleView,
             balanceView,
