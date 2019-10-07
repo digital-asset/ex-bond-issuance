@@ -27,7 +27,9 @@ import org.slf4j.Logger;
  */
 public class MarketSetupStarterBot {
 
+  private static final int TOTAL_COUNT_OF_PARTIES = 9;
   public static final int MRT = 30;
+
   private final Logger logger;
   private final String partyName;
   private final CommandSubmissionClient client;
@@ -36,7 +38,6 @@ public class MarketSetupStarterBot {
   private final TimeManager timeManager;
   private final CommandsAndPendingSetBuilder commandBuilder;
   public final TransactionFilter transactionFilter;
-  private MarketSetupSignerBot.MarketSetupSignerBotGroup signerBotGroup;
 
   public MarketSetupStarterBot(
       TimeManager timeManager,
@@ -59,16 +60,6 @@ public class MarketSetupStarterBot {
     this.transactionFilter = new FiltersByParty(Collections.singletonMap(partyName, messageFilter));
 
     logger.info("Startup completed");
-  }
-
-  public MarketSetupSignerBot addNextSignerBot(String partyName) {
-    if (signerBotGroup == null) {
-      int operatorIsOnlySignatoryYet = 1;
-      signerBotGroup =
-          new MarketSetupSignerBot.MarketSetupSignerBotGroup(
-              timeManager, appId, operatorIsOnlySignatoryYet);
-    }
-    return signerBotGroup.addNextSignerBot(partyName);
   }
 
   public void startMarketSetup() {
@@ -101,7 +92,7 @@ public class MarketSetupStarterBot {
     CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
     for (Map.Entry<String, MarketSetup> marketSetup : marketSetupMap.entrySet()) {
       // Only send command if every bot in the signer group signed the contract
-      if (marketSetup.getValue().signatories.size() == signerBotGroup.getBotNumber()) {
+      if (marketSetup.getValue().signatories.size() == TOTAL_COUNT_OF_PARTIES) {
         MarketSetup.ContractId marketSetupCid = new MarketSetup.ContractId(marketSetup.getKey());
         builder.addCommand(marketSetupCid.exerciseMarketSetup_SetupMarket());
       }

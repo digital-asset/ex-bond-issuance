@@ -68,9 +68,7 @@ public class Main {
   public static BiConsumer<DamlLedgerClient, ManagedChannel> runBots(
       PartyAllocator.AllocatedParties parties, TimeManager timeManager) {
     return (DamlLedgerClient client, ManagedChannel channel) -> {
-      StringBuilder sb = new StringBuilder("Listing packages:");
-      client.getPackageClient().listPackages().forEach(id -> sb.append(id).append("\n"));
-      logger.info(sb.toString());
+      logPackages(client);
 
       AuctionFinalizeBot auctionFinalizeBot =
           new AuctionFinalizeBot(timeManager, APPLICATION_ID, parties.getAuctionAgent());
@@ -102,19 +100,24 @@ public class Main {
               APPLICATION_ID,
               parties.getOperator(),
               parties);
-      MarketSetupSignerBot signer1 = marketSetupStarterBot.addNextSignerBot(parties.getBank1());
-      MarketSetupSignerBot signer2 = marketSetupStarterBot.addNextSignerBot(parties.getBank2());
-      MarketSetupSignerBot signer3 = marketSetupStarterBot.addNextSignerBot(parties.getBank3());
+      MarketSetupSignerBot signer1 =
+              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getBank1());
+      MarketSetupSignerBot signer2 =
+              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getBank2());
+      MarketSetupSignerBot signer3 =
+              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getBank3());
       MarketSetupSignerBot signerIssuer =
-          marketSetupStarterBot.addNextSignerBot(parties.getIssuer());
-      MarketSetupSignerBot signerCsd = marketSetupStarterBot.addNextSignerBot(parties.getCSD());
+              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getIssuer());
+      MarketSetupSignerBot signerCsd =
+              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getCSD());
       MarketSetupSignerBot signerAuctionA =
-          marketSetupStarterBot.addNextSignerBot(parties.getAuctionAgent());
-      MarketSetupSignerBot signerOp = marketSetupStarterBot.addNextSignerBot(parties.getOperator());
+              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getAuctionAgent());
+      MarketSetupSignerBot signerOp =
+              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getOperator());
       MarketSetupSignerBot signerReg =
-          marketSetupStarterBot.addNextSignerBot(parties.getRegulator());
+              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getRegulator());
       MarketSetupSignerBot signerCentral =
-          marketSetupStarterBot.addNextSignerBot(parties.getCentralBank());
+              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getCentralBank());
 
       Bot.wire(
           APPLICATION_ID,
@@ -248,6 +251,12 @@ public class Main {
           placeBidBot3::calculateCommands,
           placeBidBot3::getContractInfo);
     };
+  }
+
+  private static void logPackages(DamlLedgerClient client) {
+    StringBuilder sb = new StringBuilder("Listing packages:");
+    client.getPackageClient().listPackages().forEach(id -> sb.append(id).append("\n"));
+    logger.info(sb.toString());
   }
 
   private static void waitForSandbox(DamlLedgerClient client) {
