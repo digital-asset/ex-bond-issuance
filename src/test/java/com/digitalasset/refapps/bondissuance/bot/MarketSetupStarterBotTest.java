@@ -15,9 +15,9 @@ import com.digitalasset.refapps.bondissuance.LedgerTestView;
 import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupSignerBot;
 import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupStarterBot;
 import com.digitalasset.refapps.bondissuance.util.PartyAllocator;
-import com.digitalasset.refapps.bondissuance.util.TimeManager;
 import com.google.protobuf.Empty;
-import da.refapps.bond.test.marketsetup.MarketSetup;
+import da.refapps.bond.test.marketsetup.MarketSetupSignature;
+import da.refapps.bond.test.marketsetup.MarketSetupSignatureCreator;
 import io.reactivex.Single;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
@@ -74,13 +74,13 @@ public class MarketSetupStarterBotTest {
         new MarketSetupStarterBot(TIME_MANAGER, client, APP_ID, OPERATOR, marketParties);
   }
 
-  private void addActiveMarketSetupContract(
+  private void addActiveMarketSetupSignatureCreatorContract(
       LedgerTestView<Template> ledgerView, String marketSetupCid, List<String> signatories)
       throws InvocationTargetException, IllegalAccessException {
     ledgerView.addActiveContract(
-        MarketSetup.TEMPLATE_ID,
+        MarketSetupSignatureCreator.TEMPLATE_ID,
         marketSetupCid,
-        new MarketSetup(
+        new MarketSetupSignatureCreator(
             OPERATOR,
             "regulator",
             "auctionAgent",
@@ -102,7 +102,8 @@ public class MarketSetupStarterBotTest {
     Command firstCommand = commands.get(0);
     assertTrue(firstCommand.asCreateCommand().isPresent());
     assertEquals(
-        "MarketSetup", firstCommand.asCreateCommand().get().getTemplateId().getEntityName());
+        "MarketSetupSignatureCreator",
+        firstCommand.asCreateCommand().get().getTemplateId().getEntityName());
   }
 
   @Test
@@ -114,7 +115,8 @@ public class MarketSetupStarterBotTest {
 
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
     String marketSetupCid = "marketSetupCid";
-    addActiveMarketSetupContract(ledgerView, marketSetupCid, Collections.singletonList(OPERATOR));
+    addActiveMarketSetupSignatureCreatorContract(
+        ledgerView, marketSetupCid, Collections.singletonList(OPERATOR));
 
     try {
       marketSetupBot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
@@ -126,12 +128,19 @@ public class MarketSetupStarterBotTest {
 
     ledgerView = new LedgerTestView<>();
     marketSetupCid = "marketSetupCid2";
-    addActiveMarketSetupContract(ledgerView, marketSetupCid,
-            Arrays.asList(OPERATOR, BANK1, "p3", "p4", "p5", "p6", "p7", "p8", "p9")); // lenght == 9
+    addActiveMarketSetupSignatureCreatorContract(
+        ledgerView, marketSetupCid, Arrays.asList(OPERATOR));
+    for (int i = 0; i < 9; i++) {
+      String party = "Party-" + i;
+      ledgerView.addActiveContract(
+          MarketSetupSignature.TEMPLATE_ID,
+          "someSignatureCid" + party,
+          new MarketSetupSignature(OPERATOR, party));
+    }
     CommandsAndPendingSet cmds =
         marketSetupBot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
 
-    assertHasSingleExercise(cmds, marketSetupCid, "MarketSetup_SetupMarket");
+    assertHasSingleExercise(cmds, marketSetupCid, "MarketSetupSignatureCreator_SetupMarket");
   }
 
   @Test
@@ -140,34 +149,27 @@ public class MarketSetupStarterBotTest {
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 
     String marketSetupCid = "marketSetupCid";
-    addActiveMarketSetupContract(ledgerView, marketSetupCid, Collections.singletonList(OPERATOR));
+    addActiveMarketSetupSignatureCreatorContract(
+        ledgerView, marketSetupCid, Collections.singletonList(OPERATOR));
 
     CommandsAndPendingSet cmds =
         bot2.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
 
-    assertHasSingleExercise(cmds, marketSetupCid, "MarketSetup_Sign");
+    assertHasSingleExercise(cmds, marketSetupCid, "MarketSetupSignatureCreator_CreateSignature");
   }
 
   @Test(expected = NoSuchElementException.class)
-  public void testBotSignsOnlyOnceWhenItWasTheLastSignatory()
-      throws InvocationTargetException, IllegalAccessException {
+  public void testBotSignsOnlyOnce() throws InvocationTargetException, IllegalAccessException {
     MarketSetupSignerBot bot2 = new MarketSetupSignerBot(TIME_MANAGER, APP_ID, BANK1);
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 
     String marketSetupCid = "marketSetupCid";
-    addActiveMarketSetupContract(ledgerView, marketSetupCid, Arrays.asList(OPERATOR, BANK1));
-
-    bot2.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
-  }
-
-  @Test(expected = NoSuchElementException.class)
-  public void testBotSignsOnlyOnceWhenThereWereMoreSignatoriesAfterIt()
-      throws InvocationTargetException, IllegalAccessException {
-    MarketSetupSignerBot bot2 = new MarketSetupSignerBot(TIME_MANAGER, APP_ID, BANK1);
-    LedgerTestView<Template> ledgerView = new LedgerTestView<>();
-
-    String marketSetupCid = "marketSetupCid";
-    addActiveMarketSetupContract(ledgerView, marketSetupCid, Arrays.asList(OPERATOR, BANK1, CSD));
+    addActiveMarketSetupSignatureCreatorContract(
+        ledgerView, marketSetupCid, Arrays.asList(OPERATOR, BANK1));
+    ledgerView.addActiveContract(
+        MarketSetupSignature.TEMPLATE_ID,
+        "someSignatureCid1",
+        new MarketSetupSignature(OPERATOR, BANK1));
 
     bot2.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
   }

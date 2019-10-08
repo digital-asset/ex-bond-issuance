@@ -15,10 +15,9 @@ import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.daml.ledger.rxjava.components.helpers.CreatedContract;
 import com.digitalasset.refapps.bondissuance.util.*;
 import com.google.common.collect.Sets;
-import da.refapps.bond.test.marketsetup.MarketSetup;
+import da.refapps.bond.test.marketsetup.MarketSetupSignature;
+import da.refapps.bond.test.marketsetup.MarketSetupSignatureCreator;
 import io.reactivex.Flowable;
-
-import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -36,8 +35,7 @@ public class MarketSetupSignerBot {
    * A bot that signs market setup requests if it is the next who needs to (based on the order of the
    * corresponding signer group).
    */
-  public MarketSetupSignerBot(
-      TimeManager timeManager, String appId, String partyName) {
+  public MarketSetupSignerBot(TimeManager timeManager, String appId, String partyName) {
     String workflowId =
         "WORKFLOW-" + partyName + "-MarketSetupSignerBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(MarketSetupSignerBot.class, workflowId);
@@ -45,7 +43,10 @@ public class MarketSetupSignerBot {
 
     commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
 
-    Filter messageFilter = new InclusiveFilter(Sets.newHashSet(MarketSetup.TEMPLATE_ID));
+    Filter messageFilter =
+        new InclusiveFilter(
+            Sets.newHashSet(
+                MarketSetupSignature.TEMPLATE_ID, MarketSetupSignatureCreator.TEMPLATE_ID));
 
     this.transactionFilter = new FiltersByParty(Collections.singletonMap(partyName, messageFilter));
 
@@ -54,20 +55,28 @@ public class MarketSetupSignerBot {
 
   public Flowable<CommandsAndPendingSet> calculateCommands(
       LedgerViewFlowable.LedgerView<Template> ledgerView) {
-    Map<String, MarketSetup> marketSetupMap =
+    Map<String, MarketSetupSignature> signatureMap =
         BotUtil.filterTemplates(
-            MarketSetup.class, ledgerView.getContracts(MarketSetup.TEMPLATE_ID));
-
-    if (marketSetupMap.size() > 1) {
-      throw new IllegalStateException("More than one market setup contracts are visible.");
-    }
+            MarketSetupSignature.class, ledgerView.getContracts(MarketSetupSignature.TEMPLATE_ID));
 
     CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
-    for (Map.Entry<String, MarketSetup> marketSetup : marketSetupMap.entrySet()) {
-      if (!marketSetup.getValue().signatories.contains(partyName)) {
-        MarketSetup.ContractId marketSetupCid = new MarketSetup.ContractId(marketSetup.getKey());
-        logger.info("{} exercising SIGN on {} at {}", partyName, marketSetup.getValue().signatories, Instant.now());
-        builder.addCommand(marketSetupCid.exerciseMarketSetup_Sign(partyName));
+    if (signatureMap.isEmpty()) {
+      Map<String, MarketSetupSignatureCreator> signatureCreatorMap =
+          BotUtil.filterTemplates(
+              MarketSetupSignatureCreator.class,
+              ledgerView.getContracts(MarketSetupSignatureCreator.TEMPLATE_ID));
+
+      if (signatureCreatorMap.size() > 1) {
+        throw new IllegalStateException(
+            "More than one market setup signature creator contracts are visible.");
+      }
+
+      for (Map.Entry<String, MarketSetupSignatureCreator> signatureCreator :
+          signatureCreatorMap.entrySet()) {
+        MarketSetupSignatureCreator.ContractId signatureCreatorCid =
+            new MarketSetupSignatureCreator.ContractId(signatureCreator.getKey());
+        builder.addCommand(
+            signatureCreatorCid.exerciseMarketSetupSignatureCreator_CreateSignature(partyName));
       }
     }
     return builder.buildFlowable();
@@ -75,8 +84,10 @@ public class MarketSetupSignerBot {
 
   public Template getContractInfo(CreatedContract createdContract) {
     Value args = createdContract.getCreateArguments();
-    if (createdContract.getTemplateId().equals(MarketSetup.TEMPLATE_ID)) {
-      return MarketSetup.fromValue(args);
+    if (createdContract.getTemplateId().equals(MarketSetupSignature.TEMPLATE_ID)) {
+      return MarketSetupSignature.fromValue(args);
+    } else if (createdContract.getTemplateId().equals(MarketSetupSignatureCreator.TEMPLATE_ID)) {
+      return MarketSetupSignatureCreator.fromValue(args);
     } else {
       String msg =
           "Market Setup Signer Bot encountered an unknown contract of type "

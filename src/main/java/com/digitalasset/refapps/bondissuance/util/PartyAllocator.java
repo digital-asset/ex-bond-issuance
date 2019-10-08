@@ -82,19 +82,16 @@ public class PartyAllocator {
   public static AllocatedParties allocate(ManagedChannel channel) {
     final PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub =
         PartyManagementServiceGrpc.newBlockingStub(channel);
-    final AllocatedParties allocatedParties =
-        new AllocatedParties(
-            allocateParty(stub, "AuctionAgent"),
-            allocateParty(stub, "Bank1"),
-            allocateParty(stub, "Bank2"),
-            allocateParty(stub, "Bank3"),
-            allocateParty(stub, "CentralBank"),
-            allocateParty(stub, "CSD"),
-            allocateParty(stub, "Issuer"),
-            allocateParty(stub, "Operator"),
-            allocateParty(stub, "Regulator"));
-    channel.shutdownNow();
-    return allocatedParties;
+    return new AllocatedParties(
+        allocateParty(stub, "AuctionAgent"),
+        allocateParty(stub, "Bank1"),
+        allocateParty(stub, "Bank2"),
+        allocateParty(stub, "Bank3"),
+        allocateParty(stub, "CentralBank"),
+        allocateParty(stub, "CSD"),
+        allocateParty(stub, "Issuer"),
+        allocateParty(stub, "Operator"),
+        allocateParty(stub, "Regulator"));
   }
 
   private static String allocateParty(

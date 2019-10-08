@@ -101,23 +101,23 @@ public class Main {
               parties.getOperator(),
               parties);
       MarketSetupSignerBot signer1 =
-              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getBank1());
+          new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getBank1());
       MarketSetupSignerBot signer2 =
-              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getBank2());
+          new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getBank2());
       MarketSetupSignerBot signer3 =
-              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getBank3());
+          new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getBank3());
       MarketSetupSignerBot signerIssuer =
-              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getIssuer());
+          new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getIssuer());
       MarketSetupSignerBot signerCsd =
-              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getCSD());
+          new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getCSD());
       MarketSetupSignerBot signerAuctionA =
-              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getAuctionAgent());
+          new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getAuctionAgent());
       MarketSetupSignerBot signerOp =
-              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getOperator());
+          new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getOperator());
       MarketSetupSignerBot signerReg =
-              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getRegulator());
+          new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getRegulator());
       MarketSetupSignerBot signerCentral =
-              new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getCentralBank());
+          new MarketSetupSignerBot(timeManager, APPLICATION_ID, parties.getCentralBank());
 
       Bot.wire(
           APPLICATION_ID,
