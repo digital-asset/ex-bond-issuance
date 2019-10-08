@@ -18,6 +18,7 @@ import da.finance.fact.asset.AssetDeposit;
 import da.refapps.bond.auction.*;
 import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.refapps.bond.lock.AuctionLockedCash;
+import da.refapps.bond.redemption.RedemptionPayoutInfo;
 import da.refapps.bond.redemption.RedemptionRequest;
 import da.refapps.bond.roles.issuerrole.IssuanceRequest;
 import da.refapps.bond.roles.issuerrole.IssuerRole;
@@ -196,6 +197,9 @@ public class BondIssuanceIT {
         AuctionParticipantSettleRequest.fromValue(apSettleReq2.record).settleRequestCids.isEmpty());
     ledgerAdapter.exerciseChoice(
         BANK2_PARTY, apSettleReq2.contractId.exerciseAuctionParticipantSettleRequest_Settle());
+
+    ledgerAdapter.getCreatedContractId(
+        BANK1_PARTY, RedemptionPayoutInfo.TEMPLATE_ID, RedemptionPayoutInfo.ContractId::new);
 
     // Requesting redemption at CSD
     FixedRateBondFact.ContractId fixedRateBondFact =
