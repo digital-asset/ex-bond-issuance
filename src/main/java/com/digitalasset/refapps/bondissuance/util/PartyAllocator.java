@@ -7,101 +7,172 @@ package com.digitalasset.refapps.bondissuance.util;
 import com.digitalasset.ledger.api.v1.admin.PartyManagementServiceGrpc;
 import com.digitalasset.ledger.api.v1.admin.PartyManagementServiceOuterClass;
 import io.grpc.ManagedChannel;
+import io.grpc.StatusRuntimeException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PartyAllocator {
 
+  public static final String AUCTION_AGENT = "AuctionAgent";
+  public static final String ISSUER = "Issuer";
+  public static final String CSD = "CSD";
+  public static final String BANK1 = "Bank1";
+  public static final String BANK2 = "Bank2";
+  public static final String BANK3 = "Bank3";
+  public static final String OPERATOR = "Operator";
+  public static final String REGULATOR = "Regulator";
+  public static final String CENTRAL_BANK = "CentralBank";
+
+  public static final String[] ALL_PARTIES =
+      new String[] {
+        AUCTION_AGENT, BANK1, BANK2, BANK3, CENTRAL_BANK, CSD, ISSUER, OPERATOR, REGULATOR
+      };
+
+  public static class AppParties {
+
+    public boolean hasAuctionAgent() {
+      return parties.contains(AUCTION_AGENT);
+    }
+
+    public boolean hasIssuer() {
+      return parties.contains(ISSUER);
+    }
+
+    public boolean hasCSD() {
+      return parties.contains(CSD);
+    }
+
+    public boolean hasBank1() {
+      return parties.contains(BANK1);
+    }
+
+    public boolean hasBank2() {
+      return parties.contains(BANK2);
+    }
+
+    public boolean hasBank3() {
+      return parties.contains(BANK3);
+    }
+
+    public boolean hasOperator() {
+      return parties.contains(OPERATOR);
+    }
+
+    public boolean hasRegulator() {
+      return parties.contains(REGULATOR);
+    }
+
+    public boolean hasCentralBank() {
+      return parties.contains(CENTRAL_BANK);
+    }
+
+    public AppParties(String[] parties) {
+      this.parties = new HashSet<String>(Arrays.asList(parties));
+    }
+
+    private Set<String> parties;
+  }
+
   public static class AllocatedParties {
     public String getAuctionAgent() {
-      return auctionAgent;
+      return parties.get(AUCTION_AGENT);
     }
 
     public String getIssuer() {
-      return issuer;
+      return parties.get(ISSUER);
     }
 
     public String getCSD() {
-      return CSD;
+      return parties.get(CSD);
     }
 
     public String getBank1() {
-      return bank1;
+      return parties.get(BANK1);
     }
 
     public String getBank2() {
-      return bank2;
+      return parties.get(BANK2);
     }
 
     public String getBank3() {
-      return bank3;
+      return parties.get(BANK3);
     }
 
     public String getOperator() {
-      return operator;
+      return parties.get(OPERATOR);
     }
 
     public String getRegulator() {
-      return regulator;
+      return parties.get(REGULATOR);
     }
 
     public String getCentralBank() {
-      return centralBank;
+      return parties.get(CENTRAL_BANK);
     }
 
-    private String auctionAgent;
-    private String issuer;
-    private String CSD;
-    private String bank1;
-    private String bank2;
-    private String bank3;
-    private String operator;
-    private String regulator;
-    private String centralBank;
+    private Map<String, String> parties;
 
-    public AllocatedParties(
-        String auctionAgent,
-        String bank1,
-        String bank2,
-        String bank3,
-        String centralBank,
-        String csd,
-        String issuer,
-        String operator,
-        String regulator) {
-      this.auctionAgent = auctionAgent;
-      this.issuer = issuer;
-      this.CSD = csd;
-      this.bank1 = bank1;
-      this.bank2 = bank2;
-      this.bank3 = bank3;
-      this.operator = operator;
-      this.regulator = regulator;
-      this.centralBank = centralBank;
+    public AllocatedParties(Map<String, String> parties) {
+      this.parties = parties;
+    }
+
+    @Override
+    public String toString() {
+      return parties.toString();
     }
   }
 
   public static AllocatedParties allocate(ManagedChannel channel) {
     final PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub =
         PartyManagementServiceGrpc.newBlockingStub(channel);
-    return new AllocatedParties(
-        allocateParty(stub, "AuctionAgent"),
-        allocateParty(stub, "Bank1"),
-        allocateParty(stub, "Bank2"),
-        allocateParty(stub, "Bank3"),
-        allocateParty(stub, "CentralBank"),
-        allocateParty(stub, "CSD"),
-        allocateParty(stub, "Issuer"),
-        allocateParty(stub, "Operator"),
-        allocateParty(stub, "Regulator"));
+    Map<String, String> parties = new HashMap();
+    Map<String, String> alreadyKnownParties = getKnownParties(stub);
+    tryToAllocateParty(stub, alreadyKnownParties, parties, AUCTION_AGENT);
+    tryToAllocateParty(stub, alreadyKnownParties, parties, BANK1);
+    tryToAllocateParty(stub, alreadyKnownParties, parties, BANK2);
+    tryToAllocateParty(stub, alreadyKnownParties, parties, BANK3);
+    tryToAllocateParty(stub, alreadyKnownParties, parties, CENTRAL_BANK);
+    tryToAllocateParty(stub, alreadyKnownParties, parties, CSD);
+    tryToAllocateParty(stub, alreadyKnownParties, parties, ISSUER);
+    tryToAllocateParty(stub, alreadyKnownParties, parties, OPERATOR);
+    tryToAllocateParty(stub, alreadyKnownParties, parties, REGULATOR);
+    return new AllocatedParties(parties);
   }
 
-  private static String allocateParty(
-      PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub, String party) {
-    PartyManagementServiceOuterClass.AllocatePartyResponse response =
-        stub.allocateParty(
-            PartyManagementServiceOuterClass.AllocatePartyRequest.newBuilder()
-                .setDisplayName(party)
-                .setPartyIdHint(party)
-                .build());
-    return response.getPartyDetails().getParty();
+  private static Map<String, String> getKnownParties(
+      PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub) {
+    PartyManagementServiceOuterClass.ListKnownPartiesResponse knownPartiesResponse =
+        stub.listKnownParties(
+            PartyManagementServiceOuterClass.ListKnownPartiesRequest.newBuilder().build());
+    return knownPartiesResponse.getPartyDetailsList().stream()
+        .collect(
+            Collectors.toMap(
+                PartyManagementServiceOuterClass.PartyDetails::getDisplayName,
+                PartyManagementServiceOuterClass.PartyDetails::getParty));
+  }
+
+  private static void tryToAllocateParty(
+      PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub,
+      Map<String, String> alreadyKnownParties,
+      Map<String, String> parties,
+      String party) {
+    String partyId;
+    try {
+      PartyManagementServiceOuterClass.AllocatePartyResponse allocatePartyResponse =
+          stub.allocateParty(
+              PartyManagementServiceOuterClass.AllocatePartyRequest.newBuilder()
+                  .setDisplayName(party)
+                  .setPartyIdHint(party)
+                  .build());
+      partyId = allocatePartyResponse.getPartyDetails().getParty();
+    } catch (StatusRuntimeException e) {
+      String maybePartyId = alreadyKnownParties.get(party);
+      if (e.getStatus().getDescription().contains("Party already exists") && maybePartyId != null) {
+        partyId = maybePartyId;
+      } else {
+        throw e;
+      }
+    }
+    parties.put(party, partyId);
   }
 }

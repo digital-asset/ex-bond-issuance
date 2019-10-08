@@ -4,9 +4,12 @@
  */
 package com.digitalasset.refapps.bondissuance.util;
 
+import static com.digitalasset.refapps.bondissuance.util.PartyAllocator.ALL_PARTIES;
+
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 
 /** Command line options helper class. */
 public class CliOptions {
@@ -16,12 +19,23 @@ public class CliOptions {
   @Option(name = "-p", usage = "Sandbox port", metaVar = "SANDBOX_PORT")
   private int sandboxPort = 7600;
 
+  @Option(
+      name = "-u",
+      usage = "Parties to run the application for.",
+      handler = StringArrayOptionHandler.class,
+      metaVar = "PARTIES")
+  private String[] parties = ALL_PARTIES;
+
   public String getSandboxHost() {
     return sandboxHost;
   }
 
   public int getSandboxPort() {
     return sandboxPort;
+  }
+
+  public String[] getParties() {
+    return parties;
   }
 
   public static CliOptions parseArgs(String[] args) {

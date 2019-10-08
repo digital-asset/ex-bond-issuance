@@ -27,8 +27,9 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.junit.*;
 import org.junit.rules.ExternalResource;
 
@@ -43,6 +44,18 @@ public class BondIssuanceIT {
   private static final Party BANK3_PARTY = new Party("Bank3");
   private static final Party CENTRALBANK_PARTY = new Party("CentralBank");
 
+  private static String[] parties =
+      new String[] {
+        AGENT_PARTY.getValue(),
+        BANK1_PARTY.getValue(),
+        BANK2_PARTY.getValue(),
+        BANK3_PARTY.getValue(),
+        CENTRALBANK_PARTY.getValue(),
+        CSD_PARTY.getValue(),
+        ISSUER_PARTY.getValue(),
+        "Operator",
+        "Regulator"
+      };
   private static Sandbox sandbox =
       Sandbox.builder()
           .dar(RELATIVE_DAR_PATH)
@@ -57,16 +70,10 @@ public class BondIssuanceIT {
           .useWallclockTime()
           .setupAppCallback(
               Main.runBots(
+                  new PartyAllocator.AppParties(parties),
                   new PartyAllocator.AllocatedParties(
-                      AGENT_PARTY.getValue(),
-                      BANK1_PARTY.getValue(),
-                      BANK2_PARTY.getValue(),
-                      BANK3_PARTY.getValue(),
-                      CENTRALBANK_PARTY.getValue(),
-                      CSD_PARTY.getValue(),
-                      ISSUER_PARTY.getValue(),
-                      "Operator",
-                      "Regulator"),
+                      Arrays.asList(parties).stream()
+                          .collect(Collectors.toMap(Function.identity(), Function.identity()))),
                   getWallclockTimeManager()))
           .build();
 
@@ -74,7 +81,7 @@ public class BondIssuanceIT {
   @Rule public ExternalResource sandboxRule = sandbox.getRule();
 
   @Test
-  public void testFullWorkflow() throws InvalidProtocolBufferException {
+  public void testFullWorkflow() throws InvalidProtocolBufferException, InterruptedException {
     DefaultLedgerAdapter ledgerAdapter = sandbox.getLedgerAdapter();
 
     // Issuance of a bond
@@ -211,6 +218,7 @@ public class BondIssuanceIT {
     RedemptionRequest.ContractId redemptionRequest =
         ledgerAdapter.getCreatedContractId(
             CSD_PARTY, RedemptionRequest.TEMPLATE_ID, RedemptionRequest.ContractId::new);
+
     ledgerAdapter.exerciseChoice(CSD_PARTY, redemptionRequest.exerciseRedemptionRequest_Accept());
 
     assertTrue(
@@ -219,10 +227,10 @@ public class BondIssuanceIT {
             AssetDeposit.TEMPLATE_ID,
             AssetDeposit::fromValue,
             false,
-            assetDepositFinal ->
-                assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(50000000L)) == 0,
-            assetDepositFinal ->
-                assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(8400000L)) == 0));
+            assetDepositFinal -> // 50 000 000 - (42 * 20 000)
+            assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(41600000L)) == 0,
+            assetDepositFinal -> // Redemption value (with coupon): 40.1 * 200 000 * 1.1
+            assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(8822000L)) == 0));
   }
 
   AssetDeposit.ContractId findBondAssetDeposit(String expectedLabel) {
