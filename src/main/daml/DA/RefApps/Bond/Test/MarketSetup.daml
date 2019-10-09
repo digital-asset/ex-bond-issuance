@@ -7,6 +7,7 @@ daml 1.2
 module DA.RefApps.Bond.Test.MarketSetup where
 
 import DA.Date
+import DA.Action
 
 import DA.RefApps.Bond.Roles.CentralBankRole
 import DA.RefApps.Bond.Roles.CsdRole
@@ -38,6 +39,62 @@ data MarketSetupData =
   , lockBank1: ContractId AssetLockRule
   }
 
+-- | A contract with the operator's and a party's signature. This can
+-- be used then to setup the market.
+template MarketSetupSignature
+  with
+    operator : Party
+    marketParticipant : Party
+  where
+    signatory operator, marketParticipant
+    controller operator can
+      MarketSetupSignature_UseSignature : ContractId MarketSetup
+        with
+          targetContractId: ContractId MarketSetup
+        do
+          exercise targetContractId MarketSetup_Sign with signer = marketParticipant
+
+-- | A contract that can create signature contracts for the parties. Given all of these,
+-- the operator can setup the market.
+template MarketSetupSignatureCreator
+  with
+    operator : Party
+    regulator: Party
+    auctionAgent: Party
+    bank1: Party
+    bank2: Party
+    bank3: Party
+    csd: Party
+    issuer: Party
+    centralBank: Party
+    signatories: [Party]
+  where
+    let everyone = [operator, regulator, auctionAgent, bank1, bank2, bank3,
+                    csd, issuer, centralBank]
+    observer everyone
+    signatory operator
+    nonconsuming choice MarketSetupSignatureCreator_CreateSignature : ContractId MarketSetupSignature with
+        marketParticipant : Party
+      controller marketParticipant
+        do
+          assertMsg "Only market participants can exercise this choice."
+                            $ marketParticipant `elem` everyone
+          create MarketSetupSignature with ..
+    controller operator can
+      MarketSetupSignatureCreator_SetupMarket : MarketSetupData
+        with
+          signatures : [ContractId MarketSetupSignature]
+        do
+          marketSetupCid <- create MarketSetup with ..
+          signedMarketSetupCid
+            <- foldlA
+                  (\signed marketSetupCid' ->
+                    exercise marketSetupCid' MarketSetupSignature_UseSignature
+                          with targetContractId = signed)
+                  marketSetupCid
+                  signatures
+          exercise signedMarketSetupCid MarketSetup_SetupMarket
+
 -- | A contract that can perform market setup via its "Setup Market" choice
 -- if every market participant has signed it. Signing is done by the market
 -- participants via the "Sign" choice.
@@ -56,19 +113,12 @@ template MarketSetup
     centralBank: Party
     signatories: [Party]
   where
-    let everyone = [operator, regulator, auctionAgent, bank1, bank2, bank3,
-                    csd, issuer, centralBank]
-    observer everyone
     signatory signatories
     choice MarketSetup_Sign : ContractId MarketSetup with
-        marketParticipant: Party
-      controller marketParticipant
+        signer : Party
+      controller operator, signer
         do
-          assertMsg "Only market participants can exercise this choice."
-                            $ marketParticipant `elem` everyone
-          create this with
-            signatories = marketParticipant :: signatories
-
+          create this with signatories = signer :: signatories
     controller operator can
       MarketSetup_SetupMarket : MarketSetupData
         do
@@ -179,8 +229,8 @@ testMarketSetupContract = scenario do
   csd <- getParty "CSD"
   issuer <- getParty "Issuer"
   centralBank <- getParty "CentralBank"
-  marketSetupCid <- submit operator do
-                      create MarketSetup with
+  signatureCreatorCid <- submit operator do
+                      create MarketSetupSignatureCreator with
                         operator = operator
                         regulator = regulator
                         auctionAgent = auctionAgent
@@ -191,16 +241,17 @@ testMarketSetupContract = scenario do
                         issuer = issuer
                         centralBank = centralBank
                         signatories = [operator]
-  marketSetupCid <- submit auctionAgent $ exercise marketSetupCid $ MarketSetup_Sign auctionAgent
-  marketSetupCid <- submit bank1 $ exercise marketSetupCid $ MarketSetup_Sign bank1
-  marketSetupCid <- submit bank2 $ exercise marketSetupCid $ MarketSetup_Sign bank2
-  marketSetupCid <- submit bank3 $ exercise marketSetupCid $ MarketSetup_Sign bank3
-  marketSetupCid <- submit csd $ exercise marketSetupCid $ MarketSetup_Sign csd
-  marketSetupCid <- submit issuer $ exercise marketSetupCid $ MarketSetup_Sign issuer
-  marketSetupCid <- submit centralBank $ exercise marketSetupCid $ MarketSetup_Sign centralBank
+  signature1 <- submit auctionAgent $ exercise signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature auctionAgent
+  signature2 <- submit bank1 $ exercise signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature bank1
+  signature3 <- submit bank2 $ exercise signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature bank2
+  signature4 <- submit bank3 $ exercise signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature bank3
+  signature5 <- submit csd $ exercise signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature csd
+  signature6 <- submit issuer $ exercise signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature issuer
+  signature7 <- submit centralBank $ exercise signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature centralBank
 
   submit operator do
-    exercise marketSetupCid MarketSetup_SetupMarket
+    exercise signatureCreatorCid MarketSetupSignatureCreator_SetupMarket with
+      signatures = [signature1, signature2, signature3, signature4, signature5, signature6, signature7]
   return ()
 
 -- | Initial setup of the market participants and some cash
