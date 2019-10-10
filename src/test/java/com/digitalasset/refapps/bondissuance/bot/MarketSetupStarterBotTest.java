@@ -21,11 +21,10 @@ import da.refapps.bond.test.marketsetup.MarketSetupSignatureCreator;
 import io.reactivex.Single;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,17 +58,21 @@ public class MarketSetupStarterBotTest {
             return Single.just(Empty.getDefaultInstance());
           }
         };
-    PartyAllocator.AllocatedParties marketParties =
-        new PartyAllocator.AllocatedParties(
-            "operator",
-            "regulator",
-            "auctionAgent",
-            BANK1,
-            "bank2",
-            "bank3",
-            "CSD",
-            "issuer",
-            "centralBank");
+    Map<String, String> parties =
+        Arrays.stream(
+                new String[] {
+                  "operator",
+                  "regulator",
+                  "auctionAgent",
+                  BANK1,
+                  "bank2",
+                  "bank3",
+                  "CSD",
+                  "issuer",
+                  "centralBank"
+                })
+            .collect(Collectors.toMap(Function.identity(), Function.identity()));
+    PartyAllocator.AllocatedParties marketParties = new PartyAllocator.AllocatedParties(parties);
     marketSetupBot =
         new MarketSetupStarterBot(TIME_MANAGER, client, APP_ID, OPERATOR, marketParties);
   }

@@ -79,6 +79,7 @@ public class MarketSetupStarterBot {
                 marketParties.getCSD(), marketParties.getIssuer(),
                 marketParties.getCentralBank(), Collections.singletonList(partyName)));
     Instant time = timeManager.getTime();
+    logger.info("Submitting Market Setup Start command.");
     client.submit(
         "marketSetupWorkflow", appId, cmdId, partyName, time, time.plusSeconds(MRT), commands);
   }
