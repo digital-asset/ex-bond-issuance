@@ -7,7 +7,6 @@ package com.digitalasset.refapps.bondissuance.util;
 import com.digitalasset.ledger.api.v1.admin.PartyManagementServiceGrpc;
 import com.digitalasset.ledger.api.v1.admin.PartyManagementServiceOuterClass;
 import io.grpc.ManagedChannel;
-import io.grpc.StatusRuntimeException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -156,23 +155,16 @@ public class PartyAllocator {
       Map<String, String> alreadyKnownParties,
       Map<String, String> parties,
       String party) {
-    String partyId;
-    try {
+    String maybePartyId = alreadyKnownParties.get(party);
+    if (maybePartyId == null) {
       PartyManagementServiceOuterClass.AllocatePartyResponse allocatePartyResponse =
           stub.allocateParty(
               PartyManagementServiceOuterClass.AllocatePartyRequest.newBuilder()
                   .setDisplayName(party)
                   .setPartyIdHint(party)
                   .build());
-      partyId = allocatePartyResponse.getPartyDetails().getParty();
-    } catch (StatusRuntimeException e) {
-      String maybePartyId = alreadyKnownParties.get(party);
-      if (e.getStatus().getDescription().contains("Party already exists") && maybePartyId != null) {
-        partyId = maybePartyId;
-      } else {
-        throw e;
-      }
+      maybePartyId = allocatePartyResponse.getPartyDetails().getParty();
     }
-    parties.put(party, partyId);
+    parties.put(party, maybePartyId);
   }
 }
