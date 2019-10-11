@@ -125,14 +125,14 @@ public class PartyAllocator {
 
   public static AllParties getAllPartyIDs(ManagedChannel channel, AppParties partiesToAllocate)
       throws InterruptedException {
-    final PartyManagementServiceBlockingStub stub = newBlockingStub(channel);
+    final PartyManagementServiceBlockingStub partyManagement = newBlockingStub(channel);
     Map<String, String> parties = new HashMap<>();
     for (String partyName : partiesToAllocate.parties) {
       AllocatePartyRequest allocationRequest = createAllocationRequestFor(partyName);
-      AllocatePartyResponse response = stub.allocateParty(allocationRequest);
+      AllocatePartyResponse response = partyManagement.allocateParty(allocationRequest);
       parties.put(partyName, response.getPartyDetails().getParty());
     }
-    waitAndAddOtherParties(stub, parties);
+    waitAndAddOtherParties(partyManagement, parties);
     return new AllParties(parties);
   }
 
