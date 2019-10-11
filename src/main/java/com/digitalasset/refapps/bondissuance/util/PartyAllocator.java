@@ -11,6 +11,7 @@ import static com.digitalasset.ledger.api.v1.admin.PartyManagementServiceOuterCl
 import io.grpc.ManagedChannel;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PartyAllocator {
 
@@ -136,24 +137,29 @@ public class PartyAllocator {
   }
 
   private Map<String, String> allocate(AppParties partiesToAllocate) {
-    return partiesToAllocate.parties.stream()
-        .map(PartyAllocator::createAllocationRequestFor)
-        .map(partyManagement::allocateParty)
-        .map(AllocatePartyResponse::getPartyDetails)
-        .collect(Collectors.toMap(PartyDetails::getDisplayName, PartyDetails::getParty));
+    Stream<PartyDetails> partyDetails =
+        partiesToAllocate.parties.stream()
+            .map(PartyAllocator::createAllocationRequestFor)
+            .map(partyManagement::allocateParty)
+            .map(AllocatePartyResponse::getPartyDetails);
+    return toByNameMap(partyDetails);
   }
 
   private void waitAndAddOtherParties(Map<String, String> parties) throws InterruptedException {
     while (existsMissingParty(parties)) {
       ListKnownPartiesResponse knownPartiesResponse = listKnownParties();
       Map<String, String> knownParties =
-          knownPartiesResponse.getPartyDetailsList().stream()
-              .collect(Collectors.toMap(PartyDetails::getDisplayName, PartyDetails::getParty));
+          toByNameMap(knownPartiesResponse.getPartyDetailsList().stream());
       parties.putAll(knownParties);
       if (existsMissingParty(parties)) {
         Thread.sleep(1000);
       }
     }
+  }
+
+  private Map<String, String> toByNameMap(Stream<PartyDetails> partyDetails) {
+    return partyDetails.collect(
+        Collectors.toMap(PartyDetails::getDisplayName, PartyDetails::getParty));
   }
 
   private ListKnownPartiesResponse listKnownParties() {
