@@ -4,16 +4,16 @@
  */
 package com.digitalasset.refapps.bondissuance.bot.marketsetup.data;
 
-public class MarketParties {
-  public final String operator;
-  public final String regulator;
-  public final String auctionAgent;
-  public final String bank1;
-  public final String bank2;
-  public final String bank3;
-  public final String csd;
-  public final String issuer;
-  public final String centralBank;
+class MarketParties {
+  private final String operator;
+  private final String regulator;
+  private final String auctionAgent;
+  private final String bank1;
+  private final String bank2;
+  private final String bank3;
+  private final String csd;
+  private final String issuer;
+  private final String centralBank;
 
   public MarketParties(
       String operator,

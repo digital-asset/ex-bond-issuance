@@ -58,7 +58,7 @@ public class CommandsAndPendingSetBuilder {
       }
     }
 
-    public Optional<CommandsAndPendingSet> build() {
+    Optional<CommandsAndPendingSet> build() {
       if (commands.isEmpty() && pendingContractIds.isEmpty()) {
         return Optional.empty();
       } else {

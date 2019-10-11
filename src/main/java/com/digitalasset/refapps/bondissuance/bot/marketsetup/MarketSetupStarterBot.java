@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 public class MarketSetupStarterBot {
 
   private static final int TOTAL_COUNT_OF_PARTIES = 9;
-  public static final int MRT = 30;
+  private static final int MRT = 30;
 
   private final Logger logger;
   private final String partyName;
