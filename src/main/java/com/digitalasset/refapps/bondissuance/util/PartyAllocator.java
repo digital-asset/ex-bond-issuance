@@ -66,7 +66,7 @@ public class PartyAllocator {
     }
 
     public AppParties(String[] parties) {
-      this.parties = new HashSet<String>(Arrays.asList(parties));
+      this.parties = new HashSet<>(Arrays.asList(parties));
     }
 
     private final Set<String> parties;
@@ -125,7 +125,7 @@ public class PartyAllocator {
       throws InterruptedException {
     final PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub =
         PartyManagementServiceGrpc.newBlockingStub(channel);
-    Map<String, String> parties = new HashMap();
+    Map<String, String> parties = new HashMap<>();
     for (String party : partiesToAllocate.parties) {
       allocateAndAddParty(stub, party, parties);
     }
