@@ -126,9 +126,11 @@ public class PartyAllocator {
   public static AllParties getAllPartyIDs(ManagedChannel channel, AppParties partiesToAllocate)
       throws InterruptedException {
     final PartyManagementServiceBlockingStub stub = newBlockingStub(channel);
-    Map<String, String> parties = new HashMap();
-    for (String party : partiesToAllocate.parties) {
-      allocateAndAddParty(stub, party, parties);
+    Map<String, String> parties = new HashMap<>();
+    for (String partyName : partiesToAllocate.parties) {
+      AllocatePartyRequest allocationRequest = createAllocationRequestFor(partyName);
+      AllocatePartyResponse response = stub.allocateParty(allocationRequest);
+      parties.put(partyName, response.getPartyDetails().getParty());
     }
     waitAndAddOtherParties(stub, parties);
     return new AllParties(parties);
@@ -154,13 +156,6 @@ public class PartyAllocator {
 
   private static boolean existsMissingParty(Map<String, String> parties) {
     return !parties.keySet().containsAll(Arrays.asList(ALL_PARTIES));
-  }
-
-  private static void allocateAndAddParty(
-      PartyManagementServiceBlockingStub stub, String party, Map<String, String> parties) {
-    AllocatePartyResponse allocatePartyResponse =
-        stub.allocateParty(createAllocationRequestFor(party));
-    parties.put(party, allocatePartyResponse.getPartyDetails().getParty());
   }
 
   private static AllocatePartyRequest createAllocationRequestFor(String party) {
