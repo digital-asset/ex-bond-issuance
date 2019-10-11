@@ -92,7 +92,7 @@ public class AuctionFinalizeBot {
       List<AuctionBid.ContractId> matchingBidCids =
           getMatchingBidCids(bidContracts, auctionAgent, auctionName);
 
-      // Exercise allocate bond for the participation
+      // Exercise getAllPartyIDs bond for the participation
       builder.addCommand(
           triggerCid.exerciseAuctionFinalizeBotTrigger_AllocateBond(
               matchingParticipationCids, matchingBidCids));

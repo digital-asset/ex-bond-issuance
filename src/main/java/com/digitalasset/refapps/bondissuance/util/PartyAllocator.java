@@ -72,7 +72,7 @@ public class PartyAllocator {
     private Set<String> parties;
   }
 
-  public static class AllocatedParties {
+  public static class AllParties {
     public String getAuctionAgent() {
       return parties.get(AUCTION_AGENT);
     }
@@ -111,7 +111,7 @@ public class PartyAllocator {
 
     private Map<String, String> parties;
 
-    public AllocatedParties(Map<String, String> parties) {
+    public AllParties(Map<String, String> parties) {
       this.parties = parties;
     }
 
@@ -121,50 +121,55 @@ public class PartyAllocator {
     }
   }
 
-  public static AllocatedParties allocate(ManagedChannel channel) {
+  public static AllParties getAllPartyIDs(ManagedChannel channel, AppParties partiesToAllocate)
+      throws InterruptedException {
     final PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub =
         PartyManagementServiceGrpc.newBlockingStub(channel);
     Map<String, String> parties = new HashMap();
-    Map<String, String> alreadyKnownParties = getKnownParties(stub);
-    tryToAllocateParty(stub, alreadyKnownParties, parties, AUCTION_AGENT);
-    tryToAllocateParty(stub, alreadyKnownParties, parties, BANK1);
-    tryToAllocateParty(stub, alreadyKnownParties, parties, BANK2);
-    tryToAllocateParty(stub, alreadyKnownParties, parties, BANK3);
-    tryToAllocateParty(stub, alreadyKnownParties, parties, CENTRAL_BANK);
-    tryToAllocateParty(stub, alreadyKnownParties, parties, CSD);
-    tryToAllocateParty(stub, alreadyKnownParties, parties, ISSUER);
-    tryToAllocateParty(stub, alreadyKnownParties, parties, OPERATOR);
-    tryToAllocateParty(stub, alreadyKnownParties, parties, REGULATOR);
-    return new AllocatedParties(parties);
-  }
-
-  private static Map<String, String> getKnownParties(
-      PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub) {
-    PartyManagementServiceOuterClass.ListKnownPartiesResponse knownPartiesResponse =
-        stub.listKnownParties(
-            PartyManagementServiceOuterClass.ListKnownPartiesRequest.newBuilder().build());
-    return knownPartiesResponse.getPartyDetailsList().stream()
-        .collect(
-            Collectors.toMap(
-                PartyManagementServiceOuterClass.PartyDetails::getDisplayName,
-                PartyManagementServiceOuterClass.PartyDetails::getParty));
-  }
-
-  private static void tryToAllocateParty(
-      PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub,
-      Map<String, String> alreadyKnownParties,
-      Map<String, String> parties,
-      String party) {
-    String maybePartyId = alreadyKnownParties.get(party);
-    if (maybePartyId == null) {
-      PartyManagementServiceOuterClass.AllocatePartyResponse allocatePartyResponse =
-          stub.allocateParty(
-              PartyManagementServiceOuterClass.AllocatePartyRequest.newBuilder()
-                  .setDisplayName(party)
-                  .setPartyIdHint(party)
-                  .build());
-      maybePartyId = allocatePartyResponse.getPartyDetails().getParty();
+    for (String party : partiesToAllocate.parties) {
+      allocateAndAddParty(stub, party, parties);
     }
-    parties.put(party, maybePartyId);
+    waitAndAddOtherParties(stub, parties);
+    return new AllParties(parties);
+  }
+
+  private static void waitAndAddOtherParties(
+      PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub,
+      Map<String, String> parties)
+      throws InterruptedException {
+    boolean existsMissingParty = true;
+    while (existsMissingParty) {
+      PartyManagementServiceOuterClass.ListKnownPartiesResponse knownPartiesResponse =
+          stub.listKnownParties(
+              PartyManagementServiceOuterClass.ListKnownPartiesRequest.newBuilder().build());
+      Map<String, String> knownParties =
+          knownPartiesResponse.getPartyDetailsList().stream()
+              .collect(
+                  Collectors.toMap(
+                      PartyManagementServiceOuterClass.PartyDetails::getDisplayName,
+                      PartyManagementServiceOuterClass.PartyDetails::getParty));
+      parties.putAll(knownParties);
+      existsMissingParty = existsMissingParty(parties);
+      if (existsMissingParty) {
+        Thread.sleep(1000);
+      }
+    }
+  }
+
+  private static boolean existsMissingParty(Map<String, String> parties) {
+    return !parties.keySet().containsAll(Arrays.asList(ALL_PARTIES));
+  }
+
+  private static void allocateAndAddParty(
+      PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub,
+      String party,
+      Map<String, String> parties) {
+    PartyManagementServiceOuterClass.AllocatePartyResponse allocatePartyResponse =
+        stub.allocateParty(
+            PartyManagementServiceOuterClass.AllocatePartyRequest.newBuilder()
+                .setDisplayName(party)
+                .setPartyIdHint(party)
+                .build());
+    parties.put(party, allocatePartyResponse.getPartyDetails().getParty());
   }
 }

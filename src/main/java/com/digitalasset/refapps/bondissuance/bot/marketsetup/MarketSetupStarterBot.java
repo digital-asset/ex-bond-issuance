@@ -36,7 +36,7 @@ public class MarketSetupStarterBot {
   private final String partyName;
   private final CommandSubmissionClient client;
   private final String appId;
-  private final PartyAllocator.AllocatedParties marketParties;
+  private final PartyAllocator.AllParties marketParties;
   private final TimeManager timeManager;
   private final CommandsAndPendingSetBuilder commandBuilder;
   public final TransactionFilter transactionFilter;
@@ -46,7 +46,7 @@ public class MarketSetupStarterBot {
       CommandSubmissionClient client,
       String appId,
       String partyName,
-      PartyAllocator.AllocatedParties marketParties) {
+      PartyAllocator.AllParties marketParties) {
     String workflowId =
         "WORKFLOW-" + partyName + "-MarketSetupStarterBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(MarketSetupStarterBot.class, workflowId);
