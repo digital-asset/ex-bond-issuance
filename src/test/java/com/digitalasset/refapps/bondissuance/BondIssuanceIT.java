@@ -74,7 +74,8 @@ public class BondIssuanceIT {
                   new PartyAllocator.AllocatedParties(
                       Arrays.asList(parties).stream()
                           .collect(Collectors.toMap(Function.identity(), Function.identity()))),
-                  getWallclockTimeManager()))
+                  getWallclockTimeManager(),
+                  false))
           .build();
 
   @ClassRule public static ExternalResource sandboxClassRule = sandbox.getClassRule();

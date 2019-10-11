@@ -47,7 +47,7 @@ public class Main {
               .maxInboundMessageSize(Integer.MAX_VALUE)
               .build();
       PartyAllocator.AppParties appParties = new PartyAllocator.AppParties(options.getParties());
-      runBotsWithAllocation(appParties, client, channel);
+      runBotsWithAllocation(appParties, client, channel, options.isNoMarketSetup());
 
       logger.info("Welcome to Bond Issuance Application!");
       logger.info("Press Ctrl+C to shut down the program.");
@@ -62,16 +62,21 @@ public class Main {
   }
 
   public static void runBotsWithAllocation(
-      PartyAllocator.AppParties appParties, DamlLedgerClient client, ManagedChannel channel) {
+      PartyAllocator.AppParties appParties,
+      DamlLedgerClient client,
+      ManagedChannel channel,
+      boolean noMarketSetup) {
     final PartyAllocator.AllocatedParties allocatedParties = PartyAllocator.allocate(channel);
     logger.info("Allocation: {}", allocatedParties);
-    runBots(appParties, allocatedParties, getWallclockTimeManager()).accept(client, channel);
+    runBots(appParties, allocatedParties, getWallclockTimeManager(), noMarketSetup)
+        .accept(client, channel);
   }
 
   public static BiConsumer<DamlLedgerClient, ManagedChannel> runBots(
       PartyAllocator.AppParties parties,
       PartyAllocator.AllocatedParties allocatedParties,
-      TimeManager timeManager) {
+      TimeManager timeManager,
+      boolean noMarketSetup) {
     return (DamlLedgerClient client, ManagedChannel channel) -> {
       logPackages(client);
 
@@ -251,7 +256,9 @@ public class Main {
             marketSetupStarterBot.transactionFilter,
             marketSetupStarterBot::calculateCommands,
             marketSetupStarterBot::getContractInfo);
-        marketSetupStarterBot.startMarketSetup();
+        if (!noMarketSetup) {
+          marketSetupStarterBot.startMarketSetup();
+        }
       }
 
       if (parties.hasRegulator()) {
