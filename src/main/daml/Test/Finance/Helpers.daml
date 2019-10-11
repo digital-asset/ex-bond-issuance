@@ -7,7 +7,6 @@ daml 1.2
 module Test.Finance.Helpers where
 
 import DA.Assert
-import DA.Optional
 import DA.Next.Set
 
 import DA.Finance.Fact.Trade.Dvp
