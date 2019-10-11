@@ -69,7 +69,7 @@ public class PartyAllocator {
       this.parties = new HashSet<String>(Arrays.asList(parties));
     }
 
-    private Set<String> parties;
+    private final Set<String> parties;
   }
 
   public static class AllParties {
@@ -109,7 +109,7 @@ public class PartyAllocator {
       return parties.get(CENTRAL_BANK);
     }
 
-    private Map<String, String> parties;
+    private final Map<String, String> parties;
 
     public AllParties(Map<String, String> parties) {
       this.parties = parties;

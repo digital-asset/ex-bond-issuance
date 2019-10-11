@@ -9,7 +9,7 @@ import java.time.*;
 /** Utility to obtain the current ledger time */
 public class TimeManager {
 
-  private Clock clock;
+  private final Clock clock;
 
   private TimeManager(Clock clock) {
     this.clock = clock;
