@@ -159,8 +159,11 @@ public class PartyAllocator {
   private static void allocateAndAddParty(
       PartyManagementServiceBlockingStub stub, String party, Map<String, String> parties) {
     AllocatePartyResponse allocatePartyResponse =
-        stub.allocateParty(
-            AllocatePartyRequest.newBuilder().setDisplayName(party).setPartyIdHint(party).build());
+        stub.allocateParty(createAllocationRequestFor(party));
     parties.put(party, allocatePartyResponse.getPartyDetails().getParty());
+  }
+
+  private static AllocatePartyRequest createAllocationRequestFor(String party) {
+    return AllocatePartyRequest.newBuilder().setDisplayName(party).setPartyIdHint(party).build();
   }
 }
