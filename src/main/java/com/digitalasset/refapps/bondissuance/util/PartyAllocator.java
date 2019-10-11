@@ -147,16 +147,14 @@ public class PartyAllocator {
   }
 
   private void waitAndAddOtherParties(Map<String, String> parties) throws InterruptedException {
-    boolean existsMissingParty = true;
-    while (existsMissingParty) {
+    while (existsMissingParty(parties)) {
       ListKnownPartiesResponse knownPartiesResponse =
           partyManagement.listKnownParties(ListKnownPartiesRequest.newBuilder().build());
       Map<String, String> knownParties =
           knownPartiesResponse.getPartyDetailsList().stream()
               .collect(Collectors.toMap(PartyDetails::getDisplayName, PartyDetails::getParty));
       parties.putAll(knownParties);
-      existsMissingParty = existsMissingParty(parties);
-      if (existsMissingParty) {
+      if (existsMissingParty(parties)) {
         Thread.sleep(1000);
       }
     }
