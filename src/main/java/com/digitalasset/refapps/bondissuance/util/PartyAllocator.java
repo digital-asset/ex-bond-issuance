@@ -29,6 +29,12 @@ public class PartyAllocator {
         AUCTION_AGENT, BANK1, BANK2, BANK3, CENTRAL_BANK, CSD, ISSUER, OPERATOR, REGULATOR
       };
 
+  private final PartyManagementServiceBlockingStub partyManagement;
+
+  public PartyAllocator(ManagedChannel channel) {
+    partyManagement = newBlockingStub(channel);
+  }
+
   public static class AppParties {
 
     public boolean hasAuctionAgent() {
@@ -123,9 +129,8 @@ public class PartyAllocator {
     }
   }
 
-  public static AllParties getAllPartyIDs(ManagedChannel channel, AppParties partiesToAllocate)
+  public AllParties getAllPartyIDs(AppParties partiesToAllocate)
       throws InterruptedException {
-    final PartyManagementServiceBlockingStub partyManagement = newBlockingStub(channel);
     Map<String, String> parties = new HashMap<>();
     for (String partyName : partiesToAllocate.parties) {
       AllocatePartyRequest allocationRequest = createAllocationRequestFor(partyName);
