@@ -136,13 +136,11 @@ public class PartyAllocator {
   }
 
   private Map<String, String> allocate(AppParties partiesToAllocate) {
-    Map<String, String> parties = new HashMap<>();
-    for (String partyName : partiesToAllocate.parties) {
-      AllocatePartyRequest allocationRequest = createAllocationRequestFor(partyName);
-      AllocatePartyResponse response = partyManagement.allocateParty(allocationRequest);
-      parties.put(partyName, response.getPartyDetails().getParty());
-    }
-    return parties;
+    return partiesToAllocate.parties.stream()
+        .map(PartyAllocator::createAllocationRequestFor)
+        .map(partyManagement::allocateParty)
+        .map(AllocatePartyResponse::getPartyDetails)
+        .collect(Collectors.toMap(PartyDetails::getDisplayName, PartyDetails::getParty));
   }
 
   private void waitAndAddOtherParties(Map<String, String> parties) throws InterruptedException {
