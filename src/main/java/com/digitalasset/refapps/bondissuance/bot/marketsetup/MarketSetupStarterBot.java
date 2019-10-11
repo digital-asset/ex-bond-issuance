@@ -108,8 +108,8 @@ public class MarketSetupStarterBot {
             new MarketSetupSignatureCreator.ContractId(marketSetupSignatureCreator.getKey());
 
         List<MarketSetupSignature.ContractId> signatures =
-            marketSetupSignatureMap.entrySet().stream()
-                .map(entry -> new MarketSetupSignature.ContractId(entry.getKey()))
+            marketSetupSignatureMap.keySet().stream()
+                .map(MarketSetupSignature.ContractId::new)
                 .collect(Collectors.toList());
         builder.addCommand(
             marketSetupSignatureCreatorCid.exerciseMarketSetupSignatureCreator_SetupMarket(
