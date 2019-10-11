@@ -104,7 +104,8 @@ public class RedemptionCalculationBot {
 
       // exercise the choice
       builder.addCommand(
-          triggerCid.exerciseRedemptionCalculationBotTrigger_Start(payoutInfos, remainingAssetCids));
+          triggerCid.exerciseRedemptionCalculationBotTrigger_Start(
+              payoutInfos, remainingAssetCids));
     }
     return builder.buildFlowable();
   }
