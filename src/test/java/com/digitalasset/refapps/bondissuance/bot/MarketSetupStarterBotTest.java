@@ -72,7 +72,7 @@ public class MarketSetupStarterBotTest {
                   "centralBank"
                 })
             .collect(Collectors.toMap(Function.identity(), Function.identity()));
-    PartyAllocator.AllocatedParties marketParties = new PartyAllocator.AllocatedParties(parties);
+    PartyAllocator.AllParties marketParties = new PartyAllocator.AllParties(parties);
     marketSetupBot =
         new MarketSetupStarterBot(TIME_MANAGER, client, APP_ID, OPERATOR, marketParties);
   }
