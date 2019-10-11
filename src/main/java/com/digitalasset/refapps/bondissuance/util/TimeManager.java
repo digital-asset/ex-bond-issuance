@@ -16,13 +16,11 @@ public class TimeManager {
   }
 
   public static TimeManager getWallclockTimeManager() {
-    TimeManager tm = new TimeManager(Clock.systemUTC());
-    return tm;
+    return new TimeManager(Clock.systemUTC());
   }
 
   public static TimeManager getStaticTimeManager() {
-    TimeManager tm = new TimeManager(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()));
-    return tm;
+    return new TimeManager(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()));
   }
 
   public Instant getTime() {
