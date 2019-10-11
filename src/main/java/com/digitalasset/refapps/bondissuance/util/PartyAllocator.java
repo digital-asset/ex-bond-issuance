@@ -132,7 +132,7 @@ public class PartyAllocator {
   public AllParties getAllPartyIDs(AppParties partiesToAllocate)
       throws InterruptedException {
     Map<String, String> parties = allocate(partiesToAllocate);
-    waitAndAddOtherParties(partyManagement, parties);
+    waitAndAddOtherParties(parties);
     return new AllParties(parties);
   }
 
@@ -146,13 +146,11 @@ public class PartyAllocator {
     return parties;
   }
 
-  private static void waitAndAddOtherParties(
-      PartyManagementServiceBlockingStub stub, Map<String, String> parties)
-      throws InterruptedException {
+  private void waitAndAddOtherParties(Map<String, String> parties) throws InterruptedException {
     boolean existsMissingParty = true;
     while (existsMissingParty) {
       ListKnownPartiesResponse knownPartiesResponse =
-          stub.listKnownParties(ListKnownPartiesRequest.newBuilder().build());
+          partyManagement.listKnownParties(ListKnownPartiesRequest.newBuilder().build());
       Map<String, String> knownParties =
           knownPartiesResponse.getPartyDetailsList().stream()
               .collect(Collectors.toMap(PartyDetails::getDisplayName, PartyDetails::getParty));
