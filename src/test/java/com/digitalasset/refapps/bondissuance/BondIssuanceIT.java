@@ -66,7 +66,7 @@ public class BondIssuanceIT {
                       ISSUER_PARTY.getValue(),
                       "Operator",
                       "Regulator"),
-                  getWallclockTimeManager(), noMarketSetup))
+                  getWallclockTimeManager(), false))
           .build();
 
   @ClassRule public static ExternalResource sandboxClassRule = sandbox.getClassRule();
