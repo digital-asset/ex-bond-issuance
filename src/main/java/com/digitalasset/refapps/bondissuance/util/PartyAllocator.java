@@ -4,7 +4,8 @@
  */
 package com.digitalasset.refapps.bondissuance.util;
 
-import static com.digitalasset.ledger.api.v1.admin.PartyManagementServiceGrpc.*;
+import static com.digitalasset.ledger.api.v1.admin.PartyManagementServiceGrpc.PartyManagementServiceBlockingStub;
+import static com.digitalasset.ledger.api.v1.admin.PartyManagementServiceGrpc.newBlockingStub;
 import static com.digitalasset.ledger.api.v1.admin.PartyManagementServiceOuterClass.*;
 
 import io.grpc.ManagedChannel;
@@ -124,8 +125,7 @@ public class PartyAllocator {
 
   public static AllParties getAllPartyIDs(ManagedChannel channel, AppParties partiesToAllocate)
       throws InterruptedException {
-    final PartyManagementServiceBlockingStub stub =
-        newBlockingStub(channel);
+    final PartyManagementServiceBlockingStub stub = newBlockingStub(channel);
     Map<String, String> parties = new HashMap();
     for (String party : partiesToAllocate.parties) {
       allocateAndAddParty(stub, party, parties);
@@ -135,20 +135,15 @@ public class PartyAllocator {
   }
 
   private static void waitAndAddOtherParties(
-      PartyManagementServiceBlockingStub stub,
-      Map<String, String> parties)
+      PartyManagementServiceBlockingStub stub, Map<String, String> parties)
       throws InterruptedException {
     boolean existsMissingParty = true;
     while (existsMissingParty) {
       ListKnownPartiesResponse knownPartiesResponse =
-          stub.listKnownParties(
-              ListKnownPartiesRequest.newBuilder().build());
+          stub.listKnownParties(ListKnownPartiesRequest.newBuilder().build());
       Map<String, String> knownParties =
           knownPartiesResponse.getPartyDetailsList().stream()
-              .collect(
-                  Collectors.toMap(
-                      PartyDetails::getDisplayName,
-                      PartyDetails::getParty));
+              .collect(Collectors.toMap(PartyDetails::getDisplayName, PartyDetails::getParty));
       parties.putAll(knownParties);
       existsMissingParty = existsMissingParty(parties);
       if (existsMissingParty) {
@@ -162,15 +157,10 @@ public class PartyAllocator {
   }
 
   private static void allocateAndAddParty(
-      PartyManagementServiceBlockingStub stub,
-      String party,
-      Map<String, String> parties) {
+      PartyManagementServiceBlockingStub stub, String party, Map<String, String> parties) {
     AllocatePartyResponse allocatePartyResponse =
         stub.allocateParty(
-            AllocatePartyRequest.newBuilder()
-                .setDisplayName(party)
-                .setPartyIdHint(party)
-                .build());
+            AllocatePartyRequest.newBuilder().setDisplayName(party).setPartyIdHint(party).build());
     parties.put(party, allocatePartyResponse.getPartyDetails().getParty());
   }
 }
