@@ -6,8 +6,12 @@ package com.digitalasset.refapps.bondissuance.util;
 
 import static com.digitalasset.ledger.api.v1.admin.PartyManagementServiceGrpc.PartyManagementServiceBlockingStub;
 import static com.digitalasset.ledger.api.v1.admin.PartyManagementServiceGrpc.newBlockingStub;
-import static com.digitalasset.ledger.api.v1.admin.PartyManagementServiceOuterClass.*;
 
+import com.digitalasset.ledger.api.v1.admin.PartyManagementServiceOuterClass.AllocatePartyRequest;
+import com.digitalasset.ledger.api.v1.admin.PartyManagementServiceOuterClass.AllocatePartyResponse;
+import com.digitalasset.ledger.api.v1.admin.PartyManagementServiceOuterClass.ListKnownPartiesRequest;
+import com.digitalasset.ledger.api.v1.admin.PartyManagementServiceOuterClass.ListKnownPartiesResponse;
+import com.digitalasset.ledger.api.v1.admin.PartyManagementServiceOuterClass.PartyDetails;
 import io.grpc.ManagedChannel;
 import java.util.*;
 import java.util.stream.Collectors;
