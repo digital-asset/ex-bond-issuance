@@ -46,7 +46,7 @@ public class Main {
               .usePlaintext()
               .maxInboundMessageSize(Integer.MAX_VALUE)
               .build();
-      runBotsWithAllocation(client, channel);
+      runBotsWithAllocation(client, channel, options.isNoMarketSetup());
 
       logger.info("Welcome to Bond Issuance Application!");
       logger.info("Press Ctrl+C to shut down the program.");
@@ -60,13 +60,13 @@ public class Main {
     }
   }
 
-  public static void runBotsWithAllocation(DamlLedgerClient client, ManagedChannel channel) {
+  public static void runBotsWithAllocation(DamlLedgerClient client, ManagedChannel channel, boolean noMarketSetup) {
     final PartyAllocator.AllocatedParties parties = PartyAllocator.allocate(channel);
-    runBots(parties, getWallclockTimeManager()).accept(client, channel);
+    runBots(parties, getWallclockTimeManager(), noMarketSetup).accept(client, channel);
   }
 
   public static BiConsumer<DamlLedgerClient, ManagedChannel> runBots(
-      PartyAllocator.AllocatedParties parties, TimeManager timeManager) {
+          PartyAllocator.AllocatedParties parties, TimeManager timeManager, boolean noMarketSetup) {
     return (DamlLedgerClient client, ManagedChannel channel) -> {
       StringBuilder sb = new StringBuilder("Listing packages:");
       client.getPackageClient().listPackages().forEach(id -> sb.append(id).append("\n"));
@@ -95,88 +95,90 @@ public class Main {
       PlaceBidBot placeBidBot2 = new PlaceBidBot(timeManager, APPLICATION_ID, parties.getBank2());
       PlaceBidBot placeBidBot3 = new PlaceBidBot(timeManager, APPLICATION_ID, parties.getBank3());
 
-      MarketSetupStarterBot marketSetupStarterBot =
-          new MarketSetupStarterBot(
-              timeManager,
-              client.getCommandSubmissionClient(),
-              APPLICATION_ID,
-              parties.getOperator(),
-              parties);
-      MarketSetupSignerBot signer1 = marketSetupStarterBot.addNextSignerBot(parties.getBank1());
-      MarketSetupSignerBot signer2 = marketSetupStarterBot.addNextSignerBot(parties.getBank2());
-      MarketSetupSignerBot signer3 = marketSetupStarterBot.addNextSignerBot(parties.getBank3());
-      MarketSetupSignerBot signerIssuer =
-          marketSetupStarterBot.addNextSignerBot(parties.getIssuer());
-      MarketSetupSignerBot signerCsd = marketSetupStarterBot.addNextSignerBot(parties.getCSD());
-      MarketSetupSignerBot signerAuctionA =
-          marketSetupStarterBot.addNextSignerBot(parties.getAuctionAgent());
-      MarketSetupSignerBot signerOp = marketSetupStarterBot.addNextSignerBot(parties.getOperator());
-      MarketSetupSignerBot signerReg =
-          marketSetupStarterBot.addNextSignerBot(parties.getRegulator());
-      MarketSetupSignerBot signerCentral =
-          marketSetupStarterBot.addNextSignerBot(parties.getCentralBank());
+      if (!noMarketSetup) {
+        MarketSetupStarterBot marketSetupStarterBot =
+                new MarketSetupStarterBot(
+                        timeManager,
+                        client.getCommandSubmissionClient(),
+                        APPLICATION_ID,
+                        parties.getOperator(),
+                        parties);
+        MarketSetupSignerBot signer1 = marketSetupStarterBot.addNextSignerBot(parties.getBank1());
+        MarketSetupSignerBot signer2 = marketSetupStarterBot.addNextSignerBot(parties.getBank2());
+        MarketSetupSignerBot signer3 = marketSetupStarterBot.addNextSignerBot(parties.getBank3());
+        MarketSetupSignerBot signerIssuer =
+                marketSetupStarterBot.addNextSignerBot(parties.getIssuer());
+        MarketSetupSignerBot signerCsd = marketSetupStarterBot.addNextSignerBot(parties.getCSD());
+        MarketSetupSignerBot signerAuctionA =
+                marketSetupStarterBot.addNextSignerBot(parties.getAuctionAgent());
+        MarketSetupSignerBot signerOp = marketSetupStarterBot.addNextSignerBot(parties.getOperator());
+        MarketSetupSignerBot signerReg =
+                marketSetupStarterBot.addNextSignerBot(parties.getRegulator());
+        MarketSetupSignerBot signerCentral =
+                marketSetupStarterBot.addNextSignerBot(parties.getCentralBank());
 
-      Bot.wire(
-          APPLICATION_ID,
-          client,
-          signer1.transactionFilter,
-          signer1::calculateCommands,
-          signer1::getContractInfo);
-      Bot.wire(
-          APPLICATION_ID,
-          client,
-          signer2.transactionFilter,
-          signer2::calculateCommands,
-          signer2::getContractInfo);
-      Bot.wire(
-          APPLICATION_ID,
-          client,
-          signer3.transactionFilter,
-          signer3::calculateCommands,
-          signer3::getContractInfo);
-      Bot.wire(
-          APPLICATION_ID,
-          client,
-          signerIssuer.transactionFilter,
-          signerIssuer::calculateCommands,
-          signerIssuer::getContractInfo);
-      Bot.wire(
-          APPLICATION_ID,
-          client,
-          signerCsd.transactionFilter,
-          signerCsd::calculateCommands,
-          signerCsd::getContractInfo);
-      Bot.wire(
-          APPLICATION_ID,
-          client,
-          signerAuctionA.transactionFilter,
-          signerAuctionA::calculateCommands,
-          signerAuctionA::getContractInfo);
-      Bot.wire(
-          APPLICATION_ID,
-          client,
-          signerOp.transactionFilter,
-          signerOp::calculateCommands,
-          signerOp::getContractInfo);
-      Bot.wire(
-          APPLICATION_ID,
-          client,
-          signerReg.transactionFilter,
-          signerReg::calculateCommands,
-          signerReg::getContractInfo);
-      Bot.wire(
-          APPLICATION_ID,
-          client,
-          signerCentral.transactionFilter,
-          signerCentral::calculateCommands,
-          signerCentral::getContractInfo);
-      Bot.wire(
-          APPLICATION_ID,
-          client,
-          marketSetupStarterBot.transactionFilter,
-          marketSetupStarterBot::calculateCommands,
-          marketSetupStarterBot::getContractInfo);
-      marketSetupStarterBot.startMarketSetup();
+        Bot.wire(
+                APPLICATION_ID,
+                client,
+                signer1.transactionFilter,
+                signer1::calculateCommands,
+                signer1::getContractInfo);
+        Bot.wire(
+                APPLICATION_ID,
+                client,
+                signer2.transactionFilter,
+                signer2::calculateCommands,
+                signer2::getContractInfo);
+        Bot.wire(
+                APPLICATION_ID,
+                client,
+                signer3.transactionFilter,
+                signer3::calculateCommands,
+                signer3::getContractInfo);
+        Bot.wire(
+                APPLICATION_ID,
+                client,
+                signerIssuer.transactionFilter,
+                signerIssuer::calculateCommands,
+                signerIssuer::getContractInfo);
+        Bot.wire(
+                APPLICATION_ID,
+                client,
+                signerCsd.transactionFilter,
+                signerCsd::calculateCommands,
+                signerCsd::getContractInfo);
+        Bot.wire(
+                APPLICATION_ID,
+                client,
+                signerAuctionA.transactionFilter,
+                signerAuctionA::calculateCommands,
+                signerAuctionA::getContractInfo);
+        Bot.wire(
+                APPLICATION_ID,
+                client,
+                signerOp.transactionFilter,
+                signerOp::calculateCommands,
+                signerOp::getContractInfo);
+        Bot.wire(
+                APPLICATION_ID,
+                client,
+                signerReg.transactionFilter,
+                signerReg::calculateCommands,
+                signerReg::getContractInfo);
+        Bot.wire(
+                APPLICATION_ID,
+                client,
+                signerCentral.transactionFilter,
+                signerCentral::calculateCommands,
+                signerCentral::getContractInfo);
+        Bot.wire(
+                APPLICATION_ID,
+                client,
+                marketSetupStarterBot.transactionFilter,
+                marketSetupStarterBot::calculateCommands,
+                marketSetupStarterBot::getContractInfo);
+        marketSetupStarterBot.startMarketSetup();
+      }
 
       Bot.wire(
           APPLICATION_ID,

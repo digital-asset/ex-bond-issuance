@@ -7,6 +7,7 @@ package com.digitalasset.refapps.bondissuance.util;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.spi.BooleanOptionHandler;
 
 /** Command line options helper class. */
 public class CliOptions {
@@ -16,12 +17,20 @@ public class CliOptions {
   @Option(name = "-p", usage = "Sandbox port", metaVar = "SANDBOX_PORT")
   private int sandboxPort = 7600;
 
+  @Option(name = "-no-market-setup", handler = BooleanOptionHandler.class,
+          usage = "Disable market setup.")
+  private boolean noMarketSetup;
+
   public String getSandboxHost() {
     return sandboxHost;
   }
 
   public int getSandboxPort() {
     return sandboxPort;
+  }
+
+  public boolean isNoMarketSetup() {
+    return noMarketSetup;
   }
 
   public static CliOptions parseArgs(String[] args) {
@@ -36,4 +45,5 @@ public class CliOptions {
     }
     return options;
   }
+
 }
