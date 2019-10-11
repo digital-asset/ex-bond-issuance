@@ -131,14 +131,19 @@ public class PartyAllocator {
 
   public AllParties getAllPartyIDs(AppParties partiesToAllocate)
       throws InterruptedException {
+    Map<String, String> parties = allocate(partiesToAllocate);
+    waitAndAddOtherParties(partyManagement, parties);
+    return new AllParties(parties);
+  }
+
+  private Map<String, String> allocate(AppParties partiesToAllocate) {
     Map<String, String> parties = new HashMap<>();
     for (String partyName : partiesToAllocate.parties) {
       AllocatePartyRequest allocationRequest = createAllocationRequestFor(partyName);
       AllocatePartyResponse response = partyManagement.allocateParty(allocationRequest);
       parties.put(partyName, response.getPartyDetails().getParty());
     }
-    waitAndAddOtherParties(partyManagement, parties);
-    return new AllParties(parties);
+    return parties;
   }
 
   private static void waitAndAddOtherParties(
