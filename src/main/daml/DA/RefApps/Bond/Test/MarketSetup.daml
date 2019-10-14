@@ -114,6 +114,7 @@ template MarketSetup
     signatories: [Party]
   where
     signatory signatories
+    observer operator, regulator, auctionAgent, bank1, bank2, bank3, csd, issuer, centralBank
     choice MarketSetup_Sign : ContractId MarketSetup with
         signer : Party
       controller operator, signer

@@ -71,7 +71,7 @@ public class BondIssuanceIT {
           .setupAppCallback(
               Main.runBots(
                   new PartyAllocator.AppParties(parties),
-                  new PartyAllocator.AllocatedParties(
+                  new PartyAllocator.AllParties(
                       Arrays.asList(parties).stream()
                           .collect(Collectors.toMap(Function.identity(), Function.identity()))),
                   getWallclockTimeManager()))
