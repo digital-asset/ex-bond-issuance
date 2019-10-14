@@ -64,7 +64,8 @@ public class Main {
   private static void runBotsWithAllocation(
       PartyAllocator.AppParties appParties, DamlLedgerClient client, ManagedChannel channel)
       throws InterruptedException {
-    final PartyAllocator.AllParties allParties = PartyAllocator.getAllPartyIDs(channel, appParties);
+    final PartyAllocator partyAllocator = new PartyAllocator(channel);
+    final PartyAllocator.AllParties allParties = partyAllocator.getAllPartyIDs(appParties);
     logger.info("Allocation: {}", allParties);
     runBots(appParties, allParties, getWallclockTimeManager()).accept(client, channel);
   }
