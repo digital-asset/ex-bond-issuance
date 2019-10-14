@@ -19,17 +19,17 @@ import java.util.stream.Stream;
 
 public class PartyAllocator {
 
-  public static final String AUCTION_AGENT = "AuctionAgent";
-  public static final String ISSUER = "Issuer";
-  public static final String CSD = "CSD";
-  public static final String BANK1 = "Bank1";
-  public static final String BANK2 = "Bank2";
-  public static final String BANK3 = "Bank3";
-  public static final String OPERATOR = "Operator";
-  public static final String REGULATOR = "Regulator";
-  public static final String CENTRAL_BANK = "CentralBank";
+  private static final String AUCTION_AGENT = "AuctionAgent";
+  private static final String ISSUER = "Issuer";
+  private static final String CSD = "CSD";
+  private static final String BANK1 = "Bank1";
+  private static final String BANK2 = "Bank2";
+  private static final String BANK3 = "Bank3";
+  private static final String OPERATOR = "Operator";
+  private static final String REGULATOR = "Regulator";
+  private static final String CENTRAL_BANK = "CentralBank";
 
-  public static final String[] ALL_PARTIES =
+  static final String[] ALL_PARTIES =
       new String[] {
         AUCTION_AGENT, BANK1, BANK2, BANK3, CENTRAL_BANK, CSD, ISSUER, OPERATOR, REGULATOR
       };
@@ -79,10 +79,10 @@ public class PartyAllocator {
     }
 
     public AppParties(String[] parties) {
-      this.parties = new HashSet<String>(Arrays.asList(parties));
+      this.parties = new HashSet<>(Arrays.asList(parties));
     }
 
-    private Set<String> parties;
+    private final Set<String> parties;
   }
 
   public static class AllParties {
@@ -122,7 +122,7 @@ public class PartyAllocator {
       return parties.get(CENTRAL_BANK);
     }
 
-    private Map<String, String> parties;
+    private final Map<String, String> parties;
 
     public AllParties(Map<String, String> parties) {
       this.parties = parties;

@@ -9,20 +9,18 @@ import java.time.*;
 /** Utility to obtain the current ledger time */
 public class TimeManager {
 
-  private Clock clock;
+  private final Clock clock;
 
   private TimeManager(Clock clock) {
     this.clock = clock;
   }
 
   public static TimeManager getWallclockTimeManager() {
-    TimeManager tm = new TimeManager(Clock.systemUTC());
-    return tm;
+    return new TimeManager(Clock.systemUTC());
   }
 
   public static TimeManager getStaticTimeManager() {
-    TimeManager tm = new TimeManager(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()));
-    return tm;
+    return new TimeManager(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()));
   }
 
   public Instant getTime() {

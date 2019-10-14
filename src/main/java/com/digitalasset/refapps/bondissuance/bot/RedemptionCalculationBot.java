@@ -84,12 +84,12 @@ public class RedemptionCalculationBot {
           new RedemptionCalculationBotTrigger.ContractId(calculation.getKey());
 
       // find relevant accounts
-      List<RedemptionPayoutInfo.ContractId> payouInfos =
+      List<RedemptionPayoutInfo.ContractId> payoutInfos =
           paymentInfoCids.entrySet().stream()
               .filter(e -> e.getValue().bondInstrumentId.equals(calculation.getValue().bondAssetId))
               .map(e -> new RedemptionPayoutInfo.ContractId(e.getKey()))
               .collect(Collectors.toList());
-      if (payouInfos.isEmpty()) {
+      if (payoutInfos.isEmpty()) {
         String msg = "No RedemptionPayoutInfos found!";
         logger.error(msg);
         throw new IllegalStateException(msg);
@@ -104,7 +104,8 @@ public class RedemptionCalculationBot {
 
       // exercise the choice
       builder.addCommand(
-          triggerCid.exerciseRedemptionCalculationBotTrigger_Start(payouInfos, remainingAssetCids));
+          triggerCid.exerciseRedemptionCalculationBotTrigger_Start(
+              payoutInfos, remainingAssetCids));
     }
     return builder.buildFlowable();
   }

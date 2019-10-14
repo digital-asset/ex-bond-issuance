@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 public class Main {
   private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-  public static final String APPLICATION_ID = "bond-issuance";
+  private static final String APPLICATION_ID = "bond-issuance";
 
   public static void main(String[] args) {
     CliOptions options = CliOptions.parseArgs(args);
@@ -61,7 +61,7 @@ public class Main {
     }
   }
 
-  public static void runBotsWithAllocation(
+  private static void runBotsWithAllocation(
       PartyAllocator.AppParties appParties, DamlLedgerClient client, ManagedChannel channel)
       throws InterruptedException {
     final PartyAllocator partyAllocator = new PartyAllocator(channel);
