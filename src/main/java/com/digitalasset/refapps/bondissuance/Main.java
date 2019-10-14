@@ -61,7 +61,12 @@ public class Main {
   }
 
   public static void runBotsWithAllocation(DamlLedgerClient client, ManagedChannel channel, boolean noMarketSetup) {
-    final PartyAllocator.AllocatedParties parties = PartyAllocator.allocate(channel);
+    PartyAllocator.AllocatedParties parties;
+    if (noMarketSetup) {
+      parties = PartyAllocator.getKnownParties(channel);
+    } else {
+      parties = PartyAllocator.allocate(channel);
+    }
     runBots(parties, getWallclockTimeManager(), noMarketSetup).accept(client, channel);
   }
 

@@ -8,6 +8,10 @@ import com.digitalasset.ledger.api.v1.admin.PartyManagementServiceGrpc;
 import com.digitalasset.ledger.api.v1.admin.PartyManagementServiceOuterClass;
 import io.grpc.ManagedChannel;
 
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 public class PartyAllocator {
 
   public static class AllocatedParties {
@@ -106,5 +110,26 @@ public class PartyAllocator {
                 .setPartyIdHint(party)
                 .build());
     return response.getPartyDetails().getParty();
+  }
+
+  public static AllocatedParties getKnownParties(ManagedChannel channel) {
+    final PartyManagementServiceGrpc.PartyManagementServiceBlockingStub stub =
+            PartyManagementServiceGrpc.newBlockingStub(channel);
+    PartyManagementServiceOuterClass.ListKnownPartiesResponse knownPartiesResponse =
+            stub.listKnownParties(PartyManagementServiceOuterClass.ListKnownPartiesRequest.newBuilder().build());
+    Map<String, String> knownParties =
+            knownPartiesResponse.getPartyDetailsList().stream()
+                    .collect(Collectors.toMap(PartyManagementServiceOuterClass.PartyDetails::getDisplayName,
+                                              PartyManagementServiceOuterClass.PartyDetails::getParty));
+    return new AllocatedParties(
+            knownParties.get("AuctionAgent"),
+            knownParties.get( "Bank1"),
+            knownParties.get( "Bank2"),
+            knownParties.get( "Bank3"),
+            knownParties.get( "CentralBank"),
+            knownParties.get( "CSD"),
+            knownParties.get( "Issuer"),
+            knownParties.get( "Operator"),
+            knownParties.get( "Regulator"));
   }
 }
