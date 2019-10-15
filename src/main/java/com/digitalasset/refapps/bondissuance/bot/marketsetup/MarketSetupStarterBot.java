@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 public class MarketSetupStarterBot {
 
   private static final int TOTAL_COUNT_OF_PARTIES = 9;
-  public static final int MRT = 30;
+  private static final int MRT = 30;
 
   private final Logger logger;
   private final String partyName;
@@ -108,8 +108,8 @@ public class MarketSetupStarterBot {
             new MarketSetupSignatureCreator.ContractId(marketSetupSignatureCreator.getKey());
 
         List<MarketSetupSignature.ContractId> signatures =
-            marketSetupSignatureMap.entrySet().stream()
-                .map(entry -> new MarketSetupSignature.ContractId(entry.getKey()))
+            marketSetupSignatureMap.keySet().stream()
+                .map(MarketSetupSignature.ContractId::new)
                 .collect(Collectors.toList());
         builder.addCommand(
             marketSetupSignatureCreatorCid.exerciseMarketSetupSignatureCreator_SetupMarket(

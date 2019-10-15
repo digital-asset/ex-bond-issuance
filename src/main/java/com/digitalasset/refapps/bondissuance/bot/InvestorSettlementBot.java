@@ -91,7 +91,7 @@ public class InvestorSettlementBot {
       Map.Entry<String, InvestorSettlementBotTrigger> settlement =
           triggerContracts.entrySet().iterator().next();
       logger.info(
-          "Processing InverstorSettlementBotTrigger for " + settlement.getValue().auctionName);
+          "Processing InvestorSettlementBotTrigger for " + settlement.getValue().auctionName);
 
       InvestorSettlementBotTrigger.ContractId triggerCid =
           new InvestorSettlementBotTrigger.ContractId(settlement.getKey());
