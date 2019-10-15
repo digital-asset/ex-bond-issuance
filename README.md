@@ -1,4 +1,3 @@
-[![CircleCI](https://circleci.com/gh/digital-asset/ex-bond-issuance.svg?style=svg)](https://circleci.com/gh/digital-asset/ex-bond-issuance)
 # Reference Application: Bond Issuance
 
 ## Overview
@@ -13,74 +12,66 @@ Issuing a new bond is currently a fragmented process. A Distributed Ledger Techn
 
 #### Prerequisites
 Be sure you have the following installed:
-* DAML SDK
-* Docker
-* Java
-* Maven
-
+- [DAML SDK](https://docs.daml.com/)
+- Docker
+- Java
+- Maven
+- [Bitcoin Core][BitcoinCore-URL]
 
 #### Build with Maven
 
 Type:
-```
+```shell
 mvn clean package
 ```
-**Note:** If you change the DAML models locally, you need to run re-run this command before starting the application.
+
+**Note:** If you change the DAML models locally, you need to re-run this command before starting the application.
 
 ### Starting the App
 
-**Note:** Make sure you have built the application with Maven (see Build with Maven step)
+**Note:** Make sure you have built the application with Maven (see: [Build with Maven](#build-with-maven)).
 
 There are two options:
 
 #### Option 1: Start App with Docker
 
-1.  Type:
-    ```
+1. Type:
+    ```shell
     docker-compose up --build
     ```
-2.  Open UI in a new browser tab with http://localhost:7500.
+2. Open UI in a new browser tab with http://localhost:7500
 
 **Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
 
 #### Option 2: Start App in Standalone
 
-1.  Start the DA Sandbox.
-Type:
-```
-DAML_PROJECT="$(pwd)" daml sandbox -w --port 6865 target/bond-issuance.dar
-```
-
-2. Start DA Navigator by typing:
-```
-daml navigator server localhost 6865
-```
-Open a browser tab and navigate to `http://localhost:4000`.
-
-3.  Start the automation logic by starting bots. Type:
-```
-java -jar ./target/bond-issuance-0.0.1-SNAPSHOT.jar -p 6865
-```
+1. Start the DAML Sandbox and Navigator. Type:
+    ```shell
+    daml start
+    ```
+    The navigator will automatically open in new browser tab at http://localhost:7500
+2. Start the automation logic by starting bots. Type:
+    ```shell
+    java -jar ./target/inventory-management-0.0.1-SNAPSHOT.jar
+    ```
 
 ### Stopping the App
 
 #### Stopping Dockerized Run
-1.  Stop the Docker containers or bots by pressing **Ctrl+C**.
-    (Alternatively, you can also stop it by typing `docker-compose down`.)
+1. Stop the Docker containers or bots by pressing **Ctrl+C**. (Alternatively, you can also stop it by typing `docker-compose down`.)
 
-#### Stopping Stand-Alone Run
-1.  Stop the bots by pressing **Ctrl+C**.
-2.  Stop the Sandbox: type:
-    ```
-    daml stop
-    ```
+#### Stopping Standalone Run
+1. Stop the bots by pressing **Ctrl+C**.
+2. Stop the Sandbox, type:
+   ```shell
+   daml stop
+   ```
 
 ### Resetting the Prototype
 
 Reset the application by following these steps:
-
-1.  Stop the App by following the steps in Stopping the App section.
-2.  Start the App in Docker or Standalone by following the steps in the relevant section.
+1.  Stop the app by following the steps in [Stopping the App](#stopping-the-app) section.
+2.  Start the app in [Docker](#using-docker) or [Standalone](#standalone-mode) by following the steps in the relevant section.
 
 ## User Guide
 
@@ -92,7 +83,7 @@ After working through these steps, you can use the Navigator interface to explor
 
 ## Workflow
 
-**Roles and Responsibilities**
+### Roles and Responsibilities
 
 Participants in the following roles are involved in the Bond Issuance workflow.
 
