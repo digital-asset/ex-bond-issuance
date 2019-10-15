@@ -14,17 +14,17 @@ import org.kohsuke.args4j.spi.StringArrayOptionHandler;
 /** Command line options helper class. */
 public class CliOptions {
   @Option(name = "-s", usage = "Sandbox host", metaVar = "SANDBOX_HOST")
-  private final String sandboxHost = "localhost";
+  private String sandboxHost = "localhost";
 
   @Option(name = "-p", usage = "Sandbox port", metaVar = "SANDBOX_PORT")
-  private final int sandboxPort = 7600;
+  private int sandboxPort = 7600;
 
   @Option(
       name = "-u",
       usage = "Parties to run the application for.",
       handler = StringArrayOptionHandler.class,
       metaVar = "PARTIES")
-  private final String[] parties = ALL_PARTIES;
+  private String[] parties = ALL_PARTIES;
 
   public String getSandboxHost() {
     return sandboxHost;
