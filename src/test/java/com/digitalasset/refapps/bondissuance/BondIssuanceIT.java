@@ -70,6 +70,7 @@ public class BondIssuanceIT {
           .useWallclockTime()
           .setupAppCallback(
               Main.runBots(
+                  false,
                   new PartyAllocator.AppParties(parties),
                   new PartyAllocator.AllParties(
                       Arrays.asList(parties).stream()
