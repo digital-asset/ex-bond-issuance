@@ -39,7 +39,7 @@ There are two options:
     ```shell
     docker-compose up --build
     ```
-2. Open UI in a new browser tab with http://localhost:7500
+2. Open UI with a browser at http://localhost:7500.
 
 **Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
 
@@ -49,7 +49,7 @@ There are two options:
     ```shell
     daml start
     ```
-    The navigator will automatically open in new browser tab at http://localhost:7500
+    The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic by starting bots. Type:
     ```shell
     java -jar target/bond-issuance-0.0.1-SNAPSHOT.jar
