@@ -7,10 +7,15 @@ ARG sdk_vsn=0.13.32
 
 FROM digitalasset/daml-sdk:${sdk_vsn}
 
-WORKDIR /home/sdk
+WORKDIR /home/daml
 
-COPY target/bond-issuance.dar /home/sdk/
+COPY target/bond-issuance.dar /home/daml/
 
-EXPOSE 7600
+# Need the root user to set appropriate ownership of the DAR file.
+USER root
+RUN chown daml bond-issuance.dar
+USER daml
 
-CMD ~/.daml/bin/daml sandbox -- --wall-clock-time --port 7600 bond-issuance.dar
+EXPOSE 6865
+
+CMD ~/.daml/bin/daml sandbox -- --wall-clock-time --port 6865 bond-issuance.dar
