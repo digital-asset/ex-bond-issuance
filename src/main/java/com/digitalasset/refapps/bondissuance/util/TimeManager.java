@@ -4,12 +4,13 @@
  */
 package com.digitalasset.refapps.bondissuance.util;
 
+import com.daml.ledger.rxjava.TimeClient;
 import java.time.*;
 
 /** Utility to obtain the current ledger time */
 public class TimeManager {
 
-  private final Clock clock;
+  private Clock clock;
 
   private TimeManager(Clock clock) {
     this.clock = clock;
@@ -21,6 +22,12 @@ public class TimeManager {
 
   public static TimeManager getStaticTimeManager() {
     return new TimeManager(Clock.fixed(Instant.EPOCH, ZoneId.systemDefault()));
+  }
+
+  public static TimeManager getTimeClientBasedTimeManager(TimeClient timeClient) {
+    TimeManager tm = getStaticTimeManager();
+    timeClient.getTime().forEach(t -> tm.clock = Clock.fixed(t, ZoneId.systemDefault()));
+    return tm;
   }
 
   public Instant getTime() {

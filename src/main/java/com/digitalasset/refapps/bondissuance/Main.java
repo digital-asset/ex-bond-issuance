@@ -4,6 +4,7 @@
  */
 package com.digitalasset.refapps.bondissuance;
 
+import static com.digitalasset.refapps.bondissuance.util.TimeManager.getTimeClientBasedTimeManager;
 import static com.digitalasset.refapps.bondissuance.util.TimeManager.getWallclockTimeManager;
 
 import com.daml.ledger.rxjava.DamlLedgerClient;
@@ -47,7 +48,8 @@ public class Main {
               .maxInboundMessageSize(Integer.MAX_VALUE)
               .build();
       PartyAllocator.AppParties appParties = new PartyAllocator.AppParties(options.getParties());
-      runBotsWithAllocation(options.isNoMarketSetup(), appParties, client, channel);
+      runBotsWithAllocation(
+          options.isNoMarketSetup(), options.useTimeClient(), appParties, client, channel);
 
       logger.info("Welcome to Bond Issuance Application!");
       logger.info("Press Ctrl+C to shut down the program.");
@@ -63,6 +65,7 @@ public class Main {
 
   private static void runBotsWithAllocation(
       boolean noMarketSetup,
+      boolean useTimeClient,
       PartyAllocator.AppParties appParties,
       DamlLedgerClient client,
       ManagedChannel channel)
@@ -70,8 +73,14 @@ public class Main {
     final PartyAllocator partyAllocator = new PartyAllocator(channel);
     final PartyAllocator.AllParties allParties = partyAllocator.getAllPartyIDs(appParties);
     logger.info("Allocation: {}", allParties);
-    runBots(noMarketSetup, appParties, allParties, getWallclockTimeManager())
-        .accept(client, channel);
+    TimeManager timeManager;
+    if (useTimeClient) {
+      logger.info("Using time client.");
+      timeManager = getTimeClientBasedTimeManager(client.getTimeClient());
+    } else {
+      timeManager = getWallclockTimeManager();
+    }
+    runBots(noMarketSetup, appParties, allParties, timeManager).accept(client, channel);
   }
 
   public static BiConsumer<DamlLedgerClient, ManagedChannel> runBots(
