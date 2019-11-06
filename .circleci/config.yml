@@ -8,7 +8,7 @@ version: 2.1
 executors:
   daml-executor:
     docker:
-      - image: circleci/openjdk:11.0-jdk
+      - image: circleci/openjdk:14
   docker_buildpack:
     docker:
       - image: circleci/buildpack-deps:xenial
@@ -49,11 +49,7 @@ jobs:
       - run:
           command: |
             export PATH=${HOME}/.daml/bin:${PATH}
-            echo sleep 10
-            sleep 10
-            echo slept 10
-            sudo apt-get update || sudo apt-get update
-            sudo apt-get install python3-minimal
+            yum install python3 -y
             mvn verify
       - save_cache:
           paths:
@@ -93,8 +89,7 @@ jobs:
       - run:
           command: |
             export PATH=${HOME}/.daml/bin:${PATH}
-            sudo apt-get update
-            sudo apt-get install python3-minimal
+            yum install python3 -y
             mkdir -p target
             python3 scripts/getfinlib.py << parameters.daml_sdk_version >> `pwd`/target/finlib-master-sdk-<< parameters.daml_sdk_version >>.dar
             daml build -o target/bond-issuance.dar
