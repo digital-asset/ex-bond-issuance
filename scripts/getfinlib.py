@@ -7,14 +7,14 @@
 # Arguments: daml_sdk_version path_to_dar
 
 from io import BytesIO
+from os import environ, path
+from shutil import rmtree
+from subprocess import call
+from sys import argv
+from tempfile import mkdtemp
 from urllib import urlopen
 from zipfile import ZipFile
 import logging
-import os
-import shutil
-import sys
-import subprocess
-import tempfile
 
 # Currently there is no release yet, so use master
 url = 'https://github.com/digital-asset/lib-finance/archive/master.zip'
@@ -32,22 +32,22 @@ def build_dar(daml_sdk_version, path_to_dar, tmp_directory):
     build_command = 'daml build --project-root {tmp_directory}/{extracted_directory}/ -o {path_to_dar}'.format(
         tmp_directory=tmp_directory, extracted_directory=extracted_directory, path_to_dar=path_to_dar)
     logging.info('Executing {build_command} with DAML_SDK_VERSION={daml_sdk_version}')
-    os.environ['DAML_SDK_VERSION'] = daml_sdk_version
-    subprocess.call(build_command.split(' '))
+    environ['DAML_SDK_VERSION'] = daml_sdk_version
+    call(build_command.split(' '))
 
 
 logging.basicConfig(level=logging.DEBUG)
 
-daml_sdk_version = sys.argv[1]
-path_to_dar = sys.argv[2]
+daml_sdk_version = argv[1]
+path_to_dar = argv[2]
 
-if os.path.exists(path_to_dar):
+if path.exists(path_to_dar):
     logging.info('{path_to_dar} already exists, nothing to do'.format(path_to_dar=path_to_dar))
     exit(0)
 else:
     logging.info('{path_to_dar} will be created'.format(path_to_dar=path_to_dar))
 
-tmp_directory = tempfile.mkdtemp()
+tmp_directory = mkdtemp()
 logging.debug('Working in {tmp_directory}'.format(tmp_directory=tmp_directory))
 
 get_source(url, tmp_directory)
@@ -55,4 +55,4 @@ get_source(url, tmp_directory)
 build_dar(daml_sdk_version, path_to_dar, tmp_directory)
 
 logging.debug('Removing {tmp_directory}'.format(tmp_directory=tmp_directory))
-shutil.rmtree(tmp_directory)
+rmtree(tmp_directory)
