@@ -214,6 +214,7 @@
                 <configuration>
                     <header>src/license/header.txt</header>
                     <excludes>
+                        <exclude>.daml/**</exclude>
                         <exclude>**/README</exclude>
                         <exclude>*.log</exclude>
                         <exclude>LICENSE</exclude>
