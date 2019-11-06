@@ -49,10 +49,7 @@ jobs:
       - run:
           command: |
             export PATH=${HOME}/.daml/bin:${PATH}
-            echo sleep 10
-            sleep 10
-            echo slept 10
-            sudo apt-get update || sudo apt-get update
+            sudo apt-get update
             sudo apt-get install python3-minimal
             mvn verify
       - save_cache:
