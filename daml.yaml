@@ -21,3 +21,4 @@ exposed-modules: []
 dependencies:
   - daml-prim
   - daml-stdlib
+  - target/finlib-master-sdk-0.13.32.dar
