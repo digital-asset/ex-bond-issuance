@@ -1,13 +1,14 @@
+#!/usr/bin/env python2
 #
 # Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
-# Produces dar file by fetching the source and building it.
-# Arguments: daml_sdk_version path_to_dar
+# Produces dar file `target/finlib-master-sdk-{daml_sdk_version}.dar' by fetching the source and building it.
+# Arguments: daml_sdk_version
 
 from io import BytesIO
-from os import environ, path
+from os import environ, getcwd, path
 from shutil import rmtree
 from subprocess import call
 from sys import argv
@@ -27,11 +28,13 @@ def get_source(url, tmp_directory):
         zipfile.extractall(tmp_directory)
 
 
-def build_dar(daml_sdk_version, path_to_dar, tmp_directory):
+def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
     extracted_directory = 'lib-finance-master'
-    build_command = 'daml build --project-root {tmp_directory}/{extracted_directory}/ -o {path_to_dar}'.format(
-        tmp_directory=tmp_directory, extracted_directory=extracted_directory, path_to_dar=path_to_dar)
-    logging.info('Executing {build_command} with DAML_SDK_VERSION={daml_sdk_version}')
+    build_command = 'daml build --project-root {tmp_directory}/{extracted_directory}/ -o {full_path_to_dar}'.format(
+        tmp_directory=tmp_directory, extracted_directory=extracted_directory, full_path_to_dar=full_path_to_dar)
+    logging.info(
+        'Executing {build_command} with DAML_SDK_VERSION={daml_sdk_version}'.format(
+            build_command=build_command, daml_sdk_version=daml_sdk_version))
     environ['DAML_SDK_VERSION'] = daml_sdk_version
     call(build_command.split(' '))
 
@@ -39,20 +42,21 @@ def build_dar(daml_sdk_version, path_to_dar, tmp_directory):
 logging.basicConfig(level=logging.DEBUG)
 
 daml_sdk_version = argv[1]
-path_to_dar = argv[2]
+full_path_to_dar = '{pwd}/target/finlib-master-sdk-{daml_sdk_version}.dar'.format(
+    pwd=getcwd(), daml_sdk_version=daml_sdk_version)
 
-if path.exists(path_to_dar):
-    logging.info('{path_to_dar} already exists, nothing to do'.format(path_to_dar=path_to_dar))
+if path.exists(full_path_to_dar):
+    logging.info('{full_path_to_dar} already exists, nothing to do'.format(full_path_to_dar=full_path_to_dar))
     exit(0)
 else:
-    logging.info('{path_to_dar} will be created'.format(path_to_dar=path_to_dar))
+    logging.info('{full_path_to_dar} will be created'.format(full_path_to_dar=full_path_to_dar))
 
 tmp_directory = mkdtemp()
 logging.debug('Working in {tmp_directory}'.format(tmp_directory=tmp_directory))
 
 get_source(url, tmp_directory)
 
-build_dar(daml_sdk_version, path_to_dar, tmp_directory)
+build_dar(daml_sdk_version, full_path_to_dar, tmp_directory)
 
 logging.debug('Removing {tmp_directory}'.format(tmp_directory=tmp_directory))
 rmtree(tmp_directory)

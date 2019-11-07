@@ -159,7 +159,6 @@
                             <arguments>
                                 <argument>scripts/getfinlib.py</argument>
                                 <argument>${daml-sdk.damlversion}</argument>
-                                <argument>${project.build.directory}/finlib-master-sdk-${daml-sdk.damlversion}.dar</argument>
                             </arguments>
                         </configuration>
                     </execution>
