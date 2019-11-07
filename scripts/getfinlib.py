@@ -39,7 +39,7 @@ def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
     call(build_command.split(' '))
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 daml_sdk_version = argv[1]
 full_path_to_dar = '{pwd}/target/finlib-master-sdk-{daml_sdk_version}.dar'.format(
