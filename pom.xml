@@ -155,9 +155,8 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <executable>python</executable>
+                            <executable>scripts/getfinlib.py</executable>
                             <arguments>
-                                <argument>scripts/getfinlib.py</argument>
                                 <argument>${daml-sdk.damlversion}</argument>
                             </arguments>
                         </configuration>
