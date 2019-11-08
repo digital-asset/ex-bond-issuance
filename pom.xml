@@ -25,6 +25,7 @@
         <pw-switf.version>SRU2018-7.10.3</pw-switf.version>
         <junit.version>4.12</junit.version>
         <daml-sdk.version>100.13.34</daml-sdk.version>
+        <daml-sdk.damlversion>0.13.34</daml-sdk.damlversion>
         <netty.version>4.1.33.Final</netty.version>
     </properties>
     <dependencies>
@@ -148,6 +149,19 @@
                 <version>1.6.0</version>
                 <executions>
                     <execution>
+                        <id>get-finlib-dar</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>scripts/getfinlib.py</executable>
+                            <arguments>
+                                <argument>${daml-sdk.damlversion}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>compile-daml</id>
                         <phase>generate-sources</phase>
                         <goals>
@@ -198,6 +212,7 @@
                 <configuration>
                     <header>src/license/header.txt</header>
                     <excludes>
+                        <exclude>.daml/**</exclude>
                         <exclude>**/README</exclude>
                         <exclude>*.log</exclude>
                         <exclude>LICENSE</exclude>
