@@ -17,6 +17,12 @@ from zipfile import ZipFile
 import logging
 import requests
 
+# based on 'Cheat Sheet: Writing Python 2-3 compatible code'
+# from https://python-future.org/compatible_idioms.html
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
 
 # Currently there is no release yet, so use master
 url = 'https://github.com/digital-asset/lib-finance/archive/master.zip'
@@ -24,8 +30,8 @@ url = 'https://github.com/digital-asset/lib-finance/archive/master.zip'
 
 def get_source(url, tmp_directory):
     logging.info('Unzipping {url}'.format(url=url))
-    resp = requests.get(url)
-    with ZipFile(BytesIO(resp.content)) as zipfile:
+    resp = urlopen(url)
+    with ZipFile(BytesIO(resp.read())) as zipfile:
         zipfile.extractall(tmp_directory)
 
 
