@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #
 # Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
@@ -13,9 +13,10 @@ from shutil import rmtree
 from subprocess import call
 from sys import argv
 from tempfile import mkdtemp
-from urllib import urlopen
 from zipfile import ZipFile
 import logging
+import requests
+
 
 # Currently there is no release yet, so use master
 url = 'https://github.com/digital-asset/lib-finance/archive/master.zip'
@@ -23,8 +24,8 @@ url = 'https://github.com/digital-asset/lib-finance/archive/master.zip'
 
 def get_source(url, tmp_directory):
     logging.info('Unzipping {url}'.format(url=url))
-    resp = urlopen(url)
-    with ZipFile(BytesIO(resp.read())) as zipfile:
+    resp = requests.get(url)
+    with ZipFile(BytesIO(resp.content)) as zipfile:
         zipfile.extractall(tmp_directory)
 
 

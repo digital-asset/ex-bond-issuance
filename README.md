@@ -17,7 +17,7 @@ Be sure you have the following installed:
 - Docker
 - Java
 - Maven
-- Python2
+- Python
 
 #### Build with Maven
 
