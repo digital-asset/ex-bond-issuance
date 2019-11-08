@@ -15,7 +15,7 @@ from sys import argv
 from tempfile import mkdtemp
 from zipfile import ZipFile
 import logging
-import requests
+
 
 # based on 'Cheat Sheet: Writing Python 2-3 compatible code'
 # from https://python-future.org/compatible_idioms.html
