@@ -11,7 +11,6 @@ from io import BytesIO
 from os import environ, getcwd, path
 from os.path import expanduser
 from shutil import rmtree
-from subprocess import call
 from sys import argv
 from tempfile import mkdtemp
 from zipfile import ZipFile
@@ -37,12 +36,11 @@ def get_source(url, tmp_directory):
 
 
 def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
-    daml_full_path = "{home}/.daml/bin/daml".format(home=expanduser("~"))
     extracted_directory = 'lib-finance-master'
     project_root = "{tmp_directory}/{extracted_directory}/".format(
                         tmp_directory=tmp_directory,
                         extracted_directory=extracted_directory)
-    build_command = [daml_full_path, "build", "--project-root", project_root, "-o", full_path_to_dar]
+    build_command = ["daml", "build", "--project-root", project_root, "-o", full_path_to_dar]
     logging.info(
         'Executing {build_command} with DAML_SDK_VERSION={daml_sdk_version}'.format(
             build_command=" ".join(build_command), daml_sdk_version=daml_sdk_version))
