@@ -9,8 +9,8 @@
 
 from io import BytesIO
 from os import environ, getcwd, path
-from os.path import expanduser
 from shutil import rmtree
+from subprocess import call
 from sys import argv
 from tempfile import mkdtemp
 from zipfile import ZipFile
