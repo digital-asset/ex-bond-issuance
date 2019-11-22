@@ -213,6 +213,7 @@ export const customViews = (userId, party, role) => {
         return {
             issuerRoleView,
             balanceView,
+            depositNewAssetView,
             ongoingAuctionsView,
             pendingSettlementsViewForIssuer
         };
