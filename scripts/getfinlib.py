@@ -37,13 +37,15 @@ def get_source(url, tmp_directory):
 
 def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
     extracted_directory = 'lib-finance-master'
-    build_command = 'daml build --project-root {tmp_directory}/{extracted_directory}/ -o {full_path_to_dar}'.format(
-        tmp_directory=tmp_directory, extracted_directory=extracted_directory, full_path_to_dar=full_path_to_dar)
+    project_root = "{tmp_directory}/{extracted_directory}/".format(
+                        tmp_directory=tmp_directory,
+                        extracted_directory=extracted_directory)
+    build_command = ["daml", "build", "--project-root", project_root, "-o", full_path_to_dar]
     logging.info(
         'Executing {build_command} with DAML_SDK_VERSION={daml_sdk_version}'.format(
-            build_command=build_command, daml_sdk_version=daml_sdk_version))
+            build_command=" ".join(build_command), daml_sdk_version=daml_sdk_version))
     environ['DAML_SDK_VERSION'] = daml_sdk_version
-    call(build_command.split(' '))
+    call(build_command)
 
 
 logging.basicConfig(level=logging.INFO)
