@@ -47,7 +47,7 @@ There are two options:
 
 1. Start the DAML Sandbox and Navigator. Type:
     ```shell
-    daml start --sandbox-option --address=localhost
+    daml start --sandbox-option --address=localhost --sandbox-option -w
     ```
     The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic by starting bots. Type:
