@@ -57,6 +57,20 @@ public class MarketSetupStarterBotTest {
             sentIn.add(commands);
             return Single.just(Empty.getDefaultInstance());
           }
+
+          @Override
+          public Single<Empty> submit(
+              String workflowId,
+              String applicationId,
+              String commandId,
+              String party,
+              Instant ledgerEffectiveTime,
+              Instant maximumRecordTime,
+              List<Command> commands,
+              String accessToken) {
+            throw new UnsupportedOperationException(
+                "This method should be in use in this test and thus throwing an exception should not cause problems.");
+          }
         };
     Map<String, String> parties =
         Arrays.stream(
