@@ -24,8 +24,8 @@
         <args4j.version>2.33</args4j.version>
         <pw-switf.version>SRU2018-7.10.3</pw-switf.version>
         <junit.version>4.12</junit.version>
-        <daml-sdk.version>100.13.40</daml-sdk.version>
-        <daml-sdk.damlversion>0.13.40</daml-sdk.damlversion>
+        <daml-sdk.version>100.13.41</daml-sdk.version>
+        <daml-sdk.damlversion>0.13.41</daml-sdk.damlversion>
         <daml-plugin.version>0.1</daml-plugin.version>
         <netty.version>4.1.33.Final</netty.version>
     </properties>
