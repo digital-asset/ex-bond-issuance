@@ -18,4 +18,4 @@ USER daml
 
 EXPOSE 6865
 
-CMD ~/.daml/bin/daml sandbox -- --wall-clock-time --port 6865 bond-issuance.dar
+CMD ~/.daml/bin/daml sandbox -- --wall-clock-time --address 0.0.0.0 --port 6865 bond-issuance.dar
