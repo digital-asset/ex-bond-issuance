@@ -8,6 +8,7 @@
 
 from io import BytesIO
 from os import environ, getcwd, path
+from platform import system
 from shutil import rmtree
 from subprocess import call
 from sys import argv
@@ -33,13 +34,21 @@ def get_source(url, tmp_directory):
     with ZipFile(BytesIO(resp.read())) as zipfile:
         zipfile.extractall(tmp_directory)
 
+def is_windows():
+    return system() == "Windows"
+
+def daml_command():
+    if is_windows():
+        return "daml.cmd"
+    else:
+        return "daml"
 
 def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
     extracted_directory = 'lib-finance-master'
     project_root = "{tmp_directory}/{extracted_directory}/".format(
                         tmp_directory=tmp_directory,
                         extracted_directory=extracted_directory)
-    build_command = ["daml", "build", "--project-root", project_root, "-o", full_path_to_dar]
+    build_command = [daml_command(), "build", "--project-root", project_root, "-o", full_path_to_dar]
     logging.info(
         'Executing {build_command} with DAML_SDK_VERSION={daml_sdk_version}'.format(
             build_command=" ".join(build_command), daml_sdk_version=daml_sdk_version))
