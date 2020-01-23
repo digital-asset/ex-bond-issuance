@@ -88,7 +88,7 @@ jobs:
       - run:
           command: |
             export PATH=${HOME}/.daml/bin:${PATH}
-            scripts/getfinlib.py << parameters.daml_sdk_version >>
+            python scripts/getfinlib.py << parameters.daml_sdk_version >>
             daml build -o target/bond-issuance.dar
             daml test --junit target/daml-test-reports/daml-test.xml --files src/main/daml/DA/RefApps/Bond/Test/FullScenario.daml
       - save_cache:
