@@ -55,6 +55,19 @@ There are two options:
     java -jar target/bond-issuance-0.0.1-SNAPSHOT.jar
     ```
 
+#### Option 3: Start App in Standalone with Simulated Time
+
+This option starts the application with simulated time. Initial time is 1970 and the user can use the Navigator's built-in time widget to adjust it. This is best for demo purposes.
+1. Start the DAML Sandbox and Navigator. Type:
+    ```shell
+    daml start --sandbox-option --address=localhost
+    ```
+    The navigator will automatically open in new browser tab at http://localhost:7500.
+2. Start the automation logic by starting bots. Type:
+    ```shell
+    java -jar target/bond-issuance-0.0.1-SNAPSHOT.jar -use-time-client
+    ```
+
 ### Stopping the App
 
 #### Stopping Dockerized Run
