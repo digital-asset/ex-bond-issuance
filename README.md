@@ -43,8 +43,9 @@ There are two options:
 
 **Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
 
-#### Option 2: Start App in Standalone
+#### Option 2: Start App in Standalone with Wallclock Time
 
+This option starts the application with wallclock time. Navigator's time widget won't work in this mode as one cannot modify the time.
 1. Start the DAML Sandbox and Navigator. Type:
     ```shell
     daml start --sandbox-option --address=localhost --sandbox-option -w
