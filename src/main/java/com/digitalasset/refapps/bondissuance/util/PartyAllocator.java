@@ -127,11 +127,6 @@ public class PartyAllocator {
     public AllParties(Map<String, String> parties) {
       this.parties = parties;
     }
-
-    @Override
-    public String toString() {
-      return parties.toString();
-    }
   }
 
   public AllParties getAllPartyIDs(AppParties partiesToAllocate) throws InterruptedException {
