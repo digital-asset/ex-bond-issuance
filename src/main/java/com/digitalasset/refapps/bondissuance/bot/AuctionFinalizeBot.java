@@ -9,10 +9,10 @@ import com.daml.ledger.javaapi.data.FiltersByParty;
 import com.daml.ledger.javaapi.data.InclusiveFilter;
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.javaapi.data.TransactionFilter;
-import com.daml.ledger.javaapi.data.Value;
 import com.daml.ledger.rxjava.components.LedgerViewFlowable;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.daml.ledger.rxjava.components.helpers.CreatedContract;
+import com.daml.ledger.rxjava.components.helpers.TemplateUtils;
 import com.digitalasset.refapps.bondissuance.util.BotLogger;
 import com.digitalasset.refapps.bondissuance.util.BotUtil;
 import com.digitalasset.refapps.bondissuance.util.CommandsAndPendingSetBuilder;
@@ -125,19 +125,9 @@ public class AuctionFinalizeBot {
   }
 
   public Template getContractInfo(CreatedContract createdContract) {
-    Value args = createdContract.getCreateArguments();
-    if (createdContract.getTemplateId().equals(AuctionFinalizeBotTrigger.TEMPLATE_ID)) {
-      return AuctionFinalizeBotTrigger.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(BidderParticipation.TEMPLATE_ID)) {
-      return BidderParticipation.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AuctionBid.TEMPLATE_ID)) {
-      return AuctionBid.fromValue(args);
-    } else {
-      String msg =
-          "Auction Allocate Bond Bot encountered an unknown contract of type "
-              + createdContract.getTemplateId();
-      logger.error(msg);
-      throw new IllegalStateException(msg);
-    }
+    //noinspection unchecked
+    return TemplateUtils.contractTransformer(
+            AuctionFinalizeBotTrigger.class, BidderParticipation.class, AuctionBid.class)
+        .apply(createdContract);
   }
 }
