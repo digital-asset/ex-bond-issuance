@@ -9,10 +9,10 @@ import com.daml.ledger.javaapi.data.FiltersByParty;
 import com.daml.ledger.javaapi.data.InclusiveFilter;
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.javaapi.data.TransactionFilter;
-import com.daml.ledger.javaapi.data.Value;
 import com.daml.ledger.rxjava.components.LedgerViewFlowable;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.daml.ledger.rxjava.components.helpers.CreatedContract;
+import com.daml.ledger.rxjava.components.helpers.TemplateUtils;
 import com.digitalasset.refapps.bondissuance.util.*;
 import com.google.common.collect.Sets;
 import da.finance.rule.asset.AssetFungible;
@@ -136,21 +136,12 @@ public class CommissionBot {
   }
 
   public Template getContractInfo(CreatedContract createdContract) {
-    Value args = createdContract.getCreateArguments();
-    if (createdContract.getTemplateId().equals(CommissionBotTrigger.TEMPLATE_ID)) {
-      return CommissionBotTrigger.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(FixedRateBondFact.TEMPLATE_ID)) {
-      return FixedRateBondFact.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AssetSettlement.TEMPLATE_ID)) {
-      return AssetSettlement.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AssetFungible.TEMPLATE_ID)) {
-      return AssetFungible.fromValue(args);
-    } else {
-      String msg =
-          "Invite Agent Bot encountered an unknown contract of type "
-              + createdContract.getTemplateId();
-      logger.error(msg);
-      throw new IllegalStateException(msg);
-    }
+    //noinspection unchecked
+    return TemplateUtils.contractTransformer(
+            CommissionBotTrigger.class,
+            FixedRateBondFact.class,
+            AssetSettlement.class,
+            AssetFungible.class)
+        .apply(createdContract);
   }
 }

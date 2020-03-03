@@ -9,10 +9,10 @@ import com.daml.ledger.javaapi.data.FiltersByParty;
 import com.daml.ledger.javaapi.data.InclusiveFilter;
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.javaapi.data.TransactionFilter;
-import com.daml.ledger.javaapi.data.Value;
 import com.daml.ledger.rxjava.components.LedgerViewFlowable;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.daml.ledger.rxjava.components.helpers.CreatedContract;
+import com.daml.ledger.rxjava.components.helpers.TemplateUtils;
 import com.digitalasset.refapps.bondissuance.util.BotLogger;
 import com.digitalasset.refapps.bondissuance.util.BotUtil;
 import com.digitalasset.refapps.bondissuance.util.CommandsAndPendingSetBuilder;
@@ -111,19 +111,9 @@ public class RedemptionCalculationBot {
   }
 
   public Template getContractInfo(CreatedContract createdContract) {
-    Value args = createdContract.getCreateArguments();
-    if (createdContract.getTemplateId().equals(RedemptionCalculationBotTrigger.TEMPLATE_ID)) {
-      return RedemptionCalculationBotTrigger.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(RedemptionPayoutInfo.TEMPLATE_ID)) {
-      return RedemptionPayoutInfo.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AssetDeposit.TEMPLATE_ID)) {
-      return AssetDeposit.fromValue(args);
-    } else {
-      String msg =
-          "RedemptionStart Agent Bot encountered an unknown contract of type "
-              + createdContract.getTemplateId();
-      logger.error(msg);
-      throw new IllegalStateException(msg);
-    }
+    //noinspection unchecked
+    return TemplateUtils.contractTransformer(
+            RedemptionCalculationBotTrigger.class, RedemptionPayoutInfo.class, AssetDeposit.class)
+        .apply(createdContract);
   }
 }

@@ -8,6 +8,7 @@ import com.daml.ledger.javaapi.data.*;
 import com.daml.ledger.rxjava.components.LedgerViewFlowable;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.daml.ledger.rxjava.components.helpers.CreatedContract;
+import com.daml.ledger.rxjava.components.helpers.TemplateUtils;
 import com.digitalasset.refapps.bondissuance.util.*;
 import com.google.common.collect.Sets;
 import da.finance.fact.asset.AssetDeposit;
@@ -111,21 +112,12 @@ public class RedemptionFinalizeBot {
   }
 
   public Template getContractInfo(CreatedContract createdContract) {
-    Value args = createdContract.getCreateArguments();
-    if (createdContract.getTemplateId().equals(RedemptionFinalizeBotTrigger.TEMPLATE_ID)) {
-      return RedemptionFinalizeBotTrigger.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AssetDeposit.TEMPLATE_ID)) {
-      return AssetDeposit.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AssetSettlement.TEMPLATE_ID)) {
-      return AssetSettlement.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AssetFungible.TEMPLATE_ID)) {
-      return AssetFungible.fromValue(args);
-    } else {
-      String msg =
-          "RedemptionFinalizeBot Bot encountered an unknown contract of type "
-              + createdContract.getTemplateId();
-      logger.error(msg);
-      throw new IllegalStateException(msg);
-    }
+    //noinspection unchecked
+    return TemplateUtils.contractTransformer(
+            RedemptionFinalizeBotTrigger.class,
+            AssetDeposit.class,
+            AssetSettlement.class,
+            AssetFungible.class)
+        .apply(createdContract);
   }
 }

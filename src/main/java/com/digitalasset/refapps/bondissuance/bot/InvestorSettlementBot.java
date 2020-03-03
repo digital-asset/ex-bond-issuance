@@ -9,10 +9,10 @@ import com.daml.ledger.javaapi.data.FiltersByParty;
 import com.daml.ledger.javaapi.data.InclusiveFilter;
 import com.daml.ledger.javaapi.data.Template;
 import com.daml.ledger.javaapi.data.TransactionFilter;
-import com.daml.ledger.javaapi.data.Value;
 import com.daml.ledger.rxjava.components.LedgerViewFlowable;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import com.daml.ledger.rxjava.components.helpers.CreatedContract;
+import com.daml.ledger.rxjava.components.helpers.TemplateUtils;
 import com.digitalasset.refapps.bondissuance.util.AssetUtil;
 import com.digitalasset.refapps.bondissuance.util.BotLogger;
 import com.digitalasset.refapps.bondissuance.util.BotUtil;
@@ -146,22 +146,12 @@ public class InvestorSettlementBot {
   }
 
   public Template getContractInfo(CreatedContract createdContract) {
-    Value args = createdContract.getCreateArguments();
-    if (createdContract.getTemplateId().equals(InvestorSettlementBotTrigger.TEMPLATE_ID)) {
-      return InvestorSettlementBotTrigger.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AuctionLockedCash.TEMPLATE_ID)) {
-      return AuctionLockedCash.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AssetSettlement.TEMPLATE_ID)) {
-      return AssetSettlement.fromValue(args);
-    } else if (createdContract.getTemplateId().equals(AssetFungible.TEMPLATE_ID)) {
-      return AssetFungible.fromValue(args);
-    } else {
-      logger.error(
-          "ERROR: Finalize Settlement Bot encountered an unknown contract of type "
-              + createdContract.getTemplateId());
-      throw new IllegalStateException(
-          "Finalize Settlement Bot encountered an unknown contract of type "
-              + createdContract.getTemplateId());
-    }
+    //noinspection unchecked
+    return TemplateUtils.contractTransformer(
+            InvestorSettlementBotTrigger.class,
+            AuctionLockedCash.class,
+            AssetSettlement.class,
+            AssetFungible.class)
+        .apply(createdContract);
   }
 }
