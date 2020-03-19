@@ -310,7 +310,7 @@ setupIssuance: Scenario TestIssuance = scenario do
                       bondSettlementCid = issuerBondSettlement
                       cashSettlementCid = issuerCashSettlement
                       assetLabel = bondIsin, ..
-      cashAssetId = Id (singleton centralBank) "USD" 0
+      cashAssetId = Id (DA.Next.Set.singleton centralBank) "USD" 0
   return TestIssuance {
     roles = testRoles
   , fixedRateBondFactCid = fixedRateBondFactCid
