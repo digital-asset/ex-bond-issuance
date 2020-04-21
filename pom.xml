@@ -26,12 +26,12 @@
         <junit.version>4.12</junit.version>
         <daml-sdk.version>1.0.0</daml-sdk.version>
         <daml-sdk.damlversion>1.0.0</daml-sdk.damlversion>
-        <daml-plugin.version>0.1</daml-plugin.version>
+        <daml-plugin.version>0.1.4</daml-plugin.version>
         <netty.version>4.1.45.Final</netty.version>
     </properties>
     <dependencies>
         <dependency>
-            <groupId>com.daml.ledger</groupId>
+            <groupId>com.daml</groupId>
             <artifactId>bindings-rxjava</artifactId>
             <version>${daml-sdk.version}</version>
         </dependency>
