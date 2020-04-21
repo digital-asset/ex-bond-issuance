@@ -46,7 +46,7 @@ public class AuctionFinalizeBotTest {
 
   @Before
   public void setupTests() {
-    bot = new AuctionFinalizeBot(TIME_MANAGER, APP_ID, AUCTION_AGENT);
+    bot = new AuctionFinalizeBot(APP_ID, AUCTION_AGENT);
   }
 
   @Test

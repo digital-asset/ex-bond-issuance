@@ -40,11 +40,11 @@ public class RedemptionCalculationBot {
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
 
-  public RedemptionCalculationBot(TimeManager timeManager, String appId, String partyName) {
+  public RedemptionCalculationBot(String appId, String partyName) {
     String workflowId =
         "WORKFLOW-" + partyName + "-RedemptionCalculationBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(RedemptionCalculationBot.class, workflowId);
-    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
+    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId);
 
     Filter messageFilter =
         new InclusiveFilter(

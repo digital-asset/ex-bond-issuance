@@ -14,7 +14,6 @@ import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupSignerBo
 import com.digitalasset.refapps.bondissuance.bot.marketsetup.MarketSetupStarterBot;
 import com.digitalasset.refapps.bondissuance.util.CliOptions;
 import com.digitalasset.refapps.bondissuance.util.PartyAllocator;
-import com.digitalasset.refapps.bondissuance.util.TimeManager;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import java.util.Optional;
@@ -49,7 +48,7 @@ public class Main {
               .build();
       PartyAllocator.AppParties appParties = new PartyAllocator.AppParties(options.getParties());
       runBotsWithAllocation(
-          options.isNoMarketSetup(), options.useTimeClient(), appParties, client, channel);
+          options.isNoMarketSetup(), appParties, client, channel);
 
       logger.info("Welcome to Bond Issuance Application!");
       logger.info("Press Ctrl+C to shut down the program.");
@@ -65,7 +64,6 @@ public class Main {
 
   private static void runBotsWithAllocation(
       boolean noMarketSetup,
-      boolean useTimeClient,
       PartyAllocator.AppParties appParties,
       DamlLedgerClient client,
       ManagedChannel channel)
@@ -73,32 +71,24 @@ public class Main {
     final PartyAllocator partyAllocator = new PartyAllocator(channel);
     final PartyAllocator.AllParties allParties = partyAllocator.getAllPartyIDs(appParties);
     logger.info("Allocation: {}", allParties);
-    TimeManager timeManager;
-    if (useTimeClient) {
-      logger.info("Using time client.");
-      timeManager = getTimeClientBasedTimeManager(client.getTimeClient());
-    } else {
-      timeManager = getWallclockTimeManager();
-    }
-    runBots(noMarketSetup, appParties, allParties, timeManager).accept(client, channel);
+    runBots(noMarketSetup, appParties, allParties).accept(client, channel);
   }
 
   public static BiConsumer<DamlLedgerClient, ManagedChannel> runBots(
       boolean noMarketSetup,
       PartyAllocator.AppParties parties,
-      PartyAllocator.AllParties allParties,
-      TimeManager timeManager) {
+      PartyAllocator.AllParties allParties) {
     return (DamlLedgerClient client, ManagedChannel channel) -> {
       logPackages(client);
 
       if (parties.hasBank1()) {
         logger.info("Starting automation for Bank1.");
         InvestorSettlementBot investorSettlementBot1 =
-            new InvestorSettlementBot(timeManager, APPLICATION_ID, allParties.getBank1());
+            new InvestorSettlementBot(APPLICATION_ID, allParties.getBank1());
         PlaceBidBot placeBidBot1 =
-            new PlaceBidBot(timeManager, APPLICATION_ID, allParties.getBank1());
+            new PlaceBidBot(APPLICATION_ID, allParties.getBank1());
         MarketSetupSignerBot signer1 =
-            new MarketSetupSignerBot(timeManager, APPLICATION_ID, allParties.getBank1());
+            new MarketSetupSignerBot(APPLICATION_ID, allParties.getBank1());
         Bot.wire(
             APPLICATION_ID,
             client,
@@ -122,11 +112,11 @@ public class Main {
       if (parties.hasBank2()) {
         logger.info("Starting automation for Bank2.");
         InvestorSettlementBot investorSettlementBot2 =
-            new InvestorSettlementBot(timeManager, APPLICATION_ID, allParties.getBank2());
+            new InvestorSettlementBot(APPLICATION_ID, allParties.getBank2());
         PlaceBidBot placeBidBot2 =
-            new PlaceBidBot(timeManager, APPLICATION_ID, allParties.getBank2());
+            new PlaceBidBot(APPLICATION_ID, allParties.getBank2());
         MarketSetupSignerBot signer2 =
-            new MarketSetupSignerBot(timeManager, APPLICATION_ID, allParties.getBank2());
+            new MarketSetupSignerBot(APPLICATION_ID, allParties.getBank2());
         Bot.wire(
             APPLICATION_ID,
             client,
@@ -150,11 +140,11 @@ public class Main {
       if (parties.hasBank3()) {
         logger.info("Starting automation for Bank3.");
         InvestorSettlementBot investorSettlementBot3 =
-            new InvestorSettlementBot(timeManager, APPLICATION_ID, allParties.getBank3());
+            new InvestorSettlementBot(APPLICATION_ID, allParties.getBank3());
         PlaceBidBot placeBidBot3 =
-            new PlaceBidBot(timeManager, APPLICATION_ID, allParties.getBank3());
+            new PlaceBidBot(APPLICATION_ID, allParties.getBank3());
         MarketSetupSignerBot signer3 =
-            new MarketSetupSignerBot(timeManager, APPLICATION_ID, allParties.getBank3());
+            new MarketSetupSignerBot(APPLICATION_ID, allParties.getBank3());
         Bot.wire(
             APPLICATION_ID,
             client,
@@ -178,11 +168,11 @@ public class Main {
       if (parties.hasIssuer()) {
         logger.info("Starting automation for Issuer.");
         CommissionBot commissionBot =
-            new CommissionBot(timeManager, APPLICATION_ID, allParties.getIssuer());
+            new CommissionBot(APPLICATION_ID, allParties.getIssuer());
         RedemptionFinalizeBot redemptionFinalizeBot =
-            new RedemptionFinalizeBot(timeManager, APPLICATION_ID, allParties.getIssuer());
+            new RedemptionFinalizeBot(APPLICATION_ID, allParties.getIssuer());
         MarketSetupSignerBot signerIssuer =
-            new MarketSetupSignerBot(timeManager, APPLICATION_ID, allParties.getIssuer());
+            new MarketSetupSignerBot(APPLICATION_ID, allParties.getIssuer());
         Bot.wire(
             APPLICATION_ID,
             client,
@@ -206,9 +196,9 @@ public class Main {
       if (parties.hasAuctionAgent()) {
         logger.info("Starting automation for AuctionAgent.");
         AuctionFinalizeBot auctionFinalizeBot =
-            new AuctionFinalizeBot(timeManager, APPLICATION_ID, allParties.getAuctionAgent());
+            new AuctionFinalizeBot(APPLICATION_ID, allParties.getAuctionAgent());
         MarketSetupSignerBot signerAuctionA =
-            new MarketSetupSignerBot(timeManager, APPLICATION_ID, allParties.getAuctionAgent());
+            new MarketSetupSignerBot(APPLICATION_ID, allParties.getAuctionAgent());
         Bot.wire(
             APPLICATION_ID,
             client,
@@ -226,9 +216,9 @@ public class Main {
       if (parties.hasCSD()) {
         logger.info("Starting automation for CSD.");
         RedemptionCalculationBot redemptionCalculationBot =
-            new RedemptionCalculationBot(timeManager, APPLICATION_ID, allParties.getCSD());
+            new RedemptionCalculationBot(APPLICATION_ID, allParties.getCSD());
         MarketSetupSignerBot signerCsd =
-            new MarketSetupSignerBot(timeManager, APPLICATION_ID, allParties.getCSD());
+            new MarketSetupSignerBot(APPLICATION_ID, allParties.getCSD());
         Bot.wire(
             APPLICATION_ID,
             client,
@@ -247,13 +237,12 @@ public class Main {
         logger.info("Starting automation for Operator.");
         MarketSetupStarterBot marketSetupStarterBot =
             new MarketSetupStarterBot(
-                timeManager,
                 client.getCommandSubmissionClient(),
                 APPLICATION_ID,
                 allParties.getOperator(),
                 allParties);
         MarketSetupSignerBot signerOp =
-            new MarketSetupSignerBot(timeManager, APPLICATION_ID, allParties.getOperator());
+            new MarketSetupSignerBot(APPLICATION_ID, allParties.getOperator());
         Bot.wire(
             APPLICATION_ID,
             client,
@@ -274,7 +263,7 @@ public class Main {
       if (parties.hasRegulator()) {
         logger.info("Starting automation for Regulator.");
         MarketSetupSignerBot signerReg =
-            new MarketSetupSignerBot(timeManager, APPLICATION_ID, allParties.getRegulator());
+            new MarketSetupSignerBot(APPLICATION_ID, allParties.getRegulator());
         Bot.wire(
             APPLICATION_ID,
             client,
@@ -286,7 +275,7 @@ public class Main {
       if (parties.hasCentralBank()) {
         logger.info("Starting automation for CentralBank.");
         MarketSetupSignerBot signerCentral =
-            new MarketSetupSignerBot(timeManager, APPLICATION_ID, allParties.getCentralBank());
+            new MarketSetupSignerBot(APPLICATION_ID, allParties.getCentralBank());
         Bot.wire(
             APPLICATION_ID,
             client,

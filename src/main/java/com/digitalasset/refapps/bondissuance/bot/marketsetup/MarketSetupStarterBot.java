@@ -16,10 +16,7 @@ import da.refapps.bond.test.marketsetup.MarketSetupSignature;
 import da.refapps.bond.test.marketsetup.MarketSetupSignatureCreator;
 import io.reactivex.Flowable;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.Logger;
@@ -38,12 +35,10 @@ public class MarketSetupStarterBot {
   private final CommandSubmissionClient client;
   private final String appId;
   private final PartyAllocator.AllParties marketParties;
-  private final TimeManager timeManager;
   private final CommandsAndPendingSetBuilder commandBuilder;
   public final TransactionFilter transactionFilter;
 
   public MarketSetupStarterBot(
-      TimeManager timeManager,
       CommandSubmissionClient client,
       String appId,
       String partyName,
@@ -55,9 +50,8 @@ public class MarketSetupStarterBot {
     this.client = client;
     this.appId = appId;
     this.marketParties = marketParties;
-    this.timeManager = timeManager;
     this.commandBuilder =
-        new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
+        new CommandsAndPendingSetBuilder(appId, partyName, workflowId);
 
     Filter messageFilter =
         new InclusiveFilter(
@@ -79,10 +73,9 @@ public class MarketSetupStarterBot {
                 marketParties.getBank2(), marketParties.getBank3(),
                 marketParties.getCSD(), marketParties.getIssuer(),
                 marketParties.getCentralBank(), Collections.singletonList(partyName)));
-    Instant time = timeManager.getTime();
     logger.info("Submitting Market Setup Start command.");
     client.submit(
-        "marketSetupWorkflow", appId, cmdId, partyName, time, time.plusSeconds(MRT), commands);
+        "marketSetupWorkflow", appId, cmdId, partyName, commands);
   }
 
   public Flowable<CommandsAndPendingSet> calculateCommands(

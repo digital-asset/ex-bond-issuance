@@ -39,7 +39,7 @@ public class InvestorSettlementBotTest {
 
   @Before
   public void setupTests() {
-    bot = new InvestorSettlementBot(TIME_MANAGER, APP_ID, INVESTOR);
+    bot = new InvestorSettlementBot(APP_ID, INVESTOR);
   }
 
   @Test

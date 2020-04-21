@@ -39,12 +39,12 @@ public class AuctionFinalizeBot {
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
 
-  public AuctionFinalizeBot(TimeManager timeManager, String appId, String partyName) {
+  public AuctionFinalizeBot(String appId, String partyName) {
     String workflowId =
         "WORKFLOW-" + partyName + "-AuctionFinalizeBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(AuctionFinalizeBot.class, workflowId);
 
-    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
+    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId);
 
     Filter messageFilter =
         new InclusiveFilter(

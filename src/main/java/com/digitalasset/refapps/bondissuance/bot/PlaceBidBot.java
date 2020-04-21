@@ -42,10 +42,10 @@ public class PlaceBidBot {
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
 
-  public PlaceBidBot(TimeManager timeManager, String appId, String partyName) {
+  public PlaceBidBot(String appId, String partyName) {
     String workflowId = "WORKFLOW-" + partyName + "-PlaceBidBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(PlaceBidBot.class, workflowId);
-    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
+    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId);
 
     Filter messageFilter =
         new InclusiveFilter(

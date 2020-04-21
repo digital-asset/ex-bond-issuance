@@ -20,11 +20,14 @@ import da.refapps.bond.test.marketsetup.MarketSetupSignature;
 import da.refapps.bond.test.marketsetup.MarketSetupSignatureCreator;
 import io.reactivex.Single;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,13 +49,21 @@ public class MarketSetupStarterBotTest {
           }
 
           @Override
+          public Single<Empty> submit(@NonNull String workflowId, @NonNull String applicationId, @NonNull String commandId, @NonNull String party, @NonNull Optional<Instant> minLedgerTimeAbs, @NonNull Optional<Duration> minLedgerTimeRel, @NonNull Optional<Duration> deduplicationTime, @NonNull List<Command> commands) {
+            return null;
+          }
+
+          @Override
+          public Single<Empty> submit(@NonNull String workflowId, @NonNull String applicationId, @NonNull String commandId, @NonNull String party, @NonNull Optional<Instant> minLedgerTimeAbs, @NonNull Optional<Duration> minLedgerTimeRel, @NonNull Optional<Duration> deduplicationTime, @NonNull List<Command> commands, @NonNull String accessToken) {
+            return null;
+          }
+
+          @Override
           public Single<Empty> submit(
               String workflowId,
               String applicationId,
               String commandId,
               String party,
-              Instant ledgerEffectiveTime,
-              Instant maximumRecordTime,
               List<Command> commands) {
             sentIn.add(commands);
             return Single.just(Empty.getDefaultInstance());
@@ -64,8 +75,6 @@ public class MarketSetupStarterBotTest {
               String applicationId,
               String commandId,
               String party,
-              Instant ledgerEffectiveTime,
-              Instant maximumRecordTime,
               List<Command> commands,
               String accessToken) {
             throw new UnsupportedOperationException(
@@ -88,7 +97,7 @@ public class MarketSetupStarterBotTest {
             .collect(Collectors.toMap(Function.identity(), Function.identity()));
     PartyAllocator.AllParties marketParties = new PartyAllocator.AllParties(parties);
     marketSetupBot =
-        new MarketSetupStarterBot(TIME_MANAGER, client, APP_ID, OPERATOR, marketParties);
+        new MarketSetupStarterBot(client, APP_ID, OPERATOR, marketParties);
   }
 
   private void addActiveMarketSetupSignatureCreatorContract(
@@ -125,7 +134,7 @@ public class MarketSetupStarterBotTest {
 
   @Test
   public void testMarketSetupCompletes() throws InvocationTargetException, IllegalAccessException {
-    MarketSetupSignerBot signerBot = new MarketSetupSignerBot(TIME_MANAGER, APP_ID, BANK1);
+    MarketSetupSignerBot signerBot = new MarketSetupSignerBot(APP_ID, BANK1);
 
     marketSetupBot.startMarketSetup();
     assertEquals(1, sentIn.size());
@@ -162,7 +171,7 @@ public class MarketSetupStarterBotTest {
 
   @Test
   public void testBotSigns() throws InvocationTargetException, IllegalAccessException {
-    MarketSetupSignerBot bot2 = new MarketSetupSignerBot(TIME_MANAGER, APP_ID, BANK1);
+    MarketSetupSignerBot bot2 = new MarketSetupSignerBot(APP_ID, BANK1);
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 
     String marketSetupCid = "marketSetupCid";
@@ -177,7 +186,7 @@ public class MarketSetupStarterBotTest {
 
   @Test(expected = NoSuchElementException.class)
   public void testBotSignsOnlyOnce() throws InvocationTargetException, IllegalAccessException {
-    MarketSetupSignerBot bot2 = new MarketSetupSignerBot(TIME_MANAGER, APP_ID, BANK1);
+    MarketSetupSignerBot bot2 = new MarketSetupSignerBot(APP_ID, BANK1);
     LedgerTestView<Template> ledgerView = new LedgerTestView<>();
 
     String marketSetupCid = "marketSetupCid";
