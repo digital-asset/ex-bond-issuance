@@ -69,7 +69,7 @@ public class CommandsAndPendingSetBuilder {
                 UUID.randomUUID().toString(),
                 party,
                 Optional.empty(),
-                Optional.of(Duration.ofSeconds(30)),
+                Optional.empty(),
                 Optional.empty(),
                 commands);
         return Optional.of(
