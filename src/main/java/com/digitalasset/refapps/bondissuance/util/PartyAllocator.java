@@ -5,6 +5,7 @@
 package com.digitalasset.refapps.bondissuance.util;
 
 import static com.daml.ledger.api.v1.admin.PartyManagementServiceGrpc.newBlockingStub;
+
 import com.daml.ledger.api.v1.admin.PartyManagementServiceGrpc;
 import com.daml.ledger.api.v1.admin.PartyManagementServiceOuterClass.AllocatePartyRequest;
 import com.daml.ledger.api.v1.admin.PartyManagementServiceOuterClass.AllocatePartyResponse;

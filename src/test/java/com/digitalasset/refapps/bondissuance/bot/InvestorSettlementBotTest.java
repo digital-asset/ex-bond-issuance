@@ -12,7 +12,6 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CENTRAL_BAN
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR_CASH_ACCOUNT;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.ISSUER;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.TIME_MANAGER;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSingleExercise;
 
 import com.daml.ledger.javaapi.data.Template;

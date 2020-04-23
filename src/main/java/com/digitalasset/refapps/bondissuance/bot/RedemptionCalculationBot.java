@@ -16,7 +16,6 @@ import com.daml.ledger.rxjava.components.helpers.TemplateUtils;
 import com.digitalasset.refapps.bondissuance.util.BotLogger;
 import com.digitalasset.refapps.bondissuance.util.BotUtil;
 import com.digitalasset.refapps.bondissuance.util.CommandsAndPendingSetBuilder;
-import com.digitalasset.refapps.bondissuance.util.TimeManager;
 import com.google.common.collect.Sets;
 import da.finance.fact.asset.AssetDeposit;
 import da.refapps.bond.redemption.RedemptionCalculationBotTrigger;

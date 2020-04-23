@@ -17,7 +17,6 @@ import com.digitalasset.refapps.bondissuance.util.AssetUtil;
 import com.digitalasset.refapps.bondissuance.util.BotLogger;
 import com.digitalasset.refapps.bondissuance.util.BotUtil;
 import com.digitalasset.refapps.bondissuance.util.CommandsAndPendingSetBuilder;
-import com.digitalasset.refapps.bondissuance.util.TimeManager;
 import com.google.common.collect.Sets;
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;

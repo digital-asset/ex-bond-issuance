@@ -11,9 +11,6 @@ import com.daml.ledger.javaapi.data.SubmitCommandsRequest;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
-
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,8 +27,7 @@ public class CommandsAndPendingSetBuilder {
   private final String party;
   private final String workflowId;
 
-  public CommandsAndPendingSetBuilder(
-      String appId, String party, String workflowId) {
+  public CommandsAndPendingSetBuilder(String appId, String party, String workflowId) {
     this.appId = appId;
     this.party = party;
     this.workflowId = workflowId;

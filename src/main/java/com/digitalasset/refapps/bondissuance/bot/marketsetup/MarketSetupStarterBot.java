@@ -15,7 +15,6 @@ import com.google.common.collect.Sets;
 import da.refapps.bond.test.marketsetup.MarketSetupSignature;
 import da.refapps.bond.test.marketsetup.MarketSetupSignatureCreator;
 import io.reactivex.Flowable;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -28,7 +27,6 @@ import org.slf4j.Logger;
 public class MarketSetupStarterBot {
 
   private static final int TOTAL_COUNT_OF_PARTIES = 9;
-  private static final int MRT = 30;
 
   private final Logger logger;
   private final String partyName;
@@ -50,8 +48,7 @@ public class MarketSetupStarterBot {
     this.client = client;
     this.appId = appId;
     this.marketParties = marketParties;
-    this.commandBuilder =
-        new CommandsAndPendingSetBuilder(appId, partyName, workflowId);
+    this.commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId);
 
     Filter messageFilter =
         new InclusiveFilter(
@@ -74,8 +71,7 @@ public class MarketSetupStarterBot {
                 marketParties.getCSD(), marketParties.getIssuer(),
                 marketParties.getCentralBank(), Collections.singletonList(partyName)));
     logger.info("Submitting Market Setup Start command.");
-    client.submit(
-        "marketSetupWorkflow", appId, cmdId, partyName, commands);
+    client.submit("marketSetupWorkflow", appId, cmdId, partyName, commands);
   }
 
   public Flowable<CommandsAndPendingSet> calculateCommands(

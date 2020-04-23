@@ -26,7 +26,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,12 +48,29 @@ public class MarketSetupStarterBotTest {
           }
 
           @Override
-          public Single<Empty> submit(@NonNull String workflowId, @NonNull String applicationId, @NonNull String commandId, @NonNull String party, @NonNull Optional<Instant> minLedgerTimeAbs, @NonNull Optional<Duration> minLedgerTimeRel, @NonNull Optional<Duration> deduplicationTime, @NonNull List<Command> commands) {
+          public Single<Empty> submit(
+              @NonNull String workflowId,
+              @NonNull String applicationId,
+              @NonNull String commandId,
+              @NonNull String party,
+              @NonNull Optional<Instant> minLedgerTimeAbs,
+              @NonNull Optional<Duration> minLedgerTimeRel,
+              @NonNull Optional<Duration> deduplicationTime,
+              @NonNull List<Command> commands) {
             return null;
           }
 
           @Override
-          public Single<Empty> submit(@NonNull String workflowId, @NonNull String applicationId, @NonNull String commandId, @NonNull String party, @NonNull Optional<Instant> minLedgerTimeAbs, @NonNull Optional<Duration> minLedgerTimeRel, @NonNull Optional<Duration> deduplicationTime, @NonNull List<Command> commands, @NonNull String accessToken) {
+          public Single<Empty> submit(
+              @NonNull String workflowId,
+              @NonNull String applicationId,
+              @NonNull String commandId,
+              @NonNull String party,
+              @NonNull Optional<Instant> minLedgerTimeAbs,
+              @NonNull Optional<Duration> minLedgerTimeRel,
+              @NonNull Optional<Duration> deduplicationTime,
+              @NonNull List<Command> commands,
+              @NonNull String accessToken) {
             return null;
           }
 
@@ -96,8 +112,7 @@ public class MarketSetupStarterBotTest {
                 })
             .collect(Collectors.toMap(Function.identity(), Function.identity()));
     PartyAllocator.AllParties marketParties = new PartyAllocator.AllParties(parties);
-    marketSetupBot =
-        new MarketSetupStarterBot(client, APP_ID, OPERATOR, marketParties);
+    marketSetupBot = new MarketSetupStarterBot(client, APP_ID, OPERATOR, marketParties);
   }
 
   private void addActiveMarketSetupSignatureCreatorContract(

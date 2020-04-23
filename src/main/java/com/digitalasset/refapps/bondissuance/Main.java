@@ -4,9 +4,6 @@
  */
 package com.digitalasset.refapps.bondissuance;
 
-import static com.digitalasset.refapps.bondissuance.util.TimeManager.getTimeClientBasedTimeManager;
-import static com.digitalasset.refapps.bondissuance.util.TimeManager.getWallclockTimeManager;
-
 import com.daml.ledger.rxjava.DamlLedgerClient;
 import com.daml.ledger.rxjava.components.Bot;
 import com.digitalasset.refapps.bondissuance.bot.*;
@@ -47,8 +44,7 @@ public class Main {
               .maxInboundMessageSize(Integer.MAX_VALUE)
               .build();
       PartyAllocator.AppParties appParties = new PartyAllocator.AppParties(options.getParties());
-      runBotsWithAllocation(
-          options.isNoMarketSetup(), appParties, client, channel);
+      runBotsWithAllocation(options.isNoMarketSetup(), appParties, client, channel);
 
       logger.info("Welcome to Bond Issuance Application!");
       logger.info("Press Ctrl+C to shut down the program.");
@@ -85,8 +81,7 @@ public class Main {
         logger.info("Starting automation for Bank1.");
         InvestorSettlementBot investorSettlementBot1 =
             new InvestorSettlementBot(APPLICATION_ID, allParties.getBank1());
-        PlaceBidBot placeBidBot1 =
-            new PlaceBidBot(APPLICATION_ID, allParties.getBank1());
+        PlaceBidBot placeBidBot1 = new PlaceBidBot(APPLICATION_ID, allParties.getBank1());
         MarketSetupSignerBot signer1 =
             new MarketSetupSignerBot(APPLICATION_ID, allParties.getBank1());
         Bot.wire(
@@ -113,8 +108,7 @@ public class Main {
         logger.info("Starting automation for Bank2.");
         InvestorSettlementBot investorSettlementBot2 =
             new InvestorSettlementBot(APPLICATION_ID, allParties.getBank2());
-        PlaceBidBot placeBidBot2 =
-            new PlaceBidBot(APPLICATION_ID, allParties.getBank2());
+        PlaceBidBot placeBidBot2 = new PlaceBidBot(APPLICATION_ID, allParties.getBank2());
         MarketSetupSignerBot signer2 =
             new MarketSetupSignerBot(APPLICATION_ID, allParties.getBank2());
         Bot.wire(
@@ -141,8 +135,7 @@ public class Main {
         logger.info("Starting automation for Bank3.");
         InvestorSettlementBot investorSettlementBot3 =
             new InvestorSettlementBot(APPLICATION_ID, allParties.getBank3());
-        PlaceBidBot placeBidBot3 =
-            new PlaceBidBot(APPLICATION_ID, allParties.getBank3());
+        PlaceBidBot placeBidBot3 = new PlaceBidBot(APPLICATION_ID, allParties.getBank3());
         MarketSetupSignerBot signer3 =
             new MarketSetupSignerBot(APPLICATION_ID, allParties.getBank3());
         Bot.wire(
@@ -167,8 +160,7 @@ public class Main {
 
       if (parties.hasIssuer()) {
         logger.info("Starting automation for Issuer.");
-        CommissionBot commissionBot =
-            new CommissionBot(APPLICATION_ID, allParties.getIssuer());
+        CommissionBot commissionBot = new CommissionBot(APPLICATION_ID, allParties.getIssuer());
         RedemptionFinalizeBot redemptionFinalizeBot =
             new RedemptionFinalizeBot(APPLICATION_ID, allParties.getIssuer());
         MarketSetupSignerBot signerIssuer =
