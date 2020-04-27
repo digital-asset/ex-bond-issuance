@@ -24,8 +24,9 @@ try:
 except ImportError:
     from urllib2 import urlopen
 
-# Currently there is no release yet, so use master
-url = 'https://github.com/digital-asset/lib-finance/archive/master.zip'
+# We use c9284704da890fa08ce96624f51ff997512711c4, the last one before FinLib 2.0
+finlib_version = 'c9284704da890fa08ce96624f51ff997512711c4'
+url = "https://github.com/digital-asset/lib-finance/archive/{version}.zip".format(version=finlib_version)
 
 
 def get_source(url, tmp_directory):
@@ -44,8 +45,8 @@ def daml_command():
         return "daml"
 
 def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
-    extracted_directory = 'lib-finance-master'
-    project_root = "{tmp_directory}/{extracted_directory}/".format(
+    extracted_directory = "lib-finance-{version}".format(version=finlib_version)
+    project_root = "{tmp_directory}/{extracted_directory}".format(
                         tmp_directory=tmp_directory,
                         extracted_directory=extracted_directory)
     build_command = [daml_command(), "build", "--project-root", project_root, "-o", full_path_to_dar]
@@ -75,5 +76,5 @@ get_source(url, tmp_directory)
 
 build_dar(daml_sdk_version, full_path_to_dar, tmp_directory)
 
-logging.debug('Removing {tmp_directory}'.format(tmp_directory=tmp_directory))
-rmtree(tmp_directory)
+## logging.debug('Removing {tmp_directory}'.format(tmp_directory=tmp_directory))
+## rmtree(tmp_directory)
