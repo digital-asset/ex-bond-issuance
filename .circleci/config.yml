@@ -9,6 +9,7 @@ executors:
   daml-executor:
     docker:
       - image: circleci/openjdk:11.0-jdk
+    resource_class: large
   docker_buildpack:
     docker:
       - image: circleci/buildpack-deps:xenial
@@ -50,6 +51,14 @@ jobs:
           command: |
             export PATH=${HOME}/.daml/bin:${PATH}
             mvn verify
+      - run:
+          command: |
+            echo "Moving log files so they can be stored."
+            mkdir logs
+            mv *.log logs
+          when: always
+      - store_artifacts:
+          path: logs
       - save_cache:
           paths:
             - ~/.m2
