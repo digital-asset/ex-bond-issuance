@@ -32,7 +32,7 @@ public class PlaceBidBotTest {
 
   @Before
   public void setupTests() {
-    bot = new PlaceBidBot(TIME_MANAGER, APP_ID, INVESTOR);
+    bot = new PlaceBidBot(APP_ID, INVESTOR);
   }
 
   @Test

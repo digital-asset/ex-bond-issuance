@@ -4,7 +4,6 @@
  */
 package com.digitalasset.refapps.bondissuance;
 
-import static com.digitalasset.refapps.bondissuance.util.TimeManager.getWallclockTimeManager;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -74,8 +73,7 @@ public class BondIssuanceIT {
                   new PartyAllocator.AppParties(parties),
                   new PartyAllocator.AllParties(
                       Arrays.asList(parties).stream()
-                          .collect(Collectors.toMap(Function.identity(), Function.identity()))),
-                  getWallclockTimeManager()))
+                          .collect(Collectors.toMap(Function.identity(), Function.identity())))))
           .build();
 
   @ClassRule public static ExternalResource sandboxClassRule = sandbox.getClassRule();

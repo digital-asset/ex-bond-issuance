@@ -12,7 +12,6 @@ import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.CENTRAL_BAN
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.INVESTOR_CASH_ACCOUNT;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.ISSUER;
-import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.TIME_MANAGER;
 import static com.digitalasset.refapps.bondissuance.bot.BotTestUtils.assertHasSingleExercise;
 
 import com.daml.ledger.javaapi.data.Template;
@@ -39,7 +38,7 @@ public class InvestorSettlementBotTest {
 
   @Before
   public void setupTests() {
-    bot = new InvestorSettlementBot(TIME_MANAGER, APP_ID, INVESTOR);
+    bot = new InvestorSettlementBot(APP_ID, INVESTOR);
   }
 
   @Test

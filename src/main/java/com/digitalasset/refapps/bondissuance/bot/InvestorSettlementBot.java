@@ -17,7 +17,6 @@ import com.digitalasset.refapps.bondissuance.util.AssetUtil;
 import com.digitalasset.refapps.bondissuance.util.BotLogger;
 import com.digitalasset.refapps.bondissuance.util.BotUtil;
 import com.digitalasset.refapps.bondissuance.util.CommandsAndPendingSetBuilder;
-import com.digitalasset.refapps.bondissuance.util.TimeManager;
 import com.google.common.collect.Sets;
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;
@@ -42,12 +41,12 @@ public class InvestorSettlementBot {
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
 
-  public InvestorSettlementBot(TimeManager timeManager, String appId, String partyName) {
+  public InvestorSettlementBot(String appId, String partyName) {
     String workflowId =
         "WORKFLOW-" + partyName + "-InvestorSettlementBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(InvestorSettlementBot.class, workflowId);
 
-    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
+    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId);
 
     Filter messageFilter =
         new InclusiveFilter(
