@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParty } from '@daml/react';
 import { Drawer, IconButton, List } from "@material-ui/core";
-import { green, red } from '@material-ui/core/colors';
-import { List as ListIcon, TouchApp, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, ListAlt, Public, PersonAdd, Build, CardMembership } from "@material-ui/icons";
+import { green} from '@material-ui/core/colors';
+import { List as ListIcon, TouchApp, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, Public, Build, CardMembership } from "@material-ui/icons";
 import { useTheme } from "@material-ui/styles";
 import { withRouter } from "react-router-dom";
 import classNames from "classnames";
 import useStyles from "./styles";
 import SidebarLink from "./components/SidebarLink/SidebarLink";
 import { useLayoutState, useLayoutDispatch, toggleSidebar } from "../../context/LayoutContext";
-import SupervisedUserCircleIcon from '@material-ui/icons/SupervisedUserCircle';
-import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
 
 const allParties = "All"
 
@@ -432,7 +430,8 @@ function Sidebar({ location }) {
 
   }
   function Default() {
-    var panelMap = sigObsMap.get('pendingSettlementsViewForIssuer');
+    
+    // var panelMap = sigObsMap.get('pendingSettlementsViewForIssuer');
       return (
         <SidebarLink
           key="Default"
@@ -442,8 +441,6 @@ function Sidebar({ location }) {
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
-    return null;
-
   }
 
   return (
