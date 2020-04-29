@@ -1,0 +1,207 @@
+--
+-- Copyright (c) 2020, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+
+module DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger where
+
+import Daml.Trigger
+import DA.Next.Map qualified as M
+import DA.Foldable hiding (length)
+import Daml.Trigger.Assert
+import DA.Assert
+import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
+import DA.RefApps.Bond.Auction
+import DA.Next.Map qualified
+import DA.RefApps.Bond.Roles.IssuerRole
+
+import DA.Either
+import DA.Optional
+
+import DA.Finance.Fact.Asset
+import DA.Finance.Rule.Asset
+import DA.RefApps.Bond.Lock
+
+auctionFinalizeTrigger : Trigger ()
+auctionFinalizeTrigger = Trigger
+  { initialize = const ()
+  , updateState = \_ _ _ -> ()
+  , rule = finalizeAuction
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @AuctionBid,
+      registeredTemplate @AuctionFinalizeBotTrigger,
+      registeredTemplate @BidderParticipation
+    ]
+  , heartbeat = None
+  }
+
+finalizeAuction : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
+finalizeAuction party activeContracts _ _ () = do
+  let bidContracts = getContracts @AuctionBid activeContracts
+      triggerContracts = getContracts @AuctionFinalizeBotTrigger activeContracts
+      participationContracts = getContracts @BidderParticipation activeContracts
+
+  forA_ triggerContracts $ \(triggerCid, trigger) -> do
+    let matchingParticipationCids =
+            getMatchingParticipationCids trigger.auctionAgent trigger.auctionName participationContracts
+        matchingBidCids =
+            getMatchingBidCids trigger.auctionAgent trigger.auctionName bidContracts
+    dedupExercise triggerCid AuctionFinalizeBotTrigger_AllocateBond with
+        participationCids = matchingParticipationCids
+        bidCids = matchingBidCids
+  where
+    getMatchingParticipationCids auctionAgent auctionName participationContracts =
+      map fst $
+        filter (\(_, p) -> p.auctionName == auctionName && p.auctionAgent == auctionAgent)
+          participationContracts
+
+    getMatchingBidCids auctionAgent auctionName bidContracts =
+      map fst $
+        filter (\(_, b) -> b.auctionName == auctionName && b.auctionAgent == auctionAgent)
+          bidContracts
+
+-- Tests ---------------------------
+
+testAuctionWithNoBid = scenario do
+  auctionAgent <- getParty "AuctionAgent"
+
+  issuance <-
+    MarketSetup.setupIssuance
+  (auction, [participation1, participation2]) <-
+    startAuction auctionAgent issuance
+
+  finalizeTrigger <-
+    auctionAgent `submit`
+      exercise auction Auction_Finalize
+
+  let activeContracts =
+          toACS participation1 <> toACS participation2 <>
+          toACS finalizeTrigger
+  commands <-
+    testRule auctionFinalizeTrigger auctionAgent activeContracts DA.Next.Map.empty ()
+
+  let flattenedCommands = flattenCommands commands
+  length flattenedCommands === 1
+  assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
+    assertEq cid finalizeTrigger
+    assertEq choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [])
+
+testAuctionWithSingleBid = scenario do
+  auctionAgent <- getParty "AuctionAgent"
+  bank1 <- getParty "Bank1"
+
+  issuance <-
+    MarketSetup.setupIssuance
+  (auction, [participation1, participation2]) <-
+    startAuction auctionAgent issuance
+  (bid1, _, _) <-
+    placeBid
+      bank1 42.0 20000
+      participation1 issuance.cashAssets.bank1CashDepositCid
+      issuance.rules.bank1CashFungibleCid issuance.rules.bank1LockRuleCid
+      issuance.rules.bank1BondSettlementCid
+
+  finalizeTrigger <-
+    auctionAgent `submit`
+      exercise auction Auction_Finalize
+
+  let activeContracts =
+          toACS participation1 <> toACS participation2 <>
+          toACS bid1 <> toACS finalizeTrigger
+  commands <-
+    testRule auctionFinalizeTrigger auctionAgent activeContracts DA.Next.Map.empty ()
+
+  let flattenedCommands = flattenCommands commands
+  length flattenedCommands === 1
+  assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
+    assertEq cid finalizeTrigger
+    assertEq choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [bid1])
+
+testAuctionWithTwoBids = scenario do
+  auctionAgent <- getParty "AuctionAgent"
+  bank1 <- getParty "Bank1"
+  bank2 <- getParty "Bank2"
+
+  issuance <-
+    MarketSetup.setupIssuance
+  (auction, [participation1, participation2]) <-
+    startAuction auctionAgent issuance
+  (bid1, _, _) <-
+    placeBid
+      bank1 42.0 20000
+      participation1 issuance.cashAssets.bank1CashDepositCid
+      issuance.rules.bank1CashFungibleCid issuance.rules.bank1LockRuleCid
+      issuance.rules.bank1BondSettlementCid
+  (bid2, _, _) <-
+    placeBid
+      bank2 43.0 20000
+      participation2 issuance.cashAssets.bank2CashDepositCid
+      issuance.rules.bank2CashFungibleCid issuance.rules.bank2LockRuleCid
+      issuance.rules.bank2BondSettlementCid
+
+  finalizeTrigger <-
+    auctionAgent `submit`
+      exercise auction Auction_Finalize
+
+  let activeContracts =
+          toACS participation1 <> toACS participation2 <>
+          toACS bid1 <> toACS bid2 <> toACS finalizeTrigger
+  commands <-
+    testRule auctionFinalizeTrigger auctionAgent activeContracts DA.Next.Map.empty ()
+
+  let flattenedCommands = flattenCommands commands
+  length flattenedCommands === 1
+  assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
+    assertEq cid finalizeTrigger
+    assertEq choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [bid1, bid2])
+
+-- Helpers -------------------------
+
+startAuction : Party -> MarketSetup.TestIssuance -> Scenario (ContractId Auction, [ContractId BidderParticipation])
+startAuction auctionAgent issuance = scenario do
+  issuer <- getParty "Issuer"
+  centralBank <- getParty "CentralBank"
+  bank1 <- getParty "Bank1"
+  bank2 <- getParty "Bank2"
+  csd <- getParty "CSD"
+
+  (auctionInvitationCid, _remainingAssets) <- submit issuer do
+    commissionedCid <- exercise issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
+      bondAssetDepositCid = issuance.bondBundleData.assetDepositCid
+      startDate = MarketSetup.auctionStartDate
+      endDate = MarketSetup.auctionEndDate
+      minPrice = 40.0
+      size = 1000000
+
+    exercise commissionedCid CommissionBotTrigger_InviteAgent with
+      bondAssetFungibleCid = issuance.bondBundleData.assetFungibleCid
+      bondAssetSettlementCid = issuance.bondBundleData.bondSettlementCid
+      cashAssetSettlementCid = issuance.bondBundleData.cashSettlementCid
+      fixedRateBondFactCid = issuance.fixedRateBondFactCid
+
+  submit auctionAgent do
+    auctionCid <- exercise auctionInvitationCid AuctionInvitation_Accept with
+      auctionName = "testAuction"
+    exercise auctionCid Auction_InviteBidders with
+      bidders = [bank1, bank2]
+
+placeBid : Party -> Decimal -> Int -> ContractId BidderParticipation -> ContractId AssetDeposit
+            -> ContractId AssetFungible -> ContractId AssetLockRule -> ContractId AssetSettlement
+            -> Scenario (ContractId AuctionBid, [ContractId AssetDeposit], ContractId AuctionLockedCash)
+placeBid bank price quantity bidderParticipationCid bankCashDepositCid
+    bankCashFungibleCid bankLockRuleCid bankBondSettlementCid =
+  scenario $
+    submit bank do
+      bidLockReq <- exercise bidderParticipationCid BidderParticipation_PlaceBid with
+        price = price
+        quantity = quantity
+      lockCashResult <- exercise bidLockReq PlaceBidBotTrigger_LockCash with
+        cashDepositCids = [bankCashDepositCid]
+        cashAssetFungibleCid = bankCashFungibleCid
+        lockRuleCid = bankLockRuleCid
+        investorBondAssetSettlementCid = bankBondSettlementCid
+
+      let (bank1Lock1, bidCid1_1, rest) = fromSome $ eitherToOptional $ lockCashResult
+      return (bidCid1_1, rest, bank1Lock1)

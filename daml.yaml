@@ -17,8 +17,8 @@ parties:
   - Issuer
   - CentralBank
 version: 2.0.0
-exposed-modules: []
 dependencies:
   - daml-prim
   - daml-stdlib
+  - daml-trigger
   - target/finlib-master-sdk-1.0.0.dar
