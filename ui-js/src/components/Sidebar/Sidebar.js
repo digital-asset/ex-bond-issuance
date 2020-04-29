@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParty } from '@daml/react';
 import { Drawer, IconButton, List } from "@material-ui/core";
 import { green, red } from '@material-ui/core/colors';
-import { List as ListIcon, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, ListAlt, Public, PersonAdd, Build, CardMembership } from "@material-ui/icons";
+import { List as ListIcon, TouchApp, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, ListAlt, Public, PersonAdd, Build, CardMembership } from "@material-ui/icons";
 import { useTheme } from "@material-ui/styles";
 import { withRouter } from "react-router-dom";
 import classNames from "classnames";
@@ -431,6 +431,20 @@ function Sidebar({ location }) {
     return null;
 
   }
+  function Default() {
+    var panelMap = sigObsMap.get('pendingSettlementsViewForIssuer');
+      return (
+        <SidebarLink
+          key="Default"
+          label="Contracts"
+          path="/app/default"
+          icon={(<TouchApp style={{ color: '#536DFE' }} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    return null;
+
+  }
 
   return (
     <Drawer
@@ -458,6 +472,7 @@ function Sidebar({ location }) {
         </IconButton>
       </div>
       <List className={classes.sidebarList}>
+        <Default/>
         <AuctionAgentInvitation/>
         <AuctionAgentRole />
         <AuctionRequest />
