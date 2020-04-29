@@ -16,18 +16,20 @@ package:
 	cp ui-js/server/server.js deploy/ui/
 	cp -R daml deploy/
 	cp daml.yaml deploy/
-	# chmod a+r ./deploy/dar/bond-issuance-2.0.0.dar
+
 .PHONY: clean
 clean:
+	yarn cache clean
 	rm -rf daml2ts
 	rm -rf ui/build
 
 build: clean
 	daml build
-	daml codegen ts -o daml2ts -p package.json .daml/dist/*.dar 
-	# daml codegen ts -o daml2ts -p package.json target/*.dar
-	# yarn install
+	daml codegen ts -o daml2ts -p package.json target/finlib*.dar
 	yarn workspaces run build
+	daml codegen ts -o daml2ts -p package.json .daml/dist/*.dar
+	yarn workspaces run build
+	yarn install
 
 .PHONY: ui
 ui: build

@@ -2,6 +2,7 @@
     "private": true,
     "dependencies": {
         "express-http-proxy": "^1.6.0",
+        "@daml2ts/finlib-1.0.0": "file:daml2ts/finlib-1.0.0/",
         "express": "^4.17.1"
     },
     "workspaces": [
@@ -25,7 +26,6 @@
         "daml2ts/cc348d369011362a5190fe96dd1f0dfbc697fdfd10e382b9e9666f0da05961b7",
         "daml2ts/d58cf9939847921b2aab78eaa7b427dc4c649d25e6bee3c749ace4c3f52f5c97",
         "daml2ts/e491352788e56ca4603acc411ffe1a49fefd76ed8b163af86cf5ee5f4c38645b",
-        "ui-js",
-        "ui-ts"
+        "ui-js"
     ]
 }
