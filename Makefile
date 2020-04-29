@@ -24,9 +24,10 @@ clean:
 
 build: clean
 	daml build
-	daml codegen ts -o daml2ts -p package.json .daml/dist/*.dar
-	yarn install
-	# yarn workspaces run build
+	daml codegen ts -o daml2ts -p package.json .daml/dist/*.dar 
+	# daml codegen ts -o daml2ts -p package.json target/*.dar
+	# yarn install
+	yarn workspaces run build
 
 .PHONY: ui
 ui: build
