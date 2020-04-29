@@ -6,13 +6,29 @@ import Header from "../Header/Header";
 import Sidebar from "../Sidebar/Sidebar";
 import { useLayoutState } from "../../context/LayoutContext";
 
-// import Report from "../../pages/report/Report";
-// import Orders from "../../pages/orders/Orders";
-import AuctionAgentRole from "../../pages/auctionAgentRole/AuctionAgentRole";
-import Default from "../../pages/default/Default";
-// import SharedOrders from "../../pages/sharedorders/SharedOrders";
-// import News from "../../pages/news/News";
-// import Alerts from "../../pages/alerts/Alerts";
+import AuctionAgentInvitation from      "../../pages/auctionAgentInvitation/AuctionAgentInvitation";
+import AuctionAgentRole from            "../../pages/auctionAgentRole/AuctionAgentRole";
+import AuctionRequest from              "../../pages/auctionRequest/AuctionRequest";
+import Balance from                     "../../pages/balance/Balance";
+import BankInvitation from              "../../pages/bankInvitation/BankInvitation";
+import BankRole from                    "../../pages/bankRole/BankRole";
+import Bid from                         "../../pages/bid/Bid";
+import BidderParticipation from         "../../pages/bidderParticipation/BidderParticipation";
+import CentralBankInvitation from       "../../pages/centralBankInvitation/CentralBankInvitation";
+import CentralBankRole from             "../../pages/centralBankRole/CentralBankRole";
+import CsdInvitation from               "../../pages/csdInvitation/CsdInvitation";
+import CsdRedemption from               "../../pages/csdRedemption/CsdRedemption";
+import CsdRole from                     "../../pages/csdRole/CsdRole";
+import Default from                     "../../pages/default/Default";
+import DepositNewAsset from             "../../pages/depositNewAsset/DepositNewAsset";
+import InvalidBids from                 "../../pages/invalidBids/InvalidBids";
+import IssuerInvitation from            "../../pages/issuerInvitation/IssuerInvitation";
+import IssuerRole from                  "../../pages/issuerRole/IssuerRole";
+import OngoingAuctions from             "../../pages/ongoingAuctions/OngoingAuctions";
+import OngoingAuctionsForBidders from   "../../pages/ongoingAuctionsForBidders/OngoingAuctionsForBidders";
+import OperatorRole from                "../../pages/operatorRole/OperatorRole";
+import PendingSettlementsForBanks from  "../../pages/pendingSettlementsForBanks/PendingSettlementsForBanks";
+import PendingSettlementsForIssuer from "../../pages/pendingSettlementsForIssuer/PendingSettlementsForIssuer";
 
 import DamlLedger from "@daml/react";
 import { useUserState } from "../../context/UserContext";
@@ -37,13 +53,29 @@ function Layout() {
               <div className={classes.fakeToolbar} />
               <Switch>
                 <Route path="/app/default" component={Default} />
-                {/* <Route path="/app/report" component={Report} /> */}
-                {/* <Route path="/app/orders" component={Orders} /> */}
+                <Route path="/app/auctionAgentInvitation" component={AuctionAgentInvitation} />
                 <Route path="/app/auctionAgentRole" component={AuctionAgentRole} />
-                {/* <Route path="/app/sharedorders" component={SharedOrders} /> */}
-                {/* <Route path="/app/news" component={News} /> */}
-                {/* <Route path="/app/alerts" component={Alerts} /> */}
-              </Switch>
+                <Route path="/app/auctionRequest" component={AuctionRequest} />
+                <Route path="/app/balance" component={Balance} />
+                <Route path="/app/bankInvitation" component={BankInvitation} />
+                <Route path="/app/bankRole" component={BankRole} />
+                <Route path="/app/bid" component={Bid} />
+                <Route path="/app/bidderParticipation" component={BidderParticipation} />
+                <Route path="/app/centralBankInvitation" component={CentralBankInvitation} />
+                <Route path="/app/centralBankRole" component={CentralBankRole} />
+                <Route path="/app/csdInvitation" component={CsdInvitation} />
+                <Route path="/app/csdRedemption" component={CsdRedemption} />
+                <Route path="/app/csdRole" component={CsdRole} />
+                <Route path="/app/default" component={Default} />
+                <Route path="/app/depositNewAsset" component={DepositNewAsset} />
+                <Route path="/app/invalidBids" component={InvalidBids} />
+                <Route path="/app/issuerInvitation" component={IssuerInvitation} />
+                <Route path="/app/issuerRole" component={IssuerRole} />
+                <Route path="/app/ongoingAuctions" component={OngoingAuctions} />
+                <Route path="/app/ongoingAuctionsForBidders" component={OngoingAuctionsForBidders} />
+                <Route path="/app/operatorRole" component={OperatorRole} />
+                <Route path="/app/pendingSettlementsForBanks" component={PendingSettlementsForBanks} />
+                <Route path="/app/pendingSettlementsForIssuer" component={PendingSettlementsForIssuer} />              </Switch>
             </div>
           </>
       </div>
