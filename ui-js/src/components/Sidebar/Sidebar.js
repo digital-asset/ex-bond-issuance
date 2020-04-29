@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParty } from '@daml/react';
 import { Drawer, IconButton, List } from "@material-ui/core";
 import { green, red } from '@material-ui/core/colors';
-import { List as ListIcon, ArrowBack, ListAlt, Public } from "@material-ui/icons";
+import { List as ListIcon, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, ListAlt, Public, PersonAdd, Build, CardMembership } from "@material-ui/icons";
 import { useTheme } from "@material-ui/styles";
 import { withRouter } from "react-router-dom";
 import classNames from "classnames";
@@ -17,7 +17,6 @@ const allParties = "All"
 function Sidebar({ location }) {
 
   var sigObsMap = new Map([
-    // ['auctionAgentInvitationView', ["AuctionAgent","Operator","Regulator"]],
     ['auctionAgentInvitationView', ["Operator"]],
     ['auctionAgentRoleView', ["AuctionAgent", "Operator", "Regulator"]],
     ['auctionRequestView', ["AuctionAgent"]],
@@ -83,6 +82,23 @@ function Sidebar({ location }) {
       window.removeEventListener("resize", handleWindowWidthChange);
     };
   });
+
+  function AuctionAgentInvitation() {
+    var panelMap = sigObsMap.get('auctionAgentInvitationView');
+    if (panelMap.includes(party) || panelMap.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="AuctionAgentRole"
+          label={panelNames.get('auctionAgentInvitationView') || "unassigned"}
+          path="/app/auctionAgentInvitation"
+          icon={(<CardMembership style={{ color: '#536DFE' }} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />
+      );
+    }
+    return null;
+  }
   function AuctionAgentRole() {
     var panelMap = sigObsMap.get('auctionAgentRoleView');
     if (panelMap.includes(party) || panelMap.includes(allParties)) {
@@ -91,7 +107,7 @@ function Sidebar({ location }) {
           key="AuctionAgentRole"
           label={panelNames.get('auctionAgentRoleView') || "unassigned"}
           path="/app/auctionAgentRole"
-          icon={(<NotificationsActiveIcon style={{ color: '#536DFE' }} />)}
+          icon={(<Build style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />
@@ -122,7 +138,7 @@ function Sidebar({ location }) {
           key="Balance"
           label={panelNames.get('balanceView') || "unassigned"}
           path="/app/balance"
-          icon={(<ListAlt style={{ color: green[200] }} />)}
+          icon={(<AttachMoney style={{ color: green[400] }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -137,7 +153,7 @@ function Sidebar({ location }) {
           key="BankInvitation"
           label={panelNames.get('bankInvitationView') || "unassigned"}
           path="/app/bankInvitation"
-          icon={(<SupervisedUserCircleIcon style={{ color: green[200] }} />)}
+          icon={(<CardMembership style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -152,7 +168,7 @@ function Sidebar({ location }) {
           key="BankRole"
           label={panelNames.get('bankRoleView') || "unassigned"}
           path="/app/bankRole"
-          icon={(<ListAlt style={{ color: red[200] }} />)}
+          icon={(<Build style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -183,7 +199,7 @@ function Sidebar({ location }) {
           key="Bid"
           label={panelNames.get('bidView') || "unassigned"}
           path="/app/bid"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<CompareArrows style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -199,7 +215,7 @@ function Sidebar({ location }) {
           key="CentralBankInvitation"
           label={panelNames.get('centralBankInvitationView') || "unassigned"}
           path="/app/centralBankInvitation"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<CardMembership style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -215,7 +231,7 @@ function Sidebar({ location }) {
           key="CentralBankRole"
           label={panelNames.get('centralBankRoleView') || "unassigned"}
           path="/app/centralBankRole"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<Build style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -231,7 +247,7 @@ function Sidebar({ location }) {
           key="CsdInvitation"
           label={panelNames.get('csdInvitationView') || "unassigned"}
           path="/app/csdInvitation"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<CardMembership style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -263,7 +279,7 @@ function Sidebar({ location }) {
           key="CsdRole"
           label={panelNames.get('csdRoleView') || "unassigned"}
           path="/app/csdRole"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<Build style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -295,7 +311,7 @@ function Sidebar({ location }) {
           key="InvalidBids"
           label={panelNames.get('invalidBidsView') || "unassigned"}
           path="/app/invalidBids"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<Warning style={{ color: '#e97300de' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -311,7 +327,7 @@ function Sidebar({ location }) {
           key="IssuerInvitation"
           label={panelNames.get('issuerInvitationView') || "unassigned"}
           path="/app/issuerInvitation"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<CardMembership style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -327,7 +343,7 @@ function Sidebar({ location }) {
           key="IssuerRole"
           label={panelNames.get('issuerRoleView') || "unassigned"}
           path="/app/issuerRole"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<Build style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -343,7 +359,7 @@ function Sidebar({ location }) {
           key="OngoingAuctionsForBidders"
           label={panelNames.get('ongoingAuctionsForBiddersView') || "unassigned"}
           path="/app/ongoingAuctionsForBidders"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<Gavel style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -359,7 +375,7 @@ function Sidebar({ location }) {
           key="OngoingAuctions"
           label={panelNames.get('ongoingAuctionsView') || "unassigned"}
           path="/app/ongoingAuctions"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<Gavel style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -375,7 +391,7 @@ function Sidebar({ location }) {
           key="OperatorRole"
           label={panelNames.get('operatorRoleView') || "unassigned"}
           path="/app/operatorRole"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<Build style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -391,7 +407,7 @@ function Sidebar({ location }) {
           key="PendingSettlementsForBanks"
           label={panelNames.get('pendingSettlementsViewForBanks') || "unassigned"}
           path="/app/pendingSettlementsForBanks"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<Update style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -407,7 +423,7 @@ function Sidebar({ location }) {
           key="PendingSettlementsForIssuer"
           label={panelNames.get('pendingSettlementsViewForIssuer') || "unassigned"}
           path="/app/pendingSettlementsForIssuer"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<Update style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -442,6 +458,7 @@ function Sidebar({ location }) {
         </IconButton>
       </div>
       <List className={classes.sidebarList}>
+        <AuctionAgentInvitation/>
         <AuctionAgentRole />
         <AuctionRequest />
         <Balance />
