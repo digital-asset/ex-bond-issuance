@@ -51,12 +51,12 @@ finializeInvestorSettlement:
   [Contract AssetFungible] ->
   Contract InvestorSettlementBotTrigger ->
   TriggerA ()
-finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles contract = do
+finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles settlement = do
   let
-    (id, value) = contract
-    assetSettlement = findAssetSettlement assetSettlements contract
-    assetFungible = findAssetFungible assetFungibles contract
-    auctionLockedCashIds = findAuctionLockedCashes auctionLockedCashes contract
+    (id, _) = settlement
+    assetSettlement = findAssetSettlement assetSettlements settlement
+    assetFungible = findAssetFungible assetFungibles settlement
+    auctionLockedCashIds = findAuctionLockedCashes auctionLockedCashes settlement
 
   id `dedupExercise` InvestorSettlementBotTrigger_Finalize auctionLockedCashIds assetFungible assetSettlement
 
