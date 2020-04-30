@@ -67,19 +67,15 @@ finializeSettlement auctionLockedCashes assetSettlements assetFungibles settleme
 
 findAssetSettlement: [Contract AssetSettlement] -> InvestorSettlement -> Optional (ContractId AssetSettlement)
 findAssetSettlement assetSettlements settlement = do
-  let
-    result = find
+  fst <$> find
       (\(_, contract) -> settlementBelongsToAccount settlement contract.account)
       assetSettlements
-  fmap fst result
 
 findAssetFungible: [Contract AssetFungible] -> InvestorSettlement -> Optional (ContractId AssetFungible)
 findAssetFungible assetFungibles settlement = do
-  let
-    result = find
+  fst <$> find
       (\(_, contract) -> settlementBelongsToAccount settlement contract.account)
       assetFungibles
-  fmap fst result
 
 settlementBelongsToAccount: InvestorSettlement -> Account -> Bool
 settlementBelongsToAccount settlement account = do
@@ -90,10 +86,8 @@ settlementBelongsToAccount settlement account = do
 
 findAuctionLockedCashes: [Contract AuctionLockedCash] -> InvestorSettlement -> [ContractId AuctionLockedCash]
 findAuctionLockedCashes auctionLockedCashes settlement = do
-  let
-    result = filter
+  fst <$> filter
       (\(_, contract) ->
            contract.auctionAgent == settlement.auctionAgent
         && contract.auctionName == settlement.auctionName)
       auctionLockedCashes
-  map fst result
