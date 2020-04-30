@@ -10,6 +10,7 @@ module DA.RefApps.Bond.Triggers.InvestorSettlementTrigger where
 import Daml.Trigger
 import DA.Next.Map qualified as Maps
 import DA.Foldable
+import DA.Optional
 
 import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Lock
@@ -59,11 +60,26 @@ finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles 
 
   id `dedupExercise` InvestorSettlementBotTrigger_Finalize auctionLockedCashIds assetFungible assetSettlement
 
+-- TODO: Remove code duplications.
 findAssetSettlement: [Contract AssetSettlement] -> Party -> Party -> ContractId AssetSettlement
-findAssetSettlement = (???)
+findAssetSettlement assetSettlements provider owner = do
+  let
+    result = find
+      (\(_, contract) ->
+           contract.account.provider == provider
+        && contract.account.owner == owner)
+      assetSettlements
+  fromSomeNote "Can't find any AssetSettlement contract" $ fmap fst result
 
 findAssetFungible: [Contract AssetFungible] -> Party -> Party -> ContractId AssetFungible
-findAssetFungible = (???)
+findAssetFungible assetFungibles provider owner = do
+  let
+    result = find
+      (\(_, contract) ->
+           contract.account.provider == provider
+        && contract.account.owner == owner)
+      assetFungibles
+  fromSomeNote "Can't find any AssetFungible contract" $ fmap fst result
 
 findAuctionLockedCashes: [Contract AuctionLockedCash] -> Contract InvestorSettlementBotTrigger -> [ContractId AuctionLockedCash]
 findAuctionLockedCashes = (???)
