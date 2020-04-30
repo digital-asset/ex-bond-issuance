@@ -44,7 +44,6 @@ investorSettlement party activeContracts _ _ () = do
 
 type Contract a = (ContractId a, a)
 
--- TODO: Error when auction locks are missing.
 finializeInvestorSettlement:
   [Contract AuctionLockedCash] ->
   [Contract AssetSettlement] ->
@@ -82,6 +81,13 @@ findAssetFungible assetFungibles provider owner = do
   fromSomeNote "Can't find any AssetFungible contract" $ fmap fst result
 
 findAuctionLockedCashes: [Contract AuctionLockedCash] -> Contract InvestorSettlementBotTrigger -> [ContractId AuctionLockedCash]
-findAuctionLockedCashes = (???)
-
-(???) = error "Not implemented"
+findAuctionLockedCashes auctionLockedCashes (_, settlement) = do
+  let
+    result = filter
+      (\(_, contract) ->
+           contract.auctionAgent == settlement.auctionAgent
+        && contract.auctionName == settlement.auctionName)
+      auctionLockedCashes
+  case result of
+    [] -> error ("Can't find any auction locks for this auction: " <> settlement.auctionName)
+    _ -> map fst result
