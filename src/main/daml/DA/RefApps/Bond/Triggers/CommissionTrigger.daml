@@ -50,12 +50,12 @@ commissionRule party activeContracts _ _ () = do
 
   forA_ triggerContracts $ \(triggerCid, trigger) -> do
     let bondAssetSettlementCid =
-          getMatchingassetSettlementCid
+          getMatchingAssetSettlementCid
             trigger.issuerBondAccount.provider
             trigger.issuerBondAccount.owner
             assetSettlements
         cashAssetSettlementCid =
-          getMatchingassetSettlementCid
+          getMatchingAssetSettlementCid
             trigger.cashAccountProvider
             party
             assetSettlements
@@ -72,7 +72,7 @@ commissionRule party activeContracts _ _ () = do
         cashAssetSettlementCid
         fixedRateBondFactCid
   where
-    getMatchingassetSettlementCid provider owner assetSettlements =
+    getMatchingAssetSettlementCid provider owner assetSettlements =
       getFirstOrError "Can't find any AssetSettlement contract" $
         filterContractIds (\(_, p) -> p.account.provider == provider && p.account.owner == owner) $
           assetSettlements
