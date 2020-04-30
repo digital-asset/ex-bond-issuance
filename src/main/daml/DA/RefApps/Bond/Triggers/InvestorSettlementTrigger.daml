@@ -29,4 +29,17 @@ investorSettlementTrigger = Trigger
   }
 
 investorSettlement: Party -> ACS -> Time -> Maps.Map CommandId [Command] -> () -> TriggerA ()
-investorSettlement = error "Not implemented."
+investorSettlement = (???)
+
+type Contract a = (ContractId a, a)
+
+findAssetSettlement: [Contract AssetSettlement] -> Party -> Party -> ContractId AssetSettlement
+findAssetSettlement = (???)
+
+findAssetFungible: [Contract AssetFungible] -> Party -> Party -> ContractId AssetFungible
+findAssetFungible = (???)
+
+findAuctionLockedCashes: [Contract AuctionLockedCash] -> Contract InvestorSettlementBotTrigger -> [ContractId AuctionLockedCash]
+findAuctionLockedCashes = (???)
+
+(???) = error "Not implemented"
