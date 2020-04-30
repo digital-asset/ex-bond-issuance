@@ -69,7 +69,7 @@ findAssetSettlement: [Contract AssetSettlement] -> InvestorSettlement -> Optiona
 findAssetSettlement assetSettlements settlement = do
   let
     result = find
-      (\(_, contract) -> settlementBelongsToAccount contract.account settlement)
+      (\(_, contract) -> settlementBelongsToAccount settlement contract.account)
       assetSettlements
   fmap fst result
 
@@ -77,12 +77,12 @@ findAssetFungible: [Contract AssetFungible] -> InvestorSettlement -> Optional (C
 findAssetFungible assetFungibles settlement = do
   let
     result = find
-      (\(_, contract) -> settlementBelongsToAccount contract.account settlement)
+      (\(_, contract) -> settlementBelongsToAccount settlement contract.account)
       assetFungibles
   fmap fst result
 
-settlementBelongsToAccount: Account -> InvestorSettlement -> Bool
-settlementBelongsToAccount account settlement = do
+settlementBelongsToAccount: InvestorSettlement -> Account -> Bool
+settlementBelongsToAccount settlement account = do
   let
     provider = settlement.cashProvider
     owner = settlement.investor
