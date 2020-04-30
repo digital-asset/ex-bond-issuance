@@ -8,13 +8,12 @@ daml 1.2
 module DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger where
 
 import Daml.Trigger
-import DA.Next.Map qualified as M
+import DA.Next.Map qualified as Maps
 import DA.Foldable hiding (length)
 import Daml.Trigger.Assert
 import DA.Assert
 import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
 import DA.RefApps.Bond.Auction
-import DA.Next.Map qualified
 import DA.RefApps.Bond.Roles.IssuerRole
 
 import DA.Either
@@ -37,7 +36,7 @@ auctionFinalizeTrigger = Trigger
   , heartbeat = None
   }
 
-finalizeAuction : Party -> ACS -> Time -> M.Map CommandId [Command] -> () -> TriggerA ()
+finalizeAuction : Party -> ACS -> Time -> Maps.Map CommandId [Command] -> () -> TriggerA ()
 finalizeAuction party activeContracts _ _ () = do
   let bidContracts = getContracts @AuctionBid activeContracts
       triggerContracts = getContracts @AuctionFinalizeBotTrigger activeContracts
@@ -75,7 +74,7 @@ testAuctionWithNoBid = scenario do
           toACS participation1 <> toACS participation2 <>
           toACS finalizeTrigger
   commands <-
-    testRule auctionFinalizeTrigger auctionAgent activeContracts DA.Next.Map.empty ()
+    testRule auctionFinalizeTrigger auctionAgent activeContracts Maps.empty ()
 
   let flattenedCommands = flattenCommands commands
   length flattenedCommands === 1
@@ -106,7 +105,7 @@ testAuctionWithSingleBid = scenario do
           toACS participation1 <> toACS participation2 <>
           toACS bid1 <> toACS finalizeTrigger
   commands <-
-    testRule auctionFinalizeTrigger auctionAgent activeContracts DA.Next.Map.empty ()
+    testRule auctionFinalizeTrigger auctionAgent activeContracts Maps.empty ()
 
   let flattenedCommands = flattenCommands commands
   length flattenedCommands === 1
@@ -144,7 +143,7 @@ testAuctionWithTwoBids = scenario do
           toACS participation1 <> toACS participation2 <>
           toACS bid1 <> toACS bid2 <> toACS finalizeTrigger
   commands <-
-    testRule auctionFinalizeTrigger auctionAgent activeContracts DA.Next.Map.empty ()
+    testRule auctionFinalizeTrigger auctionAgent activeContracts Maps.empty ()
 
   let flattenedCommands = flattenCommands commands
   length flattenedCommands === 1
