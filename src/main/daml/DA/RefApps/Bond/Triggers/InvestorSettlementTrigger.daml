@@ -51,16 +51,16 @@ finializeInvestorSettlement:
   [Contract AssetFungible] ->
   Contract InvestorSettlementBotTrigger ->
   TriggerA ()
-finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles settlement = do
+finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles trigger = do
   let
-    (id, _) = settlement
+    (id, settlement) = trigger
     assetSettlement = findAssetSettlement assetSettlements settlement
     assetFungible = findAssetFungible assetFungibles settlement
     auctionLockedCashIds = findAuctionLockedCashes auctionLockedCashes settlement
 
   id `dedupExercise` InvestorSettlementBotTrigger_Finalize auctionLockedCashIds assetFungible assetSettlement
 
-findAssetSettlement: [Contract AssetSettlement] -> Contract InvestorSettlementBotTrigger -> ContractId AssetSettlement
+findAssetSettlement: [Contract AssetSettlement] -> InvestorSettlementBotTrigger -> ContractId AssetSettlement
 findAssetSettlement assetSettlements settlement = do
   let
     result = find
@@ -68,7 +68,7 @@ findAssetSettlement assetSettlements settlement = do
       assetSettlements
   fromSomeNote "Can't find any AssetSettlement contract" $ fmap fst result
 
-findAssetFungible: [Contract AssetFungible] -> Contract InvestorSettlementBotTrigger -> ContractId AssetFungible
+findAssetFungible: [Contract AssetFungible] -> InvestorSettlementBotTrigger -> ContractId AssetFungible
 findAssetFungible assetFungibles settlement = do
   let
     result = find
@@ -76,15 +76,15 @@ findAssetFungible assetFungibles settlement = do
       assetFungibles
   fromSomeNote "Can't find any AssetFungible contract" $ fmap fst result
 
-settlementBelongsToAccount: Account -> Contract InvestorSettlementBotTrigger -> Bool
-settlementBelongsToAccount account (_, settlement) = do
+settlementBelongsToAccount: Account -> InvestorSettlementBotTrigger -> Bool
+settlementBelongsToAccount account settlement = do
   let
     provider = settlement.cashProvider
     owner = settlement.investor
   account.provider == provider && account.owner == owner
 
-findAuctionLockedCashes: [Contract AuctionLockedCash] -> Contract InvestorSettlementBotTrigger -> [ContractId AuctionLockedCash]
-findAuctionLockedCashes auctionLockedCashes (_, settlement) = do
+findAuctionLockedCashes: [Contract AuctionLockedCash] -> InvestorSettlementBotTrigger -> [ContractId AuctionLockedCash]
+findAuctionLockedCashes auctionLockedCashes settlement = do
   let
     result = filter
       (\(_, contract) ->
