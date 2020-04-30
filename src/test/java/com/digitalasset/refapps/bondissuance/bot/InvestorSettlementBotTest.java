@@ -22,7 +22,7 @@ import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;
 import da.refapps.bond.lock.AuctionLockedCash;
 import da.refapps.bond.settlement.AuctionSettleRequest;
-import da.refapps.bond.settlement.InvestorSettlementBotTrigger;
+import da.refapps.bond.settlement.InvestorSettlement;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
@@ -69,9 +69,9 @@ public class InvestorSettlementBotTest {
         new AssetSettlement(INVESTOR_CASH_ACCOUNT, null));
 
     ledgerView.addActiveContract(
-        InvestorSettlementBotTrigger.TEMPLATE_ID,
+        InvestorSettlement.TEMPLATE_ID,
         investorSettlementBotTriggerCid,
-        new InvestorSettlementBotTrigger(
+        new InvestorSettlement(
             INVESTOR,
             ISSUER,
             AUCTION_AGENT,
@@ -82,7 +82,6 @@ public class InvestorSettlementBotTest {
 
     CommandsAndPendingSet cmds =
         bot.calculateCommands(ledgerView.getRealLedgerView()).blockingFirst();
-    assertHasSingleExercise(
-        cmds, investorSettlementBotTriggerCid, "InvestorSettlementBotTrigger_Finalize");
+    assertHasSingleExercise(cmds, investorSettlementBotTriggerCid, "InvestorSettlement_Finalize");
   }
 }

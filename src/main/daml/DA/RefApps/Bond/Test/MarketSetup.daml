@@ -434,7 +434,7 @@ testMarketSetupFull = scenario $ do
     exercise settReq AuctionParticipantSettleRequest_Settle
 
   submit bank1 do
-    exercise isbTrigger $ InvestorSettlementBotTrigger_Finalize with
+    exercise isbTrigger $ InvestorSettlement_Finalize with
           auctionLockedCashCids = [lockedCash]
           cashAssetFungible = funBank1Cash
           investorCashSettlementCid = settBank1Cash

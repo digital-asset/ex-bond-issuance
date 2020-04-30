@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 import da.finance.rule.asset.AssetFungible;
 import da.finance.rule.asset.AssetSettlement;
 import da.refapps.bond.lock.AuctionLockedCash;
-import da.refapps.bond.settlement.InvestorSettlementBotTrigger;
+import da.refapps.bond.settlement.InvestorSettlement;
 import io.reactivex.Flowable;
 import java.util.Collections;
 import java.util.List;
@@ -31,9 +31,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 
 /**
- * An automation bot to exercise the <i>InvestorSettlementBotTrigger_Finalize</i> choice when
- * <i>InvestorSettlementBotTrigger</i> contracts created on the ledger. It accumulates and filters
- * the necessary parameters.
+ * An automation bot to exercise the <i>InvestorSettlement_Finalize</i> choice when
+ * <i>InvestorSettlement</i> contracts created on the ledger. It accumulates and filters the
+ * necessary parameters.
  */
 public class InvestorSettlementBot {
 
@@ -51,7 +51,7 @@ public class InvestorSettlementBot {
     Filter messageFilter =
         new InclusiveFilter(
             Sets.newHashSet(
-                InvestorSettlementBotTrigger.TEMPLATE_ID,
+                InvestorSettlement.TEMPLATE_ID,
                 AuctionLockedCash.TEMPLATE_ID,
                 AssetSettlement.TEMPLATE_ID,
                 AssetFungible.TEMPLATE_ID));
@@ -64,10 +64,9 @@ public class InvestorSettlementBot {
   public Flowable<CommandsAndPendingSet> calculateCommands(
       LedgerViewFlowable.LedgerView<Template> ledgerView) {
     // collecting the trigger contracts from the ledger
-    Map<String, InvestorSettlementBotTrigger> triggerContracts =
+    Map<String, InvestorSettlement> triggerContracts =
         BotUtil.filterTemplates(
-            InvestorSettlementBotTrigger.class,
-            ledgerView.getContracts(InvestorSettlementBotTrigger.TEMPLATE_ID));
+            InvestorSettlement.class, ledgerView.getContracts(InvestorSettlement.TEMPLATE_ID));
 
     // collecting AuctionLockedCash contracts from the ledger
     Map<String, AuctionLockedCash> auctionLockedCash =
@@ -87,13 +86,12 @@ public class InvestorSettlementBot {
     CommandsAndPendingSetBuilder.Builder builder = commandBuilder.newBuilder();
     if (triggerContracts.size() > 0) {
       // Do one settlement at a time as we consume the cash asset for settlement
-      Map.Entry<String, InvestorSettlementBotTrigger> settlement =
+      Map.Entry<String, InvestorSettlement> settlement =
           triggerContracts.entrySet().iterator().next();
-      logger.info(
-          "Processing InvestorSettlementBotTrigger for " + settlement.getValue().auctionName);
+      logger.info("Processing InvestorSettlement for " + settlement.getValue().auctionName);
 
-      InvestorSettlementBotTrigger.ContractId triggerCid =
-          new InvestorSettlementBotTrigger.ContractId(settlement.getKey());
+      InvestorSettlement.ContractId triggerCid =
+          new InvestorSettlement.ContractId(settlement.getKey());
 
       // pick a transfer rule
       AssetSettlement.ContractId assetSettlement =
@@ -136,9 +134,9 @@ public class InvestorSettlementBot {
       }
 
       // exercise the choice
-      logger.info("Executing InvestorSettlementBotTrigger_Finalize for " + settlement.getKey());
+      logger.info("Executing InvestorSettlement_Finalize for " + settlement.getKey());
       builder.addCommand(
-          triggerCid.exerciseInvestorSettlementBotTrigger_Finalize(
+          triggerCid.exerciseInvestorSettlement_Finalize(
               auctionLockedCashCids, assetFungible, assetSettlement));
     }
     return builder.buildFlowable();
@@ -147,7 +145,7 @@ public class InvestorSettlementBot {
   public Template getContractInfo(CreatedContract createdContract) {
     //noinspection unchecked
     return TemplateUtils.contractTransformer(
-            InvestorSettlementBotTrigger.class,
+            InvestorSettlement.class,
             AuctionLockedCash.class,
             AssetSettlement.class,
             AssetFungible.class)

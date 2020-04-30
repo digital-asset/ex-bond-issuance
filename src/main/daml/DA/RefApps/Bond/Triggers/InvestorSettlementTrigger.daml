@@ -21,9 +21,9 @@ investorSettlementTrigger: Trigger ()
 investorSettlementTrigger = Trigger
   { initialize = const ()
   , updateState = \_ _ _ -> ()
-  , rule = investorSettlement
+  , rule = finalizeSettlements
   , registeredTemplates = RegisteredTemplates [
-      registeredTemplate @InvestorSettlementBotTrigger,
+      registeredTemplate @InvestorSettlement,
       registeredTemplate @AuctionLockedCash,
       registeredTemplate @AssetSettlement,
       registeredTemplate @AssetFungible
@@ -31,36 +31,36 @@ investorSettlementTrigger = Trigger
   , heartbeat = None
   }
 
-investorSettlement: Party -> ACS -> Time -> Map CommandId [Command] -> () -> TriggerA ()
-investorSettlement party activeContracts _ _ () = do
+finalizeSettlements: Party -> ACS -> Time -> Map CommandId [Command] -> () -> TriggerA ()
+finalizeSettlements party activeContracts _ _ () = do
   let
-    investorSettlementBotTrigger = getContracts @InvestorSettlementBotTrigger activeContracts
+    investorSettlements = getContracts @InvestorSettlement activeContracts
     auctionLockedCashes = getContracts @AuctionLockedCash activeContracts
     assetSettlements = getContracts @AssetSettlement activeContracts
     assetFungibles = getContracts @AssetFungible activeContracts
 
   forA_
-    investorSettlementBotTrigger
-    (finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles)
+    investorSettlements
+    (finializeSettlement auctionLockedCashes assetSettlements assetFungibles)
 
 type Contract a = (ContractId a, a)
 
-finializeInvestorSettlement:
+finializeSettlement:
   [Contract AuctionLockedCash] ->
   [Contract AssetSettlement] ->
   [Contract AssetFungible] ->
-  Contract InvestorSettlementBotTrigger ->
+  Contract InvestorSettlement ->
   TriggerA ()
-finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles trigger = do
+finializeSettlement auctionLockedCashes assetSettlements assetFungibles settlementContract = do
   let
-    (id, settlement) = trigger
+    (id, settlement) = settlementContract
     assetSettlement = findAssetSettlement assetSettlements settlement
     assetFungible = findAssetFungible assetFungibles settlement
     auctionLockedCashIds = findAuctionLockedCashes auctionLockedCashes settlement
 
-  id `dedupExercise` InvestorSettlementBotTrigger_Finalize auctionLockedCashIds assetFungible assetSettlement
+  id `dedupExercise` InvestorSettlement_Finalize auctionLockedCashIds assetFungible assetSettlement
 
-findAssetSettlement: [Contract AssetSettlement] -> InvestorSettlementBotTrigger -> ContractId AssetSettlement
+findAssetSettlement: [Contract AssetSettlement] -> InvestorSettlement -> ContractId AssetSettlement
 findAssetSettlement assetSettlements settlement = do
   let
     result = find
@@ -68,7 +68,7 @@ findAssetSettlement assetSettlements settlement = do
       assetSettlements
   fromSomeNote "Can't find any AssetSettlement contract" $ fmap fst result
 
-findAssetFungible: [Contract AssetFungible] -> InvestorSettlementBotTrigger -> ContractId AssetFungible
+findAssetFungible: [Contract AssetFungible] -> InvestorSettlement -> ContractId AssetFungible
 findAssetFungible assetFungibles settlement = do
   let
     result = find
@@ -76,14 +76,14 @@ findAssetFungible assetFungibles settlement = do
       assetFungibles
   fromSomeNote "Can't find any AssetFungible contract" $ fmap fst result
 
-settlementBelongsToAccount: Account -> InvestorSettlementBotTrigger -> Bool
+settlementBelongsToAccount: Account -> InvestorSettlement -> Bool
 settlementBelongsToAccount account settlement = do
   let
     provider = settlement.cashProvider
     owner = settlement.investor
   account.provider == provider && account.owner == owner
 
-findAuctionLockedCashes: [Contract AuctionLockedCash] -> InvestorSettlementBotTrigger -> [ContractId AuctionLockedCash]
+findAuctionLockedCashes: [Contract AuctionLockedCash] -> InvestorSettlement -> [ContractId AuctionLockedCash]
 findAuctionLockedCashes auctionLockedCashes settlement = do
   let
     result = filter
