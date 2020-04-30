@@ -9,6 +9,7 @@ module DA.RefApps.Bond.Triggers.InvestorSettlementTrigger where
 
 import Daml.Trigger
 import DA.Next.Map qualified as Maps
+import DA.Foldable
 
 import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Lock
@@ -29,7 +30,32 @@ investorSettlementTrigger = Trigger
   }
 
 investorSettlement: Party -> ACS -> Time -> Maps.Map CommandId [Command] -> () -> TriggerA ()
-investorSettlement = (???)
+investorSettlement party activeContracts _ _ () = do
+  let
+    investorSettlementBotTrigger = getContracts @InvestorSettlementBotTrigger activeContracts
+    auctionLockedCashes = getContracts @AuctionLockedCash activeContracts
+    assetSettlements = getContracts @AssetSettlement activeContracts
+    assetFungibles = getContracts @AssetFungible activeContracts
+
+  forA_
+    investorSettlementBotTrigger
+    (finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles)
+
+-- TODO: Error when auction locks are missing.
+finializeInvestorSettlement:
+  [Contract AuctionLockedCash] ->
+  [Contract AssetSettlement] ->
+  [Contract AssetFungible] ->
+  Contract InvestorSettlementBotTrigger ->
+  TriggerA ()
+finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles contract = do
+  let
+    (id, value) = contract
+    assetSettlement = findAssetSettlement assetSettlements value.cashProvider value.investor
+    assetFungible = findAssetFungible assetFungibles value.cashProvider value.investor
+    auctionLockedCashIds = findAuctionLockedCashes auctionLockedCashes contract
+
+  id `dedupExercise` InvestorSettlementBotTrigger_Finalize auctionLockedCashIds assetFungible assetSettlement
 
 type Contract a = (ContractId a, a)
 
