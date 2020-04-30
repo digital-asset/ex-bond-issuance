@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-sdk-version: 1.0.0
+sdk-version: 1.0.1
 name: bond-issuance
 source: src/main/daml
 parties:
@@ -21,4 +21,4 @@ dependencies:
   - daml-prim
   - daml-stdlib
   - daml-trigger
-  - target/finlib-master-sdk-1.0.0.dar
+  - target/finlib-master-sdk-1.0.1.dar
