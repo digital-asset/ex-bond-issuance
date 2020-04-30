@@ -41,6 +41,8 @@ investorSettlement party activeContracts _ _ () = do
     investorSettlementBotTrigger
     (finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles)
 
+type Contract a = (ContractId a, a)
+
 -- TODO: Error when auction locks are missing.
 finializeInvestorSettlement:
   [Contract AuctionLockedCash] ->
@@ -56,8 +58,6 @@ finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles 
     auctionLockedCashIds = findAuctionLockedCashes auctionLockedCashes contract
 
   id `dedupExercise` InvestorSettlementBotTrigger_Finalize auctionLockedCashIds assetFungible assetSettlement
-
-type Contract a = (ContractId a, a)
 
 findAssetSettlement: [Contract AssetSettlement] -> Party -> Party -> ContractId AssetSettlement
 findAssetSettlement = (???)
