@@ -53,16 +53,18 @@ finializeInvestorSettlement:
 finializeInvestorSettlement auctionLockedCashes assetSettlements assetFungibles contract = do
   let
     (id, value) = contract
-    assetSettlement = findAssetSettlement assetSettlements value.cashProvider value.investor
-    assetFungible = findAssetFungible assetFungibles value.cashProvider value.investor
+    assetSettlement = findAssetSettlement assetSettlements contract
+    assetFungible = findAssetFungible assetFungibles contract
     auctionLockedCashIds = findAuctionLockedCashes auctionLockedCashes contract
 
   id `dedupExercise` InvestorSettlementBotTrigger_Finalize auctionLockedCashIds assetFungible assetSettlement
 
 -- TODO: Remove code duplications.
-findAssetSettlement: [Contract AssetSettlement] -> Party -> Party -> ContractId AssetSettlement
-findAssetSettlement assetSettlements provider owner = do
+findAssetSettlement: [Contract AssetSettlement] -> Contract InvestorSettlementBotTrigger -> ContractId AssetSettlement
+findAssetSettlement assetSettlements (_, settlement) = do
   let
+    provider = settlement.cashProvider
+    owner = settlement.investor
     result = find
       (\(_, contract) ->
            contract.account.provider == provider
@@ -70,9 +72,11 @@ findAssetSettlement assetSettlements provider owner = do
       assetSettlements
   fromSomeNote "Can't find any AssetSettlement contract" $ fmap fst result
 
-findAssetFungible: [Contract AssetFungible] -> Party -> Party -> ContractId AssetFungible
-findAssetFungible assetFungibles provider owner = do
+findAssetFungible: [Contract AssetFungible] -> Contract InvestorSettlementBotTrigger -> ContractId AssetFungible
+findAssetFungible assetFungibles (_, settlement) = do
   let
+    provider = settlement.cashProvider
+    owner = settlement.investor
     result = find
       (\(_, contract) ->
            contract.account.provider == provider
