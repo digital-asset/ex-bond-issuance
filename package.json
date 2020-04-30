@@ -2,7 +2,6 @@
     "private": true,
     "dependencies": {
         "express-http-proxy": "^1.6.0",
-        "@daml2ts/finlib-1.0.0": "file:daml2ts/finlib-1.0.0/",
         "express": "^4.17.1"
     },
     "workspaces": [
@@ -15,12 +14,12 @@
         "daml2ts/75c0432002539aa2b4dfad33a29023a21211dde15b0d1deafbd4a1a3fe7cdd01",
         "daml2ts/76bf0fd12bd945762a01f8fc5bbcdfa4d0ff20f8762af490f8f41d6237c6524f",
         "daml2ts/7cb88863092cc578e214a2d3cd87f099cacbce074ff14e775ce625ec3828b4b7",
-        "daml2ts/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662",
-        "daml2ts/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f",
-        "daml2ts/7e1e95c8b62a45cbdac3887255fc8481dcb861184c8213b6ec011eddcea1b750",
         "daml2ts/8a7806365bbd98d88b4c13832ebfa305f6abaeaf32cfa2b7dd25c4fa489b79fb",
         "daml2ts/e22bce619ae24ca3b8e6519281cb5a33b64b3190cc763248b4c3f9ad5087a92c",
         "daml2ts/99a2705ed38c1c26cbb8fe7acf36bbf626668e167a33335de932599219e0a235",
+        "daml2ts/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f",
+        "daml2ts/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662",
+        "daml2ts/finlib-1.0.0",
         "daml2ts/bond-issuance-2.0.0",
         "daml2ts/c1f1f00558799eec139fb4f4c76f95fb52fa1837a5dd29600baa1c8ed1bdccfd",
         "daml2ts/cc348d369011362a5190fe96dd1f0dfbc697fdfd10e382b9e9666f0da05961b7",
