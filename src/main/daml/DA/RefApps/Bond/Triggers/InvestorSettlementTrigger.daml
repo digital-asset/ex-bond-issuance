@@ -8,7 +8,7 @@ daml 1.2
 module DA.RefApps.Bond.Triggers.InvestorSettlementTrigger where
 
 import Daml.Trigger
-import DA.Next.Map qualified as Maps
+import DA.Next.Map hiding (filter)
 import DA.Foldable
 import DA.Optional
 
@@ -31,7 +31,7 @@ investorSettlementTrigger = Trigger
   , heartbeat = None
   }
 
-investorSettlement: Party -> ACS -> Time -> Maps.Map CommandId [Command] -> () -> TriggerA ()
+investorSettlement: Party -> ACS -> Time -> Map CommandId [Command] -> () -> TriggerA ()
 investorSettlement party activeContracts _ _ () = do
   let
     investorSettlementBotTrigger = getContracts @InvestorSettlementBotTrigger activeContracts
