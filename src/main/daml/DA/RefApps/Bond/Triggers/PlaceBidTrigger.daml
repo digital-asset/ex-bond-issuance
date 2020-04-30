@@ -1,0 +1,151 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+
+module DA.RefApps.Bond.Triggers.PlaceBidTrigger where
+
+import Daml.Trigger
+import DA.Next.Map qualified as Map
+import Daml.Trigger.Assert
+import DA.Assert
+import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
+import DA.RefApps.Bond.Auction
+import DA.Optional
+import DA.Finance.Fact.Asset
+import DA.Finance.Rule.Asset
+import DA.RefApps.Bond.Lock
+import DA.List.Total
+import DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger qualified as AuctFin
+
+placeBidTrigger : Trigger ()
+placeBidTrigger = Trigger
+  { initialize = const ()
+  , updateState = \_ _ _ -> ()
+  , rule = placeBidRule
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @PlaceBidBotTrigger,
+      registeredTemplate @AssetDeposit,
+      registeredTemplate @AssetSettlement,
+      registeredTemplate @AssetFungible,
+      registeredTemplate @AssetLockRule
+    ]
+  , heartbeat = None
+  }
+
+placeBidRule : Party -> ACS -> Time -> Map.Map CommandId [Command] -> () -> TriggerA ()
+placeBidRule party activeContracts _ _ () = do
+  let mbLockRequest = head $ getContracts @PlaceBidBotTrigger activeContracts
+      assetDeposits = getContracts @AssetDeposit activeContracts
+      assetLockRules = getContracts @AssetLockRule activeContracts
+      assetSettlements = getContracts @AssetSettlement activeContracts
+      assetFungibles = getContracts @AssetFungible activeContracts
+
+  whenSome mbLockRequest $ \(triggerCid, trigger) -> do
+    let investorBondAssetSettlementCid =
+          getMatchingassetSettlementCid
+            trigger.bondProvider
+            trigger.bidder
+            assetSettlements
+        cashAssetFungibleCid =
+          getAssetFungibleCid
+            trigger.cashProvider
+            trigger.bidder
+            assetFungibles
+    let lockRuleCid =
+          getLockRuleCid trigger.cashProvider assetLockRules
+        cashDepositCids =
+          getAssetDepositCids trigger.cashAssetId assetDeposits
+    dedupExercise triggerCid PlaceBidBotTrigger_LockCash with
+        cashDepositCids
+        cashAssetFungibleCid
+        lockRuleCid
+        investorBondAssetSettlementCid
+  where
+    getLockRuleCid provider lockRules =
+      getFirstOrError "Can't find any matching LockRule contract" $
+        filterContractIds (\c -> c.account.provider == provider) lockRules
+
+    getMatchingassetSettlementCid provider owner assetSettlements =
+      getFirstOrError "Can't find any matching AssetSettlement contract" $
+        filterContractIds (\p -> p.account.provider == provider && p.account.owner == owner) $
+          assetSettlements
+
+    getAssetFungibleCid provider owner assetFungibles =
+      getFirstOrError "Can't find any matching AssetFungible contract" $
+        filterContractIds (\p -> p.account.provider == provider && p.account.owner == owner) $
+          assetFungibles
+
+    getAssetDepositCids assetId assetDeposits =
+      filterContractIds (\p -> p.asset.id.label == assetId.label && p.asset.id.version == assetId.version) $
+        assetDeposits
+
+    filterContractIds predicate coidsAndContracts =
+      [ cid | (cid, c) <- coidsAndContracts, predicate c ]
+    getFirstOrError msg items =
+      case items of
+        first::_ -> first
+        []       -> error msg
+
+
+-- Tests ---------------------------
+
+testPlaceBidTrigger = scenario do
+  auctionAgent <- getParty "AuctionAgent"
+  bank1 <- getParty "Bank1"
+
+  issuance <-
+    MarketSetup.setupIssuance
+  (_, [participation1, _]) <-
+    AuctFin.startAuction auctionAgent issuance
+  pbTrigger <-
+    placeBid bank1 42.0 20000 participation1
+
+  let activeContracts =
+          toACS pbTrigger <>
+          toACS issuance.cashAssets.bank1CashDepositCid <>
+          toACS issuance.rules.bank1CashFungibleCid <>
+          toACS issuance.rules.bank1LockRuleCid <>
+          toACS issuance.rules.bank1BondSettlementCid
+  commands <-
+    testRule placeBidTrigger bank1 activeContracts Map.empty ()
+  let flattenedCommands = flattenCommands commands
+  length flattenedCommands === 1
+  assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
+    assertEq cid pbTrigger
+    assertEq choiceArg (PlaceBidBotTrigger_LockCash with
+        cashDepositCids = [issuance.cashAssets.bank1CashDepositCid]
+        cashAssetFungibleCid = issuance.rules.bank1CashFungibleCid
+        lockRuleCid = issuance.rules.bank1LockRuleCid
+        investorBondAssetSettlementCid = issuance.rules.bank1BondSettlementCid)
+
+testNothingHappensIfNoTrigger = scenario do
+  auctionAgent <- getParty "AuctionAgent"
+  bank1 <- getParty "Bank1"
+
+  issuance <-
+    MarketSetup.setupIssuance
+  AuctFin.startAuction auctionAgent issuance
+
+  let activeContracts =
+          toACS issuance.cashAssets.bank1CashDepositCid <>
+          toACS issuance.rules.bank1CashFungibleCid <>
+          toACS issuance.rules.bank1LockRuleCid <>
+          toACS issuance.rules.bank1BondSettlementCid
+  commands <-
+    testRule placeBidTrigger bank1 activeContracts Map.empty ()
+  let flattenedCommands = flattenCommands commands
+  length flattenedCommands === 0
+
+-- Helpers -------------------------
+
+placeBid : Party -> Decimal -> Int -> ContractId BidderParticipation
+            -> Scenario (ContractId PlaceBidBotTrigger)
+placeBid bank price quantity bidderParticipationCid =
+  scenario $
+    submit bank $
+      exercise bidderParticipationCid BidderParticipation_PlaceBid with
+        price = price
+        quantity = quantity
