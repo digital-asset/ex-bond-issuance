@@ -19,17 +19,17 @@ Be sure you have the following installed:
 - Maven
 - Python
 
-#### Build with Maven
+#### Build
 
 Type:
 ```shell
-mvn clean package
+make build
 ```
 **Note:** If you change the DAML models locally, you need to re-run this command before starting the application.
 
 ### Starting the App
 
-**Note:** Make sure you have built the application with Maven (see: [Build with Maven](#build-with-maven)).
+**Note:** Make sure you have built the application with Maven (see: [Build with Maven](#build)).
 
 There are two options:
 
@@ -45,16 +45,20 @@ There are two options:
 
 #### Option 2: Start App in Standalone with Wallclock Time
 
-This option starts the application with wallclock time. Navigator's time widget won't work in this mode as one cannot modify the time.
-1. Start the DAML Sandbox and Navigator. Type:
+This option starts the application with wallclock time.
+1. Start the DAML Sandbox. Type:
     ```shell
-    daml start --sandbox-option --address=localhost --sandbox-option -w
+    make start
     ```
-    The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic by starting bots. Type:
     ```shell
-    java -jar target/bond-issuance-0.0.1-SNAPSHOT.jar
+    make automation
     ```
+3. Start the react ui
+    The ui will automatically open in a new browser tab at http://localhost:3000.
+    ```shell
+    make ui
+    ``` 
 
 #### Option 3: Start App in Standalone with Simulated Time
 
@@ -76,8 +80,8 @@ This option starts the application with simulated time. Initial time is 1970 and
 
 #### Stopping Standalone Run
 1. Stop the bots by pressing **Ctrl+C**.
-1. Stop the Sandbox and the Navigator by pressing **Ctrl+C** in the DAML assistant.
-
+2. Stop the Sandbox and the Navigator by pressing **Ctrl+C** in the DAML assistant.
+3. Stop the ui by pressing **Ctrl+C**.
 ### Resetting the Prototype
 
 Reset the application by following these steps:
