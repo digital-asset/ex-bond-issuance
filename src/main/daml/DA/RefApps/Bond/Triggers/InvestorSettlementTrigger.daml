@@ -66,28 +66,29 @@ finializeSettlement auctionLockedCashes assetSettlements assetFungibles settleme
   id `dedupExercise` InvestorSettlement_Finalize auctionLockedCashIds assetFungible assetSettlement
 
 findAssetSettlement: [Contract AssetSettlement] -> InvestorSettlement -> Optional (ContractId AssetSettlement)
-findAssetSettlement assetSettlements settlement = do
+findAssetSettlement assetSettlements settlement =
   fst <$> find
       (\(_, contract) -> settlementBelongsToAccount settlement contract.account)
       assetSettlements
 
 findAssetFungible: [Contract AssetFungible] -> InvestorSettlement -> Optional (ContractId AssetFungible)
-findAssetFungible assetFungibles settlement = do
+findAssetFungible assetFungibles settlement =
   fst <$> find
       (\(_, contract) -> settlementBelongsToAccount settlement contract.account)
       assetFungibles
 
-settlementBelongsToAccount: InvestorSettlement -> Account -> Bool
-settlementBelongsToAccount settlement account = do
-  let
-    provider = settlement.cashProvider
-    owner = settlement.investor
-  account.provider == provider && account.owner == owner
-
 findAuctionLockedCashes: [Contract AuctionLockedCash] -> InvestorSettlement -> [ContractId AuctionLockedCash]
-findAuctionLockedCashes auctionLockedCashes settlement = do
+findAuctionLockedCashes auctionLockedCashes settlement =
   fst <$> filter
-      (\(_, contract) ->
-           contract.auctionAgent == settlement.auctionAgent
-        && contract.auctionName == settlement.auctionName)
+      (\(_, contract) -> settlementBelongsToAuction settlement contract)
       auctionLockedCashes
+
+settlementBelongsToAccount: InvestorSettlement -> Account -> Bool
+settlementBelongsToAccount settlement account =
+     settlement.cashProvider == account.provider
+  && settlement.investor == account.owner
+
+settlementBelongsToAuction: InvestorSettlement -> AuctionLockedCash -> Bool
+settlementBelongsToAuction settlement auction =
+     settlement.auctionAgent == auction.auctionAgent
+  && settlement.auctionName == auction.auctionName
