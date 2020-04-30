@@ -45,22 +45,17 @@ finalizeAuction party activeContracts _ _ () = do
 
   forA_ triggerContracts $ \(triggerCid, trigger) -> do
     let matchingParticipationCids =
-            getMatchingParticipationCids trigger.auctionAgent trigger.auctionName participationContracts
+            getMatching trigger.auctionAgent trigger.auctionName participationContracts
         matchingBidCids =
-            getMatchingBidCids trigger.auctionAgent trigger.auctionName bidContracts
+            getMatching trigger.auctionAgent trigger.auctionName bidContracts
     dedupExercise triggerCid AuctionFinalizeBotTrigger_AllocateBond with
         participationCids = matchingParticipationCids
         bidCids = matchingBidCids
   where
-    getMatchingParticipationCids auctionAgent auctionName participationContracts =
-      map fst $
-        filter (\(_, p) -> p.auctionName == auctionName && p.auctionAgent == auctionAgent)
-          participationContracts
-
-    getMatchingBidCids auctionAgent auctionName bidContracts =
-      map fst $
-        filter (\(_, b) -> b.auctionName == auctionName && b.auctionAgent == auctionAgent)
-          bidContracts
+    getMatching auctionAgent auctionName contracts =
+      [ cid | (cid, b) <- contracts,
+              b.auctionName == auctionName,
+              b.auctionAgent == auctionAgent ]
 
 -- Tests ---------------------------
 
