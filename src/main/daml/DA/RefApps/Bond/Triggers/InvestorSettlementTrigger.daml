@@ -54,27 +54,32 @@ finializeSettlement:
 finializeSettlement auctionLockedCashes assetSettlements assetFungibles settlementContract = do
   let
     (id, settlement) = settlementContract
-    assetSettlement = findAssetSettlement assetSettlements settlement
-    assetFungible = findAssetFungible assetFungibles settlement
-    auctionLockedCashIds = findAuctionLockedCashes auctionLockedCashes settlement
+    assetSettlement =
+      fromSomeNote "Can't find any AssetSettlement contract" $ findAssetSettlement assetSettlements settlement
+    assetFungible =
+      fromSomeNote "Can't find any AssetFungible contract" $ findAssetFungible assetFungibles settlement
+    auctionLockedCashIds =
+      case (findAuctionLockedCashes auctionLockedCashes settlement) of
+        [] -> error ("Can't find any auction locks for this auction: " <> settlement.auctionName)
+        result -> result
 
   id `dedupExercise` InvestorSettlement_Finalize auctionLockedCashIds assetFungible assetSettlement
 
-findAssetSettlement: [Contract AssetSettlement] -> InvestorSettlement -> ContractId AssetSettlement
+findAssetSettlement: [Contract AssetSettlement] -> InvestorSettlement -> Optional (ContractId AssetSettlement)
 findAssetSettlement assetSettlements settlement = do
   let
     result = find
       (\(_, contract) -> settlementBelongsToAccount contract.account settlement)
       assetSettlements
-  fromSomeNote "Can't find any AssetSettlement contract" $ fmap fst result
+  fmap fst result
 
-findAssetFungible: [Contract AssetFungible] -> InvestorSettlement -> ContractId AssetFungible
+findAssetFungible: [Contract AssetFungible] -> InvestorSettlement -> Optional (ContractId AssetFungible)
 findAssetFungible assetFungibles settlement = do
   let
     result = find
       (\(_, contract) -> settlementBelongsToAccount contract.account settlement)
       assetFungibles
-  fromSomeNote "Can't find any AssetFungible contract" $ fmap fst result
+  fmap fst result
 
 settlementBelongsToAccount: Account -> InvestorSettlement -> Bool
 settlementBelongsToAccount account settlement = do
@@ -91,6 +96,4 @@ findAuctionLockedCashes auctionLockedCashes settlement = do
            contract.auctionAgent == settlement.auctionAgent
         && contract.auctionName == settlement.auctionName)
       auctionLockedCashes
-  case result of
-    [] -> error ("Can't find any auction locks for this auction: " <> settlement.auctionName)
-    _ -> map fst result
+  map fst result
