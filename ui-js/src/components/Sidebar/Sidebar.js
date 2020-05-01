@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParty } from '@daml/react';
 import { Drawer, IconButton, List } from "@material-ui/core";
 import { green} from '@material-ui/core/colors';
-import { List as ListIcon, TouchApp, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, Public, Build, CardMembership } from "@material-ui/icons";
+import { List as ListIcon, TouchApp, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, Public, Build, CardMembership, DirectionsRun, ListAlt } from "@material-ui/icons";
 import { useTheme } from "@material-ui/styles";
 import { withRouter } from "react-router-dom";
 import classNames from "classnames";
@@ -121,7 +121,7 @@ function Sidebar({ location }) {
           key="AuctionRequest"
           label={panelNames.get('auctionRequestView') || "unassigned"}
           path="/app/auctionRequest"
-          icon={(<Public />)}
+          icon={(<ListAlt style={{ color: '#536DFE' }}/>)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -181,7 +181,7 @@ function Sidebar({ location }) {
           key="BidderParticipation"
           label={panelNames.get('bidderParticipationView') || "unassigned"}
           path="/app/bidderParticipation"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<DirectionsRun style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
