@@ -9,5 +9,8 @@ export default function Report() {
   const reviews = useQuery(CentralBankRoleInvitation);
   // const exerciseGive = useExercise(Asset.Give);
 
-  return (<Contracts contracts={reviews.contracts}/>);
-}
+  return (<Contracts contracts={reviews.contracts}
+    columns={[ ["Contract Id","contractId"],
+		["Central Bank", "payload.centralBank"],
+		["Regulators", "payload.regulators"],
+	]} /> ); }	
