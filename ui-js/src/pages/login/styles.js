@@ -148,4 +148,13 @@ export default makeStyles(theme => ({
       bottom: theme.spacing(2),
     },
   },
+  formControl: {
+    margin: theme.spacing(0),
+    marginTop : 2,
+    minWidth: 140,
+  },
+  passwordShift:{
+    paddingBottom : '10px',
+    paddingLeft: '4px'
+  }
 }));

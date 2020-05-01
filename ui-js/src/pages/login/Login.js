@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Grid, CircularProgress, Typography, Button, TextField, Fade } from "@material-ui/core";
+import { Grid, CircularProgress, Typography, Button, TextField, Fade, Select, MenuItem, InputLabel, FormControl } from "@material-ui/core";
 import { withRouter } from "react-router-dom";
 import useStyles from "./styles";
 import logo from "./logo.svg";
@@ -24,12 +24,12 @@ function Login(props) {
         <img src={logo} alt="logo" className={classes.logotypeImage} />
         <Typography className={classes.logotypeText}>BOND Issuance</Typography>
       </div>
-      <div className={classes.formContainer}>
-        <div className={classes.form}>
+      <div class="makeStyles-formContainer-8">
+        <div className="makeStyles-form-12">
             <React.Fragment>
               <Fade in={error}>
                 <Typography color="secondary" className={classes.errorMessage}>
-                  Something is wrong with your login or password :(
+                  Something is wrong with your login or password
                 </Typography>
               </Fade>
               {!isLocalDev &&
@@ -41,14 +41,9 @@ function Login(props) {
                     OR
                   </Typography>
                 </>}
-              <TextField
-                id="email"
-                InputProps={{
-                  classes: {
-                    underline: classes.textFieldUnderline,
-                    input: classes.textField,
-                  },
-                }}
+            <FormControl variant="filled" className={classes.formControl}>
+              <InputLabel id="email">Select Party</InputLabel>
+              <Select
                 value={loginValue}
                 onChange={e => setLoginValue(e.target.value)}
                 onKeyDown={e => {
@@ -63,17 +58,29 @@ function Login(props) {
                     )
                   }
                 }}
-                margin="normal"
-                placeholder="Username"
-                type="email"
                 fullWidth
-              />
+              >
+                <MenuItem value="">
+                  <em>Select Party</em>
+                </MenuItem>
+                <MenuItem value={"Operator"}>Operator</MenuItem>
+                <MenuItem value={"Regulator"}>Regulator</MenuItem>
+                <MenuItem value={"AuctionAgent"}>AuctionAgent</MenuItem>
+                <MenuItem value={"Bank1"}>Bank1</MenuItem>
+                <MenuItem value={"Bank2"}>Bank2</MenuItem>
+                <MenuItem value={"Bank3"}>Bank3</MenuItem>
+                <MenuItem value={"CSD"}>CSD</MenuItem>
+                <MenuItem value={"Issuer"}>Issuer</MenuItem>
+                <MenuItem value={"CentralBank"}>CentralBank</MenuItem>
+                </Select>
+            </FormControl>
               <TextField
                 id="password"
                 InputProps={{
                   classes: {
                     underline: classes.textFieldUnderline,
                     input: classes.textField,
+                    root : classes.passwordShift
                   },
                 }}
                 value={passwordValue}
@@ -93,7 +100,7 @@ function Login(props) {
                 margin="normal"
                 placeholder="Password"
                 type="password"
-                fullWidth
+                // fullWidth
               />
               <div className={classes.formButtons}>
                 {isLoading ?
