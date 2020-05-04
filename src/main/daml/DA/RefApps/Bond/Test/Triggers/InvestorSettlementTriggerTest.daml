@@ -9,7 +9,7 @@ module DA.RefApps.Bond.Test.Triggers.InvestorSettlementTriggerTest where
 
 import Daml.Trigger.Assert (assertExerciseCmd, flattenCommands, testRule, toACS)
 import DA.Next.Map qualified as Map
-import DA.Foldable hiding (length)
+import DA.Foldable hiding (length, null)
 import DA.Assert
 import DA.RefApps.Bond.Settlement
 
@@ -17,7 +17,7 @@ import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Triggers.InvestorSettlementTrigger
 import DA.RefApps.Bond.Test.FullScenario qualified as LedgerSetup
 
-finalize_settlement = scenario do
+investorSettlementTrigger_finalizes_settlement = scenario do
   bank1 <- getParty "Bank1"
 
   issuance <- LedgerSetup.setupIssuance
@@ -31,11 +31,10 @@ finalize_settlement = scenario do
            toACS issuance.rules.bank1CashFungibleCid -- assetFungibles
         <> toACS issuance.rules.bank1CashSettlementCid -- assetSettlements
         <> foldMap toACS progress.bank1Locks -- auctionLockedCashes
-        <> toACS settlement
 
   commands <-
     flattenCommands <$>
-      testRule investorSettlementTrigger bank1 activeContracts Map.empty ()
+      testRule investorSettlementTrigger bank1 (activeContracts <> toACS settlement) Map.empty ()
 
   1 === length commands
   assertExerciseCmd commands $ \(contract, actualChoice) -> do
@@ -47,3 +46,9 @@ finalize_settlement = scenario do
               cashAssetFungible = issuance.rules.bank1CashFungibleCid
               investorCashSettlementCid = issuance.rules.bank1CashSettlementCid
     expectedChoice === actualChoice
+
+  commands <-
+    flattenCommands <$>
+      testRule investorSettlementTrigger bank1 activeContracts Map.empty ()
+
+  assertMsg "Expected no commands." $ null commands
