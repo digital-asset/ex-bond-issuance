@@ -1,0 +1,44 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.ContractUtils where
+
+import DA.Finance.Rule.Asset
+import DA.Finance.Types
+
+import DA.RefApps.Bond.Lock
+import DA.RefApps.Bond.Settlement
+
+type Contract a = (ContractId a, a)
+
+filterContractIds: (a -> Bool) -> [Contract a] -> [ContractId a]
+filterContractIds p contracts = [id | (id, value) <- contracts, p value]
+
+headNote: Text -> [a] -> a
+headNote _ (x::_) = x
+headNote message _ = error message
+
+findAssetSettlements: [Contract AssetSettlement] -> Party -> Party -> [ContractId AssetSettlement]
+findAssetSettlements assetSettlements provider owner =
+  filterContractIds (\(contract) -> accountBelongsTo provider owner contract.account) assetSettlements
+
+findAssetFungibles: [Contract AssetFungible] -> Party -> Party -> [ContractId AssetFungible]
+findAssetFungibles assetFungibles provider owner =
+  filterContractIds (\(contract) -> accountBelongsTo provider owner contract.account) assetFungibles
+
+findAuctionLockedCashes: [Contract AuctionLockedCash] -> InvestorSettlement -> [ContractId AuctionLockedCash]
+findAuctionLockedCashes auctionLockedCashes settlement =
+  filterContractIds (settlementBelongsToAuction settlement) auctionLockedCashes
+
+accountBelongsTo: Party -> Party -> Account -> Bool
+accountBelongsTo provider owner account =
+     provider == account.provider
+  && owner == account.owner
+
+settlementBelongsToAuction: InvestorSettlement -> AuctionLockedCash -> Bool
+settlementBelongsToAuction settlement auction =
+     settlement.auctionAgent == auction.auctionAgent
+  && settlement.auctionName == auction.auctionName

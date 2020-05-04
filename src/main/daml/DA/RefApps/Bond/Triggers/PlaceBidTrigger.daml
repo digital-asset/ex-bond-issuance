@@ -19,6 +19,7 @@ import DA.Finance.Rule.Asset
 import DA.RefApps.Bond.Lock
 import DA.List.Total
 import DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger qualified as AuctFin
+import DA.RefApps.Bond.ContractUtils
 
 placeBidTrigger : Trigger ()
 placeBidTrigger = Trigger
@@ -65,29 +66,20 @@ placeBidRule party activeContracts _ _ () = do
         investorBondAssetSettlementCid
   where
     getLockRuleCid provider lockRules =
-      getFirstOrError "Can't find any matching LockRule contract" $
+      headNote "Can't find any matching LockRule contract" $
         filterContractIds (\c -> c.account.provider == provider) lockRules
 
     getMatchingassetSettlementCid provider owner assetSettlements =
-      getFirstOrError "Can't find any matching AssetSettlement contract" $
-        filterContractIds (\p -> p.account.provider == provider && p.account.owner == owner) $
-          assetSettlements
+      headNote "Can't find any matching AssetSettlement contract" $
+        findAssetSettlements assetSettlements provider owner
 
     getAssetFungibleCid provider owner assetFungibles =
-      getFirstOrError "Can't find any matching AssetFungible contract" $
-        filterContractIds (\p -> p.account.provider == provider && p.account.owner == owner) $
-          assetFungibles
+      headNote "Can't find any matching AssetFungible contract" $
+        findAssetFungibles assetFungibles provider owner
 
     getAssetDepositCids assetId assetDeposits =
       filterContractIds (\p -> p.asset.id.label == assetId.label && p.asset.id.version == assetId.version) $
         assetDeposits
-
-    filterContractIds predicate coidsAndContracts =
-      [ cid | (cid, c) <- coidsAndContracts, predicate c ]
-    getFirstOrError msg items =
-      case items of
-        first::_ -> first
-        []       -> error msg
 
 
 -- Tests ---------------------------

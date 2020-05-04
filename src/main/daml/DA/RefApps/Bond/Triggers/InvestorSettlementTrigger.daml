@@ -10,12 +10,11 @@ module DA.RefApps.Bond.Triggers.InvestorSettlementTrigger where
 import Daml.Trigger
 import DA.Next.Map hiding (filter)
 import DA.Foldable
-import DA.Optional
 
 import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Lock
+import DA.RefApps.Bond.ContractUtils
 import DA.Finance.Rule.Asset
-import DA.Finance.Types
 
 investorSettlementTrigger: Trigger ()
 investorSettlementTrigger = Trigger
@@ -43,8 +42,6 @@ finalizeSettlements party activeContracts _ _ () = do
     investorSettlements
     (finializeSettlement auctionLockedCashes assetSettlements assetFungibles)
 
-type Contract a = (ContractId a, a)
-
 finializeSettlement:
   [Contract AuctionLockedCash] ->
   [Contract AssetSettlement] ->
@@ -55,40 +52,14 @@ finializeSettlement auctionLockedCashes assetSettlements assetFungibles settleme
   let
     (id, settlement) = settlementContract
     assetSettlement =
-      fromSomeNote "Can't find any AssetSettlement contract" $ findAssetSettlement assetSettlements settlement
+      headNote "Can't find any AssetSettlement contract" $
+        findAssetSettlements assetSettlements settlement.cashProvider settlement.investor
     assetFungible =
-      fromSomeNote "Can't find any AssetFungible contract" $ findAssetFungible assetFungibles settlement
+      headNote "Can't find any AssetFungible contract" $
+        findAssetFungibles assetFungibles settlement.cashProvider settlement.investor
     auctionLockedCashIds =
       case (findAuctionLockedCashes auctionLockedCashes settlement) of
         [] -> error ("Can't find any auction locks for this auction: " <> settlement.auctionName)
         result -> result
 
   id `dedupExercise` InvestorSettlement_Finalize auctionLockedCashIds assetFungible assetSettlement
-
-findAssetSettlement: [Contract AssetSettlement] -> InvestorSettlement -> Optional (ContractId AssetSettlement)
-findAssetSettlement assetSettlements settlement =
-  fst <$> find
-      (\(_, contract) -> settlementBelongsToAccount settlement contract.account)
-      assetSettlements
-
-findAssetFungible: [Contract AssetFungible] -> InvestorSettlement -> Optional (ContractId AssetFungible)
-findAssetFungible assetFungibles settlement =
-  fst <$> find
-      (\(_, contract) -> settlementBelongsToAccount settlement contract.account)
-      assetFungibles
-
-findAuctionLockedCashes: [Contract AuctionLockedCash] -> InvestorSettlement -> [ContractId AuctionLockedCash]
-findAuctionLockedCashes auctionLockedCashes settlement =
-  fst <$> filter
-      (\(_, contract) -> settlementBelongsToAuction settlement contract)
-      auctionLockedCashes
-
-settlementBelongsToAccount: InvestorSettlement -> Account -> Bool
-settlementBelongsToAccount settlement account =
-     settlement.cashProvider == account.provider
-  && settlement.investor == account.owner
-
-settlementBelongsToAuction: InvestorSettlement -> AuctionLockedCash -> Bool
-settlementBelongsToAuction settlement auction =
-     settlement.auctionAgent == auction.auctionAgent
-  && settlement.auctionName == auction.auctionName
