@@ -13,7 +13,6 @@ import DA.Finance.Rule.Asset
 import DA.Finance.Types
 
 import DA.RefApps.Bond.Lock
-import DA.RefApps.Bond.Settlement
 
 type Contract a = (ContractId a, a)
 
@@ -31,16 +30,16 @@ findAssetFungibles: [Contract AssetFungible] -> Party -> Party -> [ContractId As
 findAssetFungibles assetFungibles provider owner =
   filterContractIds (\(contract) -> accountBelongsTo provider owner contract.account) assetFungibles
 
-findAuctionLockedCashes: [Contract AuctionLockedCash] -> InvestorSettlement -> [ContractId AuctionLockedCash]
-findAuctionLockedCashes auctionLockedCashes settlement =
-  filterContractIds (settlementBelongsToAuction settlement) auctionLockedCashes
+findAuctionLockedCashes: [Contract AuctionLockedCash] -> Party -> Text -> [ContractId AuctionLockedCash]
+findAuctionLockedCashes auctionLockedCashes auctionAgent auctionName =
+  filterContractIds (auctionBelongsTo auctionAgent auctionName) auctionLockedCashes
 
 accountBelongsTo: Party -> Party -> Account -> Bool
 accountBelongsTo provider owner account =
      provider == account.provider
   && owner == account.owner
 
-settlementBelongsToAuction: InvestorSettlement -> AuctionLockedCash -> Bool
-settlementBelongsToAuction settlement auction =
-     settlement.auctionAgent == auction.auctionAgent
-  && settlement.auctionName == auction.auctionName
+auctionBelongsTo: Party -> Text -> AuctionLockedCash -> Bool
+auctionBelongsTo auctionAgent auctionName auction =
+     auctionAgent == auction.auctionAgent
+  && auctionName == auction.auctionName

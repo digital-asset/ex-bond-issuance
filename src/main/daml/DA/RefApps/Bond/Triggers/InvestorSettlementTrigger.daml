@@ -58,7 +58,7 @@ finializeSettlement auctionLockedCashes assetSettlements assetFungibles settleme
       headNote "Can't find any AssetFungible contract" $
         findAssetFungibles assetFungibles settlement.cashProvider settlement.investor
     auctionLockedCashIds =
-      case (findAuctionLockedCashes auctionLockedCashes settlement) of
+      case (findAuctionLockedCashes auctionLockedCashes settlement.auctionAgent settlement.auctionName) of
         [] -> error ("Can't find any auction locks for this auction: " <> settlement.auctionName)
         result -> result
 
