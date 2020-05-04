@@ -6,6 +6,9 @@
 daml 1.2
 module DA.RefApps.Bond.ContractUtils where
 
+import DA.Optional
+import DA.List.Total
+
 import DA.Finance.Rule.Asset
 import DA.Finance.Types
 
@@ -18,8 +21,7 @@ filterContractIds: (a -> Bool) -> [Contract a] -> [ContractId a]
 filterContractIds p contracts = [id | (id, value) <- contracts, p value]
 
 headNote: Text -> [a] -> a
-headNote _ (x::_) = x
-headNote message _ = error message
+headNote message = (fromSomeNote message) . head
 
 findAssetSettlements: [Contract AssetSettlement] -> Party -> Party -> [ContractId AssetSettlement]
 findAssetSettlements assetSettlements provider owner =
