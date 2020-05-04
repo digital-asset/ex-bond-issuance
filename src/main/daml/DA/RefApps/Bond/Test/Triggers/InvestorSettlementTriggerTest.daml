@@ -1,0 +1,49 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+
+module DA.RefApps.Bond.Test.Triggers.InvestorSettlementTriggerTest where
+
+import Daml.Trigger.Assert (assertExerciseCmd, flattenCommands, testRule, toACS)
+import DA.Next.Map qualified as Map
+import DA.Foldable hiding (length)
+import DA.Assert
+import DA.RefApps.Bond.Settlement
+
+import DA.RefApps.Bond.Auction
+import DA.RefApps.Bond.Triggers.InvestorSettlementTrigger
+import DA.RefApps.Bond.Test.FullScenario qualified as LedgerSetup
+
+finalize_settlement = scenario do
+  bank1 <- getParty "Bank1"
+
+  issuance <- LedgerSetup.setupIssuance
+  progress <- LedgerSetup.startAuction issuance
+  (settleRequests, _) <- LedgerSetup.finalizeAuction progress
+
+  settlement <- bank1 `submit`
+    exercise settleRequests.bank1SettleReqCid AuctionParticipantSettleRequest_Settle
+
+  let activeContracts =
+           toACS issuance.rules.bank1CashFungibleCid -- assetFungibles
+        <> toACS issuance.rules.bank1CashSettlementCid -- assetSettlements
+        <> foldMap toACS progress.bank1Locks -- auctionLockedCashes
+        <> toACS settlement
+
+  commands <-
+    flattenCommands <$>
+      testRule investorSettlementTrigger bank1 activeContracts Map.empty ()
+
+  1 === length commands
+  assertExerciseCmd commands $ \(contract, actualChoice) -> do
+    settlement === contract
+    let expectedChoice =
+          InvestorSettlement_Finalize
+            with
+              auctionLockedCashCids = progress.bank1Locks
+              cashAssetFungible = issuance.rules.bank1CashFungibleCid
+              investorCashSettlementCid = issuance.rules.bank1CashSettlementCid
+    expectedChoice === actualChoice
