@@ -16,6 +16,15 @@ import DA.RefApps.Bond.Lock
 
 type Contract a = (ContractId a, a)
 
+class Template a => HasAccount a where
+  accountOf: a -> Account
+
+instance HasAccount AssetSettlement where
+  accountOf t = t.account
+
+instance HasAccount AssetFungible where
+  accountOf t = t.account
+
 filterContractIds: (a -> Bool) -> [Contract a] -> [ContractId a]
 filterContractIds p contracts = [id | (id, value) <- contracts, p value]
 
@@ -24,22 +33,24 @@ headNote message = (fromSomeNote message) . head
 
 findAssetSettlement: [Contract AssetSettlement] -> Party -> Party -> ContractId AssetSettlement
 findAssetSettlement assetSettlements provider owner =
-  headNote "Can't find any AssetSettlement contract" $
-    filterContractIds (\x -> accountBelongsTo provider owner x.account) assetSettlements
+  findAsset provider owner "Can't find any AssetSettlement contract" assetSettlements
 
 findAssetFungible: [Contract AssetFungible] -> Party -> Party -> ContractId AssetFungible
 findAssetFungible assetFungibles provider owner =
-  headNote "Can't find any AssetFungible contract" $
-    filterContractIds (\x -> accountBelongsTo provider owner x.account) assetFungibles
+  findAsset provider owner "Can't find any AssetFungible contract" assetFungibles
+
+findAsset: (HasAccount a) => Party -> Party -> Text -> [Contract a] -> ContractId a
+findAsset provider owner message assets =
+  headNote message $ filterContractIds (accountBelongsTo provider owner) assets
+
+accountBelongsTo: (HasAccount a) => Party -> Party -> a -> Bool
+accountBelongsTo provider owner a = do
+  let account = accountOf a
+  provider == account.provider && owner == account.owner
 
 findAuctionLockedCashes: [Contract AuctionLockedCash] -> Party -> Text -> [ContractId AuctionLockedCash]
 findAuctionLockedCashes auctionLockedCashes auctionAgent auctionName =
   filterContractIds (auctionBelongsTo auctionAgent auctionName) auctionLockedCashes
-
-accountBelongsTo: Party -> Party -> Account -> Bool
-accountBelongsTo provider owner account =
-     provider == account.provider
-  && owner == account.owner
 
 auctionBelongsTo: Party -> Text -> AuctionLockedCash -> Bool
 auctionBelongsTo auctionAgent auctionName auction =
