@@ -13,9 +13,6 @@ import DA.Finance.Rule.Asset
 import DA.Finance.Types
 
 import DA.RefApps.Bond.Lock
-import DA.RefApps.Bond.Settlement
-import DA.RefApps.Bond.Auction
-import DA.RefApps.Bond.Roles.IssuerRole
 
 type Contract a = (ContractId a, a)
 
@@ -28,38 +25,15 @@ instance HasAccount AssetSettlement where
 instance HasAccount AssetFungible where
   accountOf t = t.account
 
-instance HasAccount CommissionBotTrigger where
-  accountOf t = t.issuerBondAccount
-
 filterContractIds: (a -> Bool) -> [Contract a] -> [ContractId a]
 filterContractIds p contracts = [id | (id, value) <- contracts, p value]
 
 headNote: Text -> [a] -> a
 headNote message = (fromSomeNote message) . head
 
-class Template t => CanFindAsset t where
-  assetsOf: (HasAccount a) => t -> Text -> [Contract a] -> ContractId a
-
-instance CanFindAsset InvestorSettlement where
-  assetsOf settlement message = findAsset settlement.cashProvider settlement.investor message
-
-instance CanFindAsset PlaceBidBotTrigger where
-  assetsOf placeBid message = findAsset placeBid.bondProvider placeBid.bidder message
-
-instance CanFindAsset CommissionBotTrigger where
-  assetsOf commission message = do
-    let account = accountOf commission
-    findAsset account.provider account.owner message
-
-findAssetSettlement: Party -> Party -> [Contract AssetSettlement] -> ContractId AssetSettlement
-findAssetSettlement provider owner = findAsset provider owner "Can't find any AssetSettlement contract"
-
-findAssetFungible: Party -> Party -> [Contract AssetFungible] -> ContractId AssetFungible
-findAssetFungible provider owner = findAsset provider owner "Can't find any AssetFungible contract"
-
-findAsset: (HasAccount a) => Party -> Party -> Text -> [Contract a] -> ContractId a
-findAsset provider owner message assets =
-  headNote message $ filterContractIds (accountBelongsTo provider owner) assets
+findAsset: (HasAccount a) => Party -> Party -> [Contract a] -> ContractId a
+findAsset provider owner assets =
+  headNote "Can't find any asset contract" $ filterContractIds (accountBelongsTo provider owner) assets
 
 accountBelongsTo: (HasAccount a) => Party -> Party -> a -> Bool
 accountBelongsTo provider owner a = do

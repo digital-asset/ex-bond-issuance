@@ -41,17 +41,17 @@ commissionRule party activeContracts _ _ () = do
 
   forA_ triggerContracts $ \(triggerCid, trigger) -> do
     let bondAssetSettlementCid =
-          findAssetSettlement
+          findAsset
             trigger.issuerBondAccount.provider
             trigger.issuerBondAccount.owner
             assetSettlements
         cashAssetSettlementCid =
-          findAssetSettlement
+          findAsset
             trigger.cashAccountProvider
             party
             assetSettlements
         bondAssetFungibleCid =
-          findAssetFungible
+          findAsset
             trigger.issuerBondAccount.provider
             trigger.issuerBondAccount.owner
             assetFungibles
