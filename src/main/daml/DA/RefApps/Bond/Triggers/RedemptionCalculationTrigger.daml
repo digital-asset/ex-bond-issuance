@@ -1,0 +1,127 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+
+module DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger where
+
+import Daml.Trigger
+import DA.Next.Map qualified as Map
+import Daml.Trigger.Assert
+import DA.Assert
+import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
+import DA.RefApps.Bond.Auction
+import DA.RefApps.Bond.Redemption
+import DA.Optional
+import DA.Finance.Fact.Asset
+import DA.Finance.Rule.Asset
+import DA.Foldable hiding (length)
+import DA.RefApps.Bond.Lock
+import DA.List
+import DA.List.Total hiding (head)
+import DA.RefApps.Bond.Roles.IssuerRole
+import DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger qualified as AuctFin
+
+redemptionCalculationTrigger : Trigger ()
+redemptionCalculationTrigger = Trigger
+  { initialize = const ()
+  , updateState = \_ _ _ -> ()
+  , rule = redemptionCalculationRule
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @RedemptionCalculationBotTrigger,
+      registeredTemplate @RedemptionPayoutInfo,
+      registeredTemplate @AssetDeposit
+    ]
+  , heartbeat = None
+  }
+
+redemptionCalculationRule : Party -> ACS -> Time -> Map.Map CommandId [Command] -> () -> TriggerA ()
+redemptionCalculationRule party activeContracts _ _ () = do
+  let redemptionCalcTriggers = getContracts @RedemptionCalculationBotTrigger activeContracts
+      payoutInfos = getContracts @RedemptionPayoutInfo activeContracts
+      assetDeposits = getContracts @AssetDeposit activeContracts
+
+  forA_ redemptionCalcTriggers $ \(triggerCid, trigger) -> do
+    let remainingAssetCids =
+          filterContractIds (\p -> p.account.owner == trigger.issuer)
+            assetDeposits
+        relevantPayoutInfos =
+          filterContractIds (\p -> p.bondInstrumentId == trigger.bondAssetId)
+            payoutInfos
+    dedupExercise triggerCid $ RedemptionCalculationBotTrigger_Start
+        relevantPayoutInfos
+        remainingAssetCids
+  where
+    filterContractIds predicate coidsAndContracts =
+      [ cid | (cid, c) <- coidsAndContracts, predicate c ]
+
+-- Tests ---------------------------
+
+testWithSomeRemainedBond = scenario do
+  auctionAgent <- getParty "AuctionAgent"
+  issuer <- getParty "Issuer"
+  csd <- getParty "CSD"
+
+  issuance <-
+    MarketSetup.setupIssuance
+  progress <-
+    MarketSetup.startAuction issuance
+  (settleRequests, remainedBond) <-
+    MarketSetup.finalizeAuction progress
+  assetsForRedemption <-
+    MarketSetup.doSettlement issuance settleRequests progress
+  (request, leftOverSettlementChain) <-
+    redeem issuer issuance settleRequests
+  calcTrigger <-
+    submit csd $ exercise request RedemptionRequest_Accept
+
+  let activeContracts =
+          toACS calcTrigger <>
+          toACS remainedBond
+  commands <-
+    testRule redemptionCalculationTrigger csd activeContracts Map.empty ()
+  let flattenedCommands = flattenCommands commands
+  length flattenedCommands === 1
+  assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
+    assertEq cid calcTrigger
+    assertEq choiceArg (RedemptionCalculationBotTrigger_Start with
+            redemptionPayoutInfos = []
+            bondsAtIssuer = [remainedBond])
+
+testWithNoRemainedBond = scenario do
+  auctionAgent <- getParty "AuctionAgent"
+  issuer <- getParty "Issuer"
+  csd <- getParty "CSD"
+
+  issuance <-
+    MarketSetup.setupIssuance
+  progress <-
+    MarketSetup.startAuction issuance
+  (settleRequests, _unusedRemainedBond) <-
+    MarketSetup.finalizeAuction progress
+  assetsForRedemption <-
+    MarketSetup.doSettlement issuance settleRequests progress
+  (request, leftOverSettlementChain) <-
+    redeem issuer issuance settleRequests
+  calcTrigger <-
+    submit csd $ exercise request RedemptionRequest_Accept
+
+  let activeContracts = toACS calcTrigger
+  commands <-
+    testRule redemptionCalculationTrigger csd activeContracts Map.empty ()
+  let flattenedCommands = flattenCommands commands
+  length flattenedCommands === 1
+  assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
+    assertEq cid calcTrigger
+    assertEq choiceArg (RedemptionCalculationBotTrigger_Start with
+            redemptionPayoutInfos = []
+            bondsAtIssuer = [])
+
+redeem issuer issuance settleRequests =
+  submit issuer do
+    redeemRequest <- exercise issuance.roles.issuerRoleCid $ IssuerRole_Redeem issuance.fixedRateBondFactCid
+    otherParticipantReq <- fetch settleRequests.otherSettleReqCid
+    otherSettleReq <- fetch $ head otherParticipantReq.settleRequestCids
+    return (redeemRequest, otherSettleReq.bondSettlementChainCid)
