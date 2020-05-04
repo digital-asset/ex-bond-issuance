@@ -31,13 +31,11 @@ filterContractIds p contracts = [id | (id, value) <- contracts, p value]
 headNote: Text -> [a] -> a
 headNote message = (fromSomeNote message) . head
 
-findAssetSettlement: [Contract AssetSettlement] -> Party -> Party -> ContractId AssetSettlement
-findAssetSettlement assetSettlements provider owner =
-  findAsset provider owner "Can't find any AssetSettlement contract" assetSettlements
+findAssetSettlement: Party -> Party -> [Contract AssetSettlement] -> ContractId AssetSettlement
+findAssetSettlement provider owner = findAsset provider owner "Can't find any AssetSettlement contract"
 
-findAssetFungible: [Contract AssetFungible] -> Party -> Party -> ContractId AssetFungible
-findAssetFungible assetFungibles provider owner =
-  findAsset provider owner "Can't find any AssetFungible contract" assetFungibles
+findAssetFungible: Party -> Party -> [Contract AssetFungible] -> ContractId AssetFungible
+findAssetFungible provider owner = findAsset provider owner "Can't find any AssetFungible contract"
 
 findAsset: (HasAccount a) => Party -> Party -> Text -> [Contract a] -> ContractId a
 findAsset provider owner message assets =

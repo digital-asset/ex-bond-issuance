@@ -41,17 +41,17 @@ commissionRule party activeContracts _ _ () = do
 
   forA_ triggerContracts $ \(triggerCid, trigger) -> do
     let bondAssetSettlementCid =
-          getMatchingAssetSettlementCid
+          findAssetSettlement
             trigger.issuerBondAccount.provider
             trigger.issuerBondAccount.owner
             assetSettlements
         cashAssetSettlementCid =
-          getMatchingAssetSettlementCid
+          findAssetSettlement
             trigger.cashAccountProvider
             party
             assetSettlements
         bondAssetFungibleCid =
-          getAssetFungibleCid
+          findAssetFungible
             trigger.issuerBondAccount.provider
             trigger.issuerBondAccount.owner
             assetFungibles
@@ -63,12 +63,6 @@ commissionRule party activeContracts _ _ () = do
         cashAssetSettlementCid
         fixedRateBondFactCid
   where
-    getMatchingAssetSettlementCid provider owner assetSettlements =
-      findAssetSettlement assetSettlements provider owner
-
-    getAssetFungibleCid provider owner assetFungibles =
-      findAssetFungible assetFungibles provider owner
-
     getBondRefData assetId bondFacts =
       headNote "Can't find any BondFact contract" $
         filterContractIds (\p -> p.instrumentId == assetId) bondFacts
