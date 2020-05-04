@@ -40,15 +40,15 @@ finalizeSettlements party activeContracts _ _ () = do
 
   forA_
     investorSettlements
-    (finializeSettlement auctionLockedCashes assetSettlements assetFungibles)
+    (finalizeSettlement auctionLockedCashes assetSettlements assetFungibles)
 
-finializeSettlement:
+finalizeSettlement:
   [Contract AuctionLockedCash] ->
   [Contract AssetSettlement] ->
   [Contract AssetFungible] ->
   Contract InvestorSettlement ->
   TriggerA ()
-finializeSettlement auctionLockedCashes assetSettlements assetFungibles settlementContract = do
+finalizeSettlement auctionLockedCashes assetSettlements assetFungibles settlementContract = do
   let
     (id, settlement) = settlementContract
     assetSettlement = findAssetSettlement assetSettlements settlement.cashProvider settlement.investor
