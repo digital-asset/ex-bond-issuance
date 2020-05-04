@@ -16,6 +16,7 @@ import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.Finance.Rule.Asset
 import DA.RefApps.Bond.FixedRateBond
+import DA.RefApps.Bond.ContractUtils
 
 commissionTrigger : Trigger ()
 commissionTrigger = Trigger
@@ -63,25 +64,14 @@ commissionRule party activeContracts _ _ () = do
         fixedRateBondFactCid
   where
     getMatchingAssetSettlementCid provider owner assetSettlements =
-      getFirstOrError "Can't find any AssetSettlement contract" $
-        filterContractIds (\p -> p.account.provider == provider && p.account.owner == owner) $
-          assetSettlements
+      findAssetSettlement assetSettlements provider owner
 
     getAssetFungibleCid provider owner assetFungibles =
-      getFirstOrError "Can't find any AssetFungible contract" $
-        filterContractIds (\p -> p.account.provider == provider && p.account.owner == owner) $
-          assetFungibles
+      findAssetFungible assetFungibles provider owner
 
     getBondRefData assetId bondFacts =
-      getFirstOrError "Can't find any BondFact contract" $
+      headNote "Can't find any BondFact contract" $
         filterContractIds (\p -> p.instrumentId == assetId) bondFacts
-
-    filterContractIds predicate coidsAndContracts =
-      [ cid | (cid, c) <- coidsAndContracts, predicate c ]
-    getFirstOrError msg items =
-      case items of
-        first::_ -> first
-        []       -> error msg
 
 
 -- Tests ---------------------------

@@ -70,12 +70,10 @@ placeBidRule party activeContracts _ _ () = do
         filterContractIds (\c -> c.account.provider == provider) lockRules
 
     getMatchingassetSettlementCid provider owner assetSettlements =
-      headNote "Can't find any matching AssetSettlement contract" $
-        findAssetSettlements assetSettlements provider owner
+      findAssetSettlement assetSettlements provider owner
 
     getAssetFungibleCid provider owner assetFungibles =
-      headNote "Can't find any matching AssetFungible contract" $
-        findAssetFungibles assetFungibles provider owner
+      findAssetFungible assetFungibles provider owner
 
     getAssetDepositCids assetId assetDeposits =
       filterContractIds (\p -> p.asset.id.label == assetId.label && p.asset.id.version == assetId.version) $

@@ -22,13 +22,15 @@ filterContractIds p contracts = [id | (id, value) <- contracts, p value]
 headNote: Text -> [a] -> a
 headNote message = (fromSomeNote message) . head
 
-findAssetSettlements: [Contract AssetSettlement] -> Party -> Party -> [ContractId AssetSettlement]
-findAssetSettlements assetSettlements provider owner =
-  filterContractIds (\(contract) -> accountBelongsTo provider owner contract.account) assetSettlements
+findAssetSettlement: [Contract AssetSettlement] -> Party -> Party -> ContractId AssetSettlement
+findAssetSettlement assetSettlements provider owner =
+  headNote "Can't find any AssetSettlement contract" $
+    filterContractIds (\(contract) -> accountBelongsTo provider owner contract.account) assetSettlements
 
-findAssetFungibles: [Contract AssetFungible] -> Party -> Party -> [ContractId AssetFungible]
-findAssetFungibles assetFungibles provider owner =
-  filterContractIds (\(contract) -> accountBelongsTo provider owner contract.account) assetFungibles
+findAssetFungible: [Contract AssetFungible] -> Party -> Party -> ContractId AssetFungible
+findAssetFungible assetFungibles provider owner =
+  headNote "Can't find any AssetFungible contract" $
+    filterContractIds (\(contract) -> accountBelongsTo provider owner contract.account) assetFungibles
 
 findAuctionLockedCashes: [Contract AuctionLockedCash] -> Party -> Text -> [ContractId AuctionLockedCash]
 findAuctionLockedCashes auctionLockedCashes auctionAgent auctionName =

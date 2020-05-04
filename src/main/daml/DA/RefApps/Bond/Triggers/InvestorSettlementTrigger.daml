@@ -51,12 +51,8 @@ finializeSettlement:
 finializeSettlement auctionLockedCashes assetSettlements assetFungibles settlementContract = do
   let
     (id, settlement) = settlementContract
-    assetSettlement =
-      headNote "Can't find any AssetSettlement contract" $
-        findAssetSettlements assetSettlements settlement.cashProvider settlement.investor
-    assetFungible =
-      headNote "Can't find any AssetFungible contract" $
-        findAssetFungibles assetFungibles settlement.cashProvider settlement.investor
+    assetSettlement = findAssetSettlement assetSettlements settlement.cashProvider settlement.investor
+    assetFungible = findAssetFungible assetFungibles settlement.cashProvider settlement.investor
     auctionLockedCashIds =
       case (findAuctionLockedCashes auctionLockedCashes settlement.auctionAgent settlement.auctionName) of
         [] -> error ("Can't find any auction locks for this auction: " <> settlement.auctionName)
