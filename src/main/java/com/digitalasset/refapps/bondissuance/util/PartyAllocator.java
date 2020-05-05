@@ -130,7 +130,7 @@ public class PartyAllocator {
   }
 
   public AllParties getAllPartyIDs(AppParties partiesToAllocate) throws InterruptedException {
-    Map<String, String> parties = allocate(partiesToAllocate);
+    Map<String, String> parties = new HashMap<>(); //allocate(partiesToAllocate);
     waitAndAddOtherParties(parties);
     return new AllParties(parties);
   }
