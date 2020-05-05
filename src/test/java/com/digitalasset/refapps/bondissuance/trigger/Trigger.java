@@ -54,32 +54,7 @@ public class Trigger extends ExternalResource {
     logger.debug("Executing: {}", String.join(" ", processBuilder.command()));
     trigger = processBuilder.start();
 
-    final CountDownLatch hasStarted = new CountDownLatch(1);
-    Tailer tailer =
-        new Tailer(
-            logFile,
-            new TailerListenerAdapter() {
-              @Override
-              public void handle(String line) {
-                if (line != null && line.contains("Trigger is running")) {
-                  hasStarted.countDown();
-                }
-              }
-            },
-            0L,
-            true);
-    ExecutorService executor = Executors.newSingleThreadExecutor();
-    executor.submit(tailer);
-
-    try {
-      hasStarted.await(30L, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      throw new IllegalStateException("Trigger did not start within timeout.");
-    } finally {
-      tailer.stop();
-      executor.shutdown();
-      executor.awaitTermination(10L, TimeUnit.SECONDS);
-    }
+    waitForTriggerToStart();
 
     logger.info("Started.");
   }
@@ -106,6 +81,37 @@ public class Trigger extends ExternalResource {
             ledgerPort.get(),
             "--ledger-party",
             party);
+  }
+
+  private void waitForTriggerToStart() throws InterruptedException {
+    final CountDownLatch hasStarted = new CountDownLatch(1);
+    Tailer tailer =
+        new Tailer(
+            logFile,
+            new TailerListenerAdapter() {
+              @Override
+              public void handle(String line) {
+                if (line != null && line.contains("Trigger is running")) {
+                  hasStarted.countDown();
+                } else {
+                  logger.debug("Waiting for trigger...");
+                }
+              }
+            },
+            0L,
+            true);
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    executor.submit(tailer);
+
+    try {
+      hasStarted.await(30L, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      throw new IllegalStateException("Trigger did not start within timeout.");
+    } finally {
+      tailer.stop();
+      executor.shutdown();
+      executor.awaitTermination(10L, TimeUnit.SECONDS);
+    }
   }
 
   private void stop() {
