@@ -54,5 +54,4 @@ public class Builder {
   public Trigger build() {
     return new Trigger(darPath, triggerName, ledgerHost, ledgerPort, party, timeMode);
   }
-
 }

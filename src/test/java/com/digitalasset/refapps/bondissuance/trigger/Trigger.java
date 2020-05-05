@@ -27,10 +27,15 @@ public class Trigger extends ExternalResource {
   private final String timeMode;
   private final File logFile;
 
-
   private Process trigger;
 
-  Trigger(String darPath, String triggerName, String ledgerHost, Supplier<String> ledgerPort, String party, String timeMode) {
+  Trigger(
+      String darPath,
+      String triggerName,
+      String ledgerHost,
+      Supplier<String> ledgerPort,
+      String party,
+      String timeMode) {
     this.darPath = darPath;
     this.triggerName = triggerName;
     this.ledgerHost = ledgerHost;
@@ -50,14 +55,19 @@ public class Trigger extends ExternalResource {
     trigger = processBuilder.start();
 
     final CountDownLatch hasStarted = new CountDownLatch(1);
-    Tailer tailer = new Tailer(logFile, new TailerListenerAdapter() {
-      @Override
-      public void handle(String line) {
-        if (line != null && line.contains("Trigger is running")) {
-          hasStarted.countDown();
-        }
-      }
-    }, 0L, true);
+    Tailer tailer =
+        new Tailer(
+            logFile,
+            new TailerListenerAdapter() {
+              @Override
+              public void handle(String line) {
+                if (line != null && line.contains("Trigger is running")) {
+                  hasStarted.countDown();
+                }
+              }
+            },
+            0L,
+            true);
     ExecutorService executor = Executors.newSingleThreadExecutor();
     executor.submit(tailer);
 
@@ -117,5 +127,4 @@ public class Trigger extends ExternalResource {
     stop();
     super.after();
   }
-
 }
