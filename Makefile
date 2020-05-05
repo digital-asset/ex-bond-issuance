@@ -19,7 +19,7 @@ clean:
 buildui: clean
 	daml codegen ts -o daml2ts -p package.json target/*.dar
 	yarn workspaces run build
-	yarn install
+	cd ui-js && yarn install
 
 .PHONY: ui
 ui: buildui
