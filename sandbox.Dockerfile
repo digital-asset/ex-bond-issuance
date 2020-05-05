@@ -5,16 +5,23 @@
 
 ARG sdk_vsn=1.0.1
 
-FROM digitalasset/daml-sdk:${sdk_vsn}
+FROM digitalasset/daml-sdk:${sdk_vsn} AS source
 
-WORKDIR /home/daml
+WORKDIR /home/daml/
 
-COPY target/bond-issuance.dar /home/daml/
+COPY daml.yaml .
+COPY src/main/daml ./src/main/daml
 
-USER root
-RUN chown daml bond-issuance.dar
-USER daml
+FROM source
 
 EXPOSE 6865
+EXPOSE 7500
 
-CMD ~/.daml/bin/daml sandbox -- --wall-clock-time --address 0.0.0.0 --port 6865 bond-issuance.dar
+ENTRYPOINT daml start \
+  --sandbox-option="--address=0.0.0.0" \
+  --sandbox-port 6865 \
+# Cannot explicitly specify, because of: https://github.com/digital-asset/daml/issues/5777
+# Relying on default port behaviour as of now.
+#  --navigator-option="--port=7500" \
+  --open-browser=no \
+  --json-api-port=none
