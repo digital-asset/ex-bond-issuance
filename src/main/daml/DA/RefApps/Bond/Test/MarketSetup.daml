@@ -8,7 +8,6 @@ module DA.RefApps.Bond.Test.MarketSetup where
 
 import DA.Date
 import DA.Action
-import Daml.Script
 
 import DA.RefApps.Bond.Roles.CentralBankRole
 import DA.RefApps.Bond.Roles.CsdRole

@@ -9,26 +9,15 @@ services:
     image: digitalasset/bond-issuance-sandbox:0.0.1
     build:
       context: .
-      dockerfile: Dockerfile-sandbox
+      dockerfile: sandbox.Dockerfile
     ports:
       - "127.0.0.1:6865:6865"
-  bi-navigator:
-    image: digitalasset/bond-issuance-navigator:0.0.1
-    build:
-      context: .
-      dockerfile: Dockerfile-navigator
-    depends_on:
-      - "bi-sandbox"
-    ports:
       - "127.0.0.1:7500:7500"
-    environment:
-      - SANDBOX_HOST=bi-sandbox
-      - SANDBOX_PORT=6865
   bi-bots:
     image: digitalasset/bond-issuance-bots:0.0.1
     build:
       context: .
-      dockerfile: Dockerfile-bots
+      dockerfile: bots.Dockerfile
     depends_on:
       - "bi-sandbox"
     environment:
