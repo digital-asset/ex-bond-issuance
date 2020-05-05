@@ -25,6 +25,8 @@ RUN yarn install --silent
 
 WORKDIR /home/daml/ui-js/
 
+RUN node rename-proxy.js
+
 EXPOSE 3000
 
-CMD ["yarn", "start"]
+CMD ["yarn", "start-docker"]
