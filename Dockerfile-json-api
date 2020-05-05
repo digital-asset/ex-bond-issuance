@@ -17,4 +17,4 @@ WORKDIR /home/daml
 
 EXPOSE 7575
 
-ENTRYPOINT ~/.daml/bin/daml json-api --ledger-host ${SANDBOX_HOST} --ledger-port ${SANDBOX_PORT} --http-port 7575
+ENTRYPOINT sleep 60 &&  ~/.daml/bin/daml json-api --ledger-host ${SANDBOX_HOST} --ledger-port ${SANDBOX_PORT} --http-port 7575 --address 0.0.0.0
