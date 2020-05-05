@@ -9,10 +9,9 @@ FROM digitalasset/daml-sdk:${sdk_vsn} AS source
 
 WORKDIR /home/daml/
 
-COPY daml.yaml .
+COPY daml.yaml ./
 COPY src/main/daml ./src/main/daml
-
-FROM source
+COPY --chown=daml target/finlib-master-sdk-* target/
 
 EXPOSE 6865
 EXPOSE 7500
