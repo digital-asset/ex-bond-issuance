@@ -6,6 +6,7 @@
 sdk-version: 1.0.1
 name: bond-issuance
 source: src/main/daml
+init-script: DA.RefApps.Bond.Test.MarketSetupScript:setupMarket
 parties:
   - Operator
   - Regulator
