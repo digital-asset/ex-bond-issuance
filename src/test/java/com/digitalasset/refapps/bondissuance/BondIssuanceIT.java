@@ -67,9 +67,11 @@ public class BondIssuanceIT {
               ISSUER_PARTY.getValue(),
               CSD_PARTY.getValue())
           .useWallclockTime()
+          .module("DA.RefApps.Bond.Test.MarketSetupScript")
+          .startScript("setupMarket")
           .setupAppCallback(
               Main.runBots(
-                  false,
+                  true,
                   new PartyAllocator.AppParties(parties),
                   new PartyAllocator.AllParties(
                       Arrays.asList(parties).stream()
