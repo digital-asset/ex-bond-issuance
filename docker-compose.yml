@@ -12,25 +12,52 @@ services:
       dockerfile: Dockerfile-sandbox
     ports:
       - "127.0.0.1:6865:6865"
+    restart: always
+  bi-json-api:
+    image: digitalasset/bond-issuance-json-api:0.0.1
+    build:
+      context: .
+      dockerfile: Dockerfile-json-api
+    depends_on:
+      - "bi-bots"
+    ports:
+      - "127.0.0.1:7575:7575"
+    environment:
+      - SANDBOX_HOST=bi-sandbox
+      - SANDBOX_PORT=6865
+    restart: always
   bi-navigator:
     image: digitalasset/bond-issuance-navigator:0.0.1
     build:
       context: .
       dockerfile: Dockerfile-navigator
     depends_on:
-      - "bi-sandbox"
+      - "bi-bots"
     ports:
       - "127.0.0.1:7500:7500"
     environment:
       - SANDBOX_HOST=bi-sandbox
       - SANDBOX_PORT=6865
+  bi-ui:
+    image: digitalasset/bond-issuance-ui:0.0.1
+    build:
+      context: .
+      dockerfile: Dockerfile-ui
+    depends_on:
+      - "bi-sandbox"
+      # - "bi-json-api"
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - JSON_API=bi-json-api
   bi-bots:
-    image: digitalasset/bond-issuance-bots:0.0.1
+    image: ndreg.azurecr.io/digitalasset/bond-issuance-bots:0.0.1
     build:
       context: .
       dockerfile: Dockerfile-bots
     depends_on:
       - "bi-sandbox"
+      # - "bi-ui"
     environment:
       - SANDBOX_HOST=bi-sandbox
       - SANDBOX_PORT=6865

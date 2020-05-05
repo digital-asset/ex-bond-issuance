@@ -32,3 +32,7 @@ start:
 .PHONY: automation
 automation:
 	java -jar target/bond-issuance-0.0.1-SNAPSHOT.jar
+
+.PHONY: docker
+docker:
+	docker-compose up --build

@@ -1,0 +1,20 @@
+#
+# Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+ARG sdk_vsn=0.13.55
+
+FROM digitalasset/daml-sdk:${sdk_vsn}
+
+WORKDIR /home/daml
+
+# COPY target/bond-issuance.dar /home/daml/
+
+# USER root
+# RUN chown daml bond-issuance.dar
+# USER daml
+
+EXPOSE 7575
+
+ENTRYPOINT ~/.daml/bin/daml json-api --ledger-host ${SANDBOX_HOST} --ledger-port ${SANDBOX_PORT} --http-port 7575
