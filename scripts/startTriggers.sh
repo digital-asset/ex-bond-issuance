@@ -8,7 +8,7 @@ set -e
 
 cleanup() {
     pids=$(jobs -p)
-    echo Killing $pids
+    echo Killing "$pids"
     [ -n "$pids" ] && kill $pids
 }
 
@@ -23,85 +23,28 @@ SANDBOX_HOST="${1}"
 SANDBOX_PORT="${2}"
 DAR_FILE="${3:-/home/daml/bond-issuance.dar}"
 
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party Bank1 &
+run_trigger() {
+  local trigger_name="$1"
+  local party="$2"
+  daml trigger \
+      --wall-clock-time \
+      --dar "${DAR_FILE}" \
+      --trigger-name "$trigger_name" \
+      --ledger-host "${SANDBOX_HOST}" \
+      --ledger-port "${SANDBOX_PORT}" \
+      --ledger-party "$party"
+}
 
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party Bank1 &
-
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party Bank2 &
-
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party Bank2 &
-
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party Bank3 &
-
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party Bank3 &
-
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party Issuer &
-
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party Issuer &
-
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party AuctionAgent &
-
-daml trigger \
-    --wall-clock-time \
-    --dar "${DAR_FILE}" \
-    --trigger-name DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger \
-    --ledger-host ${SANDBOX_HOST} \
-    --ledger-port ${SANDBOX_PORT} \
-    --ledger-party CSD &
+run_trigger DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank1 &
+run_trigger DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank1 &
+run_trigger DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank2 &
+run_trigger DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank2 &
+run_trigger DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank3 &
+run_trigger DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank3 &
+run_trigger DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger Issuer &
+run_trigger DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger Issuer &
+run_trigger DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger AuctionAgent &
+run_trigger DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger CSD &
 
 sleep 2
 pids=$(jobs -p)
