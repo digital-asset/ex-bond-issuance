@@ -38,9 +38,9 @@ There are two options:
 
 1. Type:
     ```shell
-    docker-compose up --build
+    make docker
     ```
-2. Open UI with a browser at http://localhost:7500.
+2. Open UI with a browser at http://localhost:3000.
 
 **Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
 
