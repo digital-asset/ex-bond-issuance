@@ -115,12 +115,17 @@ data Rules = Rules {
 , bank3LockRuleCid: ContractId AssetLockRule
 }
 
+bondIsin: Text
 bondIsin = "BOND-007"
+auctionStartDate: Date
 auctionStartDate = date 2020 Jan 10
+auctionEndDate: Date
 auctionEndDate = date 2020 Jan 20
+maturity: Date
 maturity = date 2022 Jan 20
 
-setupRoles: Scenario TestRoles = scenario do
+setupRoles: Scenario TestRoles
+setupRoles = scenario do
   operator <- getParty "Operator"
   regulator <- getParty "Regulator"
   auctionAgent <- getParty "AuctionAgent"
@@ -195,10 +200,9 @@ setupRoles: Scenario TestRoles = scenario do
   , centralBankRoleCid = centralBankRoleCid
   }
 
-createAccount
-  (owner: Party)
-  (provider: Party)
-  (label: Text) = Account with
+createAccount: Party -> Party -> Text -> Account
+createAccount owner provider label =
+  Account with
     id = Id with
       signatories = fromList [provider]
       label = label
@@ -207,7 +211,8 @@ createAccount
     owner = owner
 
 
-setupIssuance: Scenario TestIssuance = scenario do
+setupIssuance: Scenario TestIssuance
+setupIssuance = scenario do
   testRoles <- setupRoles
 
   centralBank <- getParty "CentralBank"
@@ -350,7 +355,8 @@ setupIssuance: Scenario TestIssuance = scenario do
 
 There is a parallely going auction of the same
 -}
-startAuction = \(issuance: TestIssuance) -> scenario do
+startAuction: TestIssuance -> Scenario AuctionProgress
+startAuction issuance = scenario do
   auctionAgent <- getParty "AuctionAgent"
   issuer <- getParty "Issuer"
   centralBank <- getParty "CentralBank"
@@ -518,7 +524,8 @@ startAuction = \(issuance: TestIssuance) -> scenario do
     [bank1Lock2]
 
 
-finalizeAuction = \(auctionProgress: AuctionProgress) -> scenario do
+finalizeAuction: AuctionProgress -> Scenario (SettleRequests, ContractId AssetDeposit)
+finalizeAuction auctionProgress = scenario do
   auctionAgent <- getParty "AuctionAgent"
   issuer <- getParty "Issuer"
   bank1 <- getParty "Bank1"
@@ -583,9 +590,8 @@ finalizeAuction = \(auctionProgress: AuctionProgress) -> scenario do
       otherSettleReqCid = otherSettleReq
     , remainedAssetFact)
 
-doSettlement = \(issuance: TestIssuance)
-                (settleRequests: SettleRequests)
-                (auctionProgress: AuctionProgress) -> scenario do
+doSettlement: TestIssuance -> SettleRequests -> AuctionProgress -> Scenario AssetsForRedemption
+doSettlement issuance settleRequests auctionProgress = scenario do
   centralBank <- getParty "CentralBank"
   bank1 <- getParty "Bank1"
   bank2 <- getParty "Bank2"
@@ -663,10 +669,8 @@ doSettlement = \(issuance: TestIssuance)
     bank2RedemptionPayoutInfoCid = rdmpPI2
     bank3RedemptionPayoutInfoCid = rdmpPI3
 
-redemption = \(issuance: TestIssuance)
-              (assetsForRedemption: AssetsForRedemption)
-              (remainedBondDeposit: ContractId AssetDeposit)
-              (settleRequests: SettleRequests) ->  scenario do
+redemption: TestIssuance -> AssetsForRedemption -> ContractId AssetDeposit -> SettleRequests -> Scenario ()
+redemption issuance assetsForRedemption remainedBondDeposit settleRequests = scenario do
   centralBank <- getParty "CentralBank"
   issuer <- getParty "Issuer"
   bank1 <- getParty "Bank1"
@@ -718,6 +722,7 @@ redemption = \(issuance: TestIssuance)
     payment.account.owner === bank3
 
 -- Test with walking through all the supported steps of the workflow
+testFullScenario: Scenario ()
 testFullScenario = scenario do
   passToDate $ date 2020 Jan 01
   issuance <- setupIssuance
