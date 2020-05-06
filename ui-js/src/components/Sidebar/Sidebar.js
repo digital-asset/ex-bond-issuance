@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParty } from '@daml/react';
 import { Drawer, IconButton, List } from "@material-ui/core";
 import { green} from '@material-ui/core/colors';
-import { List as ListIcon, TouchApp, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, Public, Build, CardMembership, DirectionsRun, ListAlt } from "@material-ui/icons";
+import { List as ListIcon, TouchApp, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, Build, CardMembership, DirectionsRun, ListAlt } from "@material-ui/icons";
 import { useTheme } from "@material-ui/styles";
 import { withRouter } from "react-router-dom";
 import classNames from "classnames";
