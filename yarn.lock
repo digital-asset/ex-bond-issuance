@@ -1037,6 +1037,45 @@
   resolved "https://registry.yarnpkg.com/@csstools/normalize.css/-/normalize.css-10.1.0.tgz#f0950bba18819512d42f7197e56c518aa491cf18"
   integrity sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==
 
+"@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7@file:daml2js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7":
+  version "1.0.1"
+  dependencies:
+    "@daml/types" "1.0.1"
+    "@mojotech/json-type-validation" "^3.1.0"
+
+"@daml.js/af229a118107d2574f87b269743662935551d75881b400109d92736443e5d71f@file:daml2js/af229a118107d2574f87b269743662935551d75881b400109d92736443e5d71f":
+  version "1.0.1"
+  dependencies:
+    "@daml/types" "1.0.1"
+    "@mojotech/json-type-validation" "^3.1.0"
+
+"@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f@file:daml2js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f":
+  version "1.0.1"
+  dependencies:
+    "@daml/types" "1.0.1"
+    "@mojotech/json-type-validation" "^3.1.0"
+
+"@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662@file:daml2js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662":
+  version "1.0.1"
+  dependencies:
+    "@daml/types" "1.0.1"
+    "@mojotech/json-type-validation" "^3.1.0"
+
+"@daml.js/e22bce619ae24ca3b8e6519281cb5a33b64b3190cc763248b4c3f9ad5087a92c@file:daml2js/e22bce619ae24ca3b8e6519281cb5a33b64b3190cc763248b4c3f9ad5087a92c":
+  version "1.0.1"
+  dependencies:
+    "@daml/types" "1.0.1"
+    "@mojotech/json-type-validation" "^3.1.0"
+
+"@daml.js/finlib-1.0.0@file:daml2js/finlib-1.0.0":
+  version "1.0.1"
+  dependencies:
+    "@daml.js/af229a118107d2574f87b269743662935551d75881b400109d92736443e5d71f" "file:../../../Library/Caches/Yarn/v6/npm-@daml-js-finlib-1-0-0-1.0.1-04c67a4b-c52d-4f20-a3f8-016b3bfc9596-1588769481586/node_modules/@daml.js/af229a118107d2574f87b269743662935551d75881b400109d92736443e5d71f"
+    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../Library/Caches/Yarn/v6/npm-@daml-js-finlib-1-0-0-1.0.1-04c67a4b-c52d-4f20-a3f8-016b3bfc9596-1588769481586/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../Library/Caches/Yarn/v6/npm-@daml-js-finlib-1-0-0-1.0.1-04c67a4b-c52d-4f20-a3f8-016b3bfc9596-1588769481586/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml/types" "1.0.1"
+    "@mojotech/json-type-validation" "^3.1.0"
+
 "@daml/ledger@1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@daml/ledger/-/ledger-1.0.0.tgz#183da345adb605345917217eebb7cd9aea9bb305"
@@ -1081,6 +1120,13 @@
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@daml/types/-/types-1.0.0.tgz#2e6ac7ee2f227f3222311443915d4eddd1a89fa2"
   integrity sha512-VJBy6vmesf2Nr2LplnDaxgAto0GGJUgJC256Ny5u79j8HHZphW0mw2jf/EN+u231r5D6w6yRceFKe5zXhRKcoQ==
+  dependencies:
+    "@mojotech/json-type-validation" "^3.1.0"
+
+"@daml/types@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@daml/types/-/types-1.0.1.tgz#872f0ad82a957a550bb7281bf59a5f969ca162de"
+  integrity sha512-OZWLNWE50BYxVfAqatuqlqP/wjkBHZ4zsLiWJaeGyUP4KUwRFp3xe8QIMQY+qFlEEqAMMX1BQM/NAZpH1SJIjQ==
   dependencies:
     "@mojotech/json-type-validation" "^3.1.0"
 
@@ -1612,17 +1658,6 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@typescript-eslint/eslint-plugin@2.11.0":
-  version "2.11.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-2.11.0.tgz#4477c33491ccf0a9a3f4a30ef84978fa0ea0cad2"
-  integrity sha512-G2HHA1vpMN0EEbUuWubiCCfd0R3a30BB+UdvnFkxwZIxYEGOrWEXDv8tBFO9f44CWc47Xv9lLM3VSn4ORLI2bA==
-  dependencies:
-    "@typescript-eslint/experimental-utils" "2.11.0"
-    eslint-utils "^1.4.3"
-    functional-red-black-tree "^1.0.1"
-    regexpp "^3.0.0"
-    tsutils "^3.17.1"
-
 "@typescript-eslint/eslint-plugin@^2.10.0":
   version "2.30.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-2.30.0.tgz#312a37e80542a764d96e8ad88a105316cdcd7b05"
@@ -1632,15 +1667,6 @@
     functional-red-black-tree "^1.0.1"
     regexpp "^3.0.0"
     tsutils "^3.17.1"
-
-"@typescript-eslint/experimental-utils@2.11.0":
-  version "2.11.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/experimental-utils/-/experimental-utils-2.11.0.tgz#cef18e6b122706c65248a5d8984a9779ed1e52ac"
-  integrity sha512-YxcA/y0ZJaCc/fB/MClhcDxHI0nOBB7v2/WxBju2cOTanX7jO9ttQq6Fy4yW9UaY5bPd9xL3cun3lDVqk67sPQ==
-  dependencies:
-    "@types/json-schema" "^7.0.3"
-    "@typescript-eslint/typescript-estree" "2.11.0"
-    eslint-scope "^5.0.0"
 
 "@typescript-eslint/experimental-utils@2.30.0":
   version "2.30.0"
@@ -1662,16 +1688,6 @@
     eslint-scope "^5.0.0"
     eslint-utils "^2.0.0"
 
-"@typescript-eslint/parser@2.11.0":
-  version "2.11.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-2.11.0.tgz#cdcc3be73ee31cbef089af5ff97ccaa380ef6e8b"
-  integrity sha512-DyGXeqhb3moMioEFZIHIp7oXBBh7dEfPTzGrlyP0Mi9ScCra4SWEGs3kPd18mG7Sy9Wy8z88zmrw5tSGL6r/6A==
-  dependencies:
-    "@types/eslint-visitor-keys" "^1.0.0"
-    "@typescript-eslint/experimental-utils" "2.11.0"
-    "@typescript-eslint/typescript-estree" "2.11.0"
-    eslint-visitor-keys "^1.1.0"
-
 "@typescript-eslint/parser@^2.10.0":
   version "2.30.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-2.30.0.tgz#7681c305a6f4341ae2579f5e3a75846c29eee9ce"
@@ -1691,19 +1707,6 @@
     "@typescript-eslint/experimental-utils" "2.31.0"
     "@typescript-eslint/typescript-estree" "2.31.0"
     eslint-visitor-keys "^1.1.0"
-
-"@typescript-eslint/typescript-estree@2.11.0":
-  version "2.11.0"
-  resolved "https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-2.11.0.tgz#21ada6504274cd1644855926312c798fc697e9fb"
-  integrity sha512-HGY4+d4MagO6cKMcKfIKaTMxcAv7dEVnji2Zi+vi5VV8uWAM631KjAB5GxFcexMYrwKT0EekRiiGK1/Sd7VFGA==
-  dependencies:
-    debug "^4.1.1"
-    eslint-visitor-keys "^1.1.0"
-    glob "^7.1.6"
-    is-glob "^4.0.1"
-    lodash.unescape "4.0.1"
-    semver "^6.3.0"
-    tsutils "^3.17.1"
 
 "@typescript-eslint/typescript-estree@2.30.0":
   version "2.30.0"
@@ -4263,7 +4266,7 @@ eslint-visitor-keys@^1.0.0, eslint-visitor-keys@^1.1.0:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-1.1.0.tgz#e2a82cea84ff246ad6fb57f9bde5b46621459ec2"
   integrity sha512-8y9YjtM1JBJU/A9Kc+SbaOV4y29sSWckBwMHa+FGtVj5gN/sbnKDf6xJUl+8g7FAij9LVaP8C24DUiH/f/2Z9A==
 
-eslint@^6.6.0, eslint@^6.7.2:
+eslint@^6.6.0:
   version "6.8.0"
   resolved "https://registry.yarnpkg.com/eslint/-/eslint-6.8.0.tgz#62262d6729739f9275723824302fb227c8c93ffb"
   integrity sha512-K+Iayyo2LtyYhDSYwz5D5QdWw0hCacNzyq1Y821Xna2xSJj7cijoLLYmLxTQgcgZ9mC61nryMy9S7GRbYpI5Ig==
@@ -6887,11 +6890,6 @@ lodash.templatesettings@^4.0.0:
   integrity sha512-stgLz+i3Aa9mZgnjr/O+v9ruKZsPsndy7qPZOchbqk2cnTU1ZaldKK+v7m54WoKIyxiuMZTKT2H81F8BeAc3ZQ==
   dependencies:
     lodash._reinterpolate "^3.0.0"
-
-lodash.unescape@4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/lodash.unescape/-/lodash.unescape-4.0.1.tgz#bf2249886ce514cda112fae9218cdc065211fc9c"
-  integrity sha1-vyJJiGzlFM2hEvrpIYzcBlIR/Jw=
 
 lodash.uniq@^4.5.0:
   version "4.5.0"
@@ -10646,11 +10644,6 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
-
-typescript@~3.7.3:
-  version "3.7.5"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.7.5.tgz#0692e21f65fd4108b9330238aac11dd2e177a1ae"
-  integrity sha512-/P5lkRXkWHNAbcJIiHPfRoKqyd7bsyCma1hZNUGfn20qm64T6ZBlrzprymeu918H+mB/0rIg2gGK/BXkhhYgBw==
 
 ua-parser-js@^0.7.18:
   version "0.7.21"

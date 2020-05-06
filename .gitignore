@@ -12,7 +12,7 @@ built/*
 build
 node_modules
 .node_modules/
-daml2ts/*
+daml2js/*
 deploy/*
 .env
 .DS_Store

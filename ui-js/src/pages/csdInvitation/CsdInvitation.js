@@ -2,7 +2,7 @@ import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
 import { useQuery } from "@daml/react";
 
-import { CsdRoleInvitation } from "@daml2ts/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/CsdRole";
+import { CsdRoleInvitation } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/CsdRole";
 
 export default function Report() {
 

@@ -1,11 +1,6 @@
 version := 0.1
 colon   := :
 
-.PHONY: trigger
-trigger:
-	# example
-	daml trigger --dar .daml/dist/bond-issuance-2.0.0.dar --trigger-name Triggers.NewsTrigger$(colon)flagTheOrderTrigger --ledger-host localhost --ledger-port 6865 --ledger-party LogicProvider --wall-clock-time
-
 .PHONY: build
 build:
 	mvn clean package
@@ -13,12 +8,11 @@ build:
 .PHONY: clean
 clean:
 	yarn cache clean
-	rm -rf daml2ts
+	rm -rf daml2js
 	rm -rf ui/build
 
 buildui: clean
-	daml codegen ts -o daml2ts -p package.json target/*.dar
-	yarn workspaces run build
+	daml codegen js target/*.dar -o daml2js
 	cd ui-js && yarn install
 
 .PHONY: ui
