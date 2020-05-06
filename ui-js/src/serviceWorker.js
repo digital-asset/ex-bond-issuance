@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 // This optional code is used to register a service worker.
 // register() is not called by default.
 

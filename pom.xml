@@ -199,6 +199,7 @@
                     </excludes>
                     <mapping>
                         <daml>DOUBLEDASHES_STYLE</daml>
+                        <Makefile>SCRIPT_STYLE</Makefile>
                         <Dockerfile-bots>SCRIPT_STYLE</Dockerfile-bots>
                         <Dockerfile-sandbox>SCRIPT_STYLE</Dockerfile-sandbox>
                         <Dockerfile-navigator>SCRIPT_STYLE</Dockerfile-navigator>
