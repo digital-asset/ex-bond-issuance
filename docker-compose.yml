@@ -13,11 +13,11 @@ services:
     ports:
       - "127.0.0.1:6865:6865"
       - "127.0.0.1:7500:7500"
-  bi-bots:
-    image: digitalasset/bond-issuance-bots:0.0.1
+  bi-triggers:
+    image: digitalasset/bond-issuance-triggers:0.0.1
     build:
       context: .
-      dockerfile: bots.Dockerfile
+      dockerfile: triggers.Dockerfile
     depends_on:
       - "bi-sandbox"
     environment:

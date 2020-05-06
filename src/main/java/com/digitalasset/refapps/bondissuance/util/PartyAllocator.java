@@ -7,8 +7,6 @@ package com.digitalasset.refapps.bondissuance.util;
 import static com.daml.ledger.api.v1.admin.PartyManagementServiceGrpc.newBlockingStub;
 
 import com.daml.ledger.api.v1.admin.PartyManagementServiceGrpc;
-import com.daml.ledger.api.v1.admin.PartyManagementServiceOuterClass.AllocatePartyRequest;
-import com.daml.ledger.api.v1.admin.PartyManagementServiceOuterClass.AllocatePartyResponse;
 import com.daml.ledger.api.v1.admin.PartyManagementServiceOuterClass.ListKnownPartiesRequest;
 import com.daml.ledger.api.v1.admin.PartyManagementServiceOuterClass.ListKnownPartiesResponse;
 import com.daml.ledger.api.v1.admin.PartyManagementServiceOuterClass.PartyDetails;
@@ -130,18 +128,9 @@ public class PartyAllocator {
   }
 
   public AllParties getAllPartyIDs(AppParties partiesToAllocate) throws InterruptedException {
-    Map<String, String> parties = new HashMap<>(); //allocate(partiesToAllocate);
+    Map<String, String> parties = new HashMap<>(); // allocate(partiesToAllocate);
     waitAndAddOtherParties(parties);
     return new AllParties(parties);
-  }
-
-  private Map<String, String> allocate(AppParties partiesToAllocate) {
-    Stream<PartyDetails> partyDetails =
-        partiesToAllocate.parties.stream()
-            .map(PartyAllocator::createAllocationRequestFor)
-            .map(partyManagement::allocateParty)
-            .map(AllocatePartyResponse::getPartyDetails);
-    return toByNameMap(partyDetails);
   }
 
   private void waitAndAddOtherParties(Map<String, String> parties) throws InterruptedException {
@@ -167,9 +156,5 @@ public class PartyAllocator {
 
   private static boolean existsMissingParty(Map<String, String> parties) {
     return !parties.keySet().containsAll(Arrays.asList(ALL_PARTIES));
-  }
-
-  private static AllocatePartyRequest createAllocationRequestFor(String party) {
-    return AllocatePartyRequest.newBuilder().setDisplayName(party).setPartyIdHint(party).build();
   }
 }
