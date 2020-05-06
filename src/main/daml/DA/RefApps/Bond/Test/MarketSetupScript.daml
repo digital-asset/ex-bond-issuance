@@ -22,6 +22,7 @@ getParty name = allocatePartyWithHint name (PartyIdHint name)
 
 setupMarket : Script ()
 setupMarket = do
+  debug "Ledger is being initialized..."
   operator <- getParty "Operator"
   regulator <- getParty "Regulator"
   auctionAgent <- getParty "AuctionAgent"
@@ -151,5 +152,5 @@ setupMarket = do
     exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
   submit csd $
     exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
-
+  debug "Ledger is initialized."
   pure ()
