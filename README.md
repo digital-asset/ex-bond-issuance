@@ -17,6 +17,7 @@ Be sure you have the following installed:
 - Docker
 - Java
 - Maven
+- Yarn
 - Python
 
 #### Build

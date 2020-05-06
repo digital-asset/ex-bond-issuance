@@ -19,7 +19,7 @@ clean:
 buildui: clean
 	daml codegen ts -o daml2ts -p package.json target/*.dar
 	yarn workspaces run build
-	yarn install
+	cd ui-js && yarn install
 
 .PHONY: ui
 ui: buildui
@@ -34,5 +34,5 @@ automation:
 	java -jar target/bond-issuance-0.0.1-SNAPSHOT.jar
 
 .PHONY: docker
-docker:
+docker: buildui
 	docker-compose up --build
