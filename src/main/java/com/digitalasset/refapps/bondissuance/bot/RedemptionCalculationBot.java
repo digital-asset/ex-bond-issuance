@@ -16,7 +16,6 @@ import com.daml.ledger.rxjava.components.helpers.TemplateUtils;
 import com.digitalasset.refapps.bondissuance.util.BotLogger;
 import com.digitalasset.refapps.bondissuance.util.BotUtil;
 import com.digitalasset.refapps.bondissuance.util.CommandsAndPendingSetBuilder;
-import com.digitalasset.refapps.bondissuance.util.TimeManager;
 import com.google.common.collect.Sets;
 import da.finance.fact.asset.AssetDeposit;
 import da.refapps.bond.redemption.RedemptionCalculationBotTrigger;
@@ -40,11 +39,11 @@ public class RedemptionCalculationBot {
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
 
-  public RedemptionCalculationBot(TimeManager timeManager, String appId, String partyName) {
+  public RedemptionCalculationBot(String appId, String partyName) {
     String workflowId =
         "WORKFLOW-" + partyName + "-RedemptionCalculationBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(RedemptionCalculationBot.class, workflowId);
-    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
+    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId);
 
     Filter messageFilter =
         new InclusiveFilter(

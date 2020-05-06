@@ -17,7 +17,6 @@ import com.digitalasset.refapps.bondissuance.util.AssetUtil;
 import com.digitalasset.refapps.bondissuance.util.BotLogger;
 import com.digitalasset.refapps.bondissuance.util.BotUtil;
 import com.digitalasset.refapps.bondissuance.util.CommandsAndPendingSetBuilder;
-import com.digitalasset.refapps.bondissuance.util.TimeManager;
 import com.google.common.collect.Sets;
 import da.finance.fact.asset.AssetDeposit;
 import da.finance.rule.asset.AssetFungible;
@@ -42,10 +41,10 @@ public class PlaceBidBot {
   private final Logger logger;
   private final CommandsAndPendingSetBuilder commandBuilder;
 
-  public PlaceBidBot(TimeManager timeManager, String appId, String partyName) {
+  public PlaceBidBot(String appId, String partyName) {
     String workflowId = "WORKFLOW-" + partyName + "-PlaceBidBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(PlaceBidBot.class, workflowId);
-    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
+    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId);
 
     Filter messageFilter =
         new InclusiveFilter(

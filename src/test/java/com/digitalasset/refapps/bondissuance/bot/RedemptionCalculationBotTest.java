@@ -31,7 +31,7 @@ public class RedemptionCalculationBotTest {
 
   @Before
   public void setupTests() {
-    bot = new RedemptionCalculationBot(TIME_MANAGER, APP_ID, CSD);
+    bot = new RedemptionCalculationBot(APP_ID, CSD);
   }
 
   @Test

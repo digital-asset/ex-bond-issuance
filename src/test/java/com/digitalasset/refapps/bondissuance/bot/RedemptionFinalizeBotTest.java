@@ -30,7 +30,7 @@ public class RedemptionFinalizeBotTest {
 
   @Before
   public void setupTests() {
-    bot = new RedemptionFinalizeBot(TIME_MANAGER, APP_ID, ISSUER);
+    bot = new RedemptionFinalizeBot(APP_ID, ISSUER);
   }
 
   @Test

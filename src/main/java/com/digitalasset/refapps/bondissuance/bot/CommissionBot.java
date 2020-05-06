@@ -39,12 +39,12 @@ public class CommissionBot {
   private final CommandsAndPendingSetBuilder commandBuilder;
   private final String partyName;
 
-  public CommissionBot(TimeManager timeManager, String appId, String partyName) {
+  public CommissionBot(String appId, String partyName) {
     String workflowId = "WORKFLOW-" + partyName + "-CommissionBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(CommissionBot.class, workflowId);
     this.partyName = partyName;
 
-    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
+    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId);
 
     Filter messageFilter =
         new InclusiveFilter(

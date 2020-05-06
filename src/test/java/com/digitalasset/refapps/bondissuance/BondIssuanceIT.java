@@ -4,7 +4,6 @@
  */
 package com.digitalasset.refapps.bondissuance;
 
-import static com.digitalasset.refapps.bondissuance.util.TimeManager.getWallclockTimeManager;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -68,14 +67,15 @@ public class BondIssuanceIT {
               ISSUER_PARTY.getValue(),
               CSD_PARTY.getValue())
           .useWallclockTime()
+          .module("DA.RefApps.Bond.Test.MarketSetupScript")
+          .startScript("setupMarket")
           .setupAppCallback(
               Main.runBots(
-                  false,
+                  true,
                   new PartyAllocator.AppParties(parties),
                   new PartyAllocator.AllParties(
                       Arrays.asList(parties).stream()
-                          .collect(Collectors.toMap(Function.identity(), Function.identity()))),
-                  getWallclockTimeManager()))
+                          .collect(Collectors.toMap(Function.identity(), Function.identity())))))
           .build();
 
   @ClassRule public static ExternalResource sandboxClassRule = sandbox.getClassRule();
