@@ -14,5 +14,7 @@ COPY --chown=daml scripts/ /home/daml/scripts/
 
 USER daml
 
+ENV JAVA_TOOL_OPTIONS -Xmx128m
+
 CMD ~/scripts/waitForSandbox.sh ${SANDBOX_HOST} ${SANDBOX_PORT} && \
     ~/scripts/startTriggers.sh "${SANDBOX_HOST}" "${SANDBOX_PORT}"
