@@ -7,10 +7,10 @@ FROM node:alpine
 
 WORKDIR /home/daml
 
-RUN mkdir daml2ts/
+RUN mkdir daml2js/
 RUN mkdir ui-js/
 
-COPY ./daml2ts/ daml2ts/
+COPY ./daml2js/ daml2js/
 COPY ./ui-js/ ui-js/
 COPY package.json package.json
 
@@ -24,6 +24,7 @@ RUN npm install -g react-scripts express express-http-proxy
 RUN yarn install --silent
 
 WORKDIR /home/daml/ui-js/
+RUN node rename-proxy.js
 
 EXPOSE 3000
 

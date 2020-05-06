@@ -5,8 +5,7 @@ export const isLocalDev = process.env.NODE_ENV === 'development';
 
 let host = window.location.host.split('.')
 
-export const ledgerId = isLocalDev ? "surveillance" : host[0];
-
+export const ledgerId = isLocalDev ? "bond-issuance" : host[0];
 let apiUrl = host.slice(1)
 apiUrl.unshift('api')
 
@@ -15,7 +14,7 @@ export const httpBaseUrl = isLocalDev ? undefined : ('https://' + apiUrl.join('.
 // Unfortunately, the development server of `create-react-app` does not proxy
 // websockets properly. Thus, we need to bypass it and talk to the JSON API
 // directly in development mode.
-export const wsBaseUrl = isLocalDev ? 'ws://localhost:7575/' : undefined;
+export const wsBaseUrl = isLocalDev ? 'ws://localhost:7575/' : 'ws://bi-json-api:7575/';
 
 const applicationId = uuidv4();
 
