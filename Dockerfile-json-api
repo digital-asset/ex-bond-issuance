@@ -9,12 +9,9 @@ FROM digitalasset/daml-sdk:${sdk_vsn}
 
 WORKDIR /home/daml
 
-# COPY target/bond-issuance.dar /home/daml/
-
-# USER root
-# RUN chown daml bond-issuance.dar
-# USER daml
+COPY --chown=daml scripts/ /home/daml/scripts/
 
 EXPOSE 7575
 
-ENTRYPOINT sleep 60 &&  ~/.daml/bin/daml json-api --ledger-host ${SANDBOX_HOST} --ledger-port ${SANDBOX_PORT} --http-port 7575 --address 0.0.0.0
+ENTRYPOINT ~/scripts/waitForSandbox.sh ${SANDBOX_HOST} ${SANDBOX_PORT} && \
+           ~/.daml/bin/daml json-api --ledger-host ${SANDBOX_HOST} --ledger-port ${SANDBOX_PORT} --http-port 7575 --address 0.0.0.0
