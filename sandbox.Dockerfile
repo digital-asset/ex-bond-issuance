@@ -9,8 +9,9 @@ FROM digitalasset/daml-sdk:${sdk_vsn} AS source
 
 WORKDIR /home/daml/
 
-COPY daml.yaml ./
-COPY src/main/daml ./src/main/daml
+USER daml
+COPY --chown=daml daml.yaml ./
+COPY --chown=daml src/main/daml ./src/main/daml
 COPY --chown=daml target/finlib-master-sdk-* target/
 COPY --chown=daml ui-backend.conf frontend-config.js /home/daml/
 
