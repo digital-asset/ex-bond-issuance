@@ -50,6 +50,14 @@ jobs:
           command: |
             export PATH=${HOME}/.daml/bin:${PATH}
             mvn verify
+      - run:
+          command: |
+            echo "Moving log files so they can be stored."
+            mkdir logs
+            mv *.log logs
+          when: always
+      - store_artifacts:
+          path: logs
       - save_cache:
           paths:
             - ~/.m2
@@ -59,12 +67,6 @@ jobs:
           path: target/surefire-reports
       - store_artifacts:
           path: target/surefire-reports
-      - run:
-          name: Run Blackduck Detect
-          command: |
-            bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) ci-build digitalasset_ex-bond-issuance master --logging.level.com.synopsys.integration=DEBUG --detect.notices.report=true --detect.report.timeout=600
-      - run:
-          command: cp digitalasset_ex_bond_issuance_master_Black_Duck_Notices_Report.txt target/NOTICE
       - persist_to_workspace:
           root: target
           paths:
@@ -100,6 +102,40 @@ jobs:
       - store_artifacts:
           path: target/daml-test-reports
 
+  blackduck_check:
+    parameters:
+      daml_sdk_version:
+        type: string
+    executor: daml-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
+            - m2
+      - install_sdk:
+          version: << parameters.daml_sdk_version >>
+      - save_cache:
+          paths:
+            - ~/.m2
+            - ~/.daml
+          key: m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
+      - run:
+          name: Maven Build
+          command: |
+            export PATH=${HOME}/.daml/bin:${PATH}
+            mvn clean package
+      - run:
+          name: Run Blackduck Detect
+          command: |
+            bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) ci-build digitalasset_ex-inventory-management master --logging.level.com.synopsys.integration=DEBUG --detect.notices.report=true --detect.report.timeout=480
+      - run:
+          command: cp digitalasset_ex_inventory_management_master_Black_Duck_Notices_Report.txt NOTICE
+      - persist_to_workspace:
+          root: .
+          paths:
+            - "NOTICE"
+
   github_release:
     executor: docker_buildpack
     steps:
@@ -116,18 +152,25 @@ workflows:
   build_and_test:
     jobs:
       - daml_test:
-          daml_sdk_version: "0.13.55"
+          daml_sdk_version: "1.0.1"
       - mvn_test:
-          daml_sdk_version: "0.13.55"
+          daml_sdk_version: "1.0.1"
+          context: refapps
+      - blackduck_check:
+          daml_sdk_version: "1.0.1"
           context: blackduck
   build_and_release:
     jobs:
       - daml_test:
           <<: *only-release-tags
-          daml_sdk_version: "0.13.55"
+          daml_sdk_version: "1.0.1"
       - mvn_test:
           <<: *only-release-tags
-          daml_sdk_version: "0.13.55"
+          daml_sdk_version: "1.0.1"
+          context: refapps
+      - blackduck_check:
+          <<: *only-release-tags
+          daml_sdk_version: "1.0.1"
           context: blackduck
       - github_release:
           context: github-refapp-repo-context

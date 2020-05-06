@@ -11,7 +11,6 @@ import com.daml.ledger.javaapi.data.SubmitCommandsRequest;
 import com.daml.ledger.rxjava.components.helpers.CommandsAndPendingSet;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,14 +26,11 @@ public class CommandsAndPendingSetBuilder {
   private final String appId;
   private final String party;
   private final String workflowId;
-  private final TimeManager timeManager;
 
-  public CommandsAndPendingSetBuilder(
-      String appId, String party, String workflowId, TimeManager timeManager) {
+  public CommandsAndPendingSetBuilder(String appId, String party, String workflowId) {
     this.appId = appId;
     this.party = party;
     this.workflowId = workflowId;
-    this.timeManager = timeManager;
   }
 
   public Builder newBuilder() {
@@ -62,15 +58,15 @@ public class CommandsAndPendingSetBuilder {
       if (commands.isEmpty() && pendingContractIds.isEmpty()) {
         return Optional.empty();
       } else {
-        Instant time = timeManager.getTime();
         SubmitCommandsRequest commandsRequest =
             new SubmitCommandsRequest(
                 workflowId,
                 appId,
                 UUID.randomUUID().toString(),
                 party,
-                time,
-                time.plusSeconds(30),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
                 commands);
         return Optional.of(
             new CommandsAndPendingSet(commandsRequest, HashTreePMap.from(pendingContractIds)));

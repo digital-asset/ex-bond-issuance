@@ -35,13 +35,13 @@ public class MarketSetupSignerBot {
    * A bot that signs market setup requests if it is the next who needs to (based on the order of the
    * corresponding signer group).
    */
-  public MarketSetupSignerBot(TimeManager timeManager, String appId, String partyName) {
+  public MarketSetupSignerBot(String appId, String partyName) {
     String workflowId =
         "WORKFLOW-" + partyName + "-MarketSetupSignerBot-" + UUID.randomUUID().toString();
     logger = BotLogger.getLogger(MarketSetupSignerBot.class, workflowId);
     this.partyName = partyName;
 
-    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId, timeManager);
+    commandBuilder = new CommandsAndPendingSetBuilder(appId, partyName, workflowId);
 
     Filter messageFilter =
         new InclusiveFilter(

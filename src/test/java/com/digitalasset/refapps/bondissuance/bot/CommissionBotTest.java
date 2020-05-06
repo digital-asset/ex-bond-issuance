@@ -32,7 +32,7 @@ public class CommissionBotTest {
 
   @Before
   public void setupTests() {
-    bot = new CommissionBot(TIME_MANAGER, APP_ID, ISSUER);
+    bot = new CommissionBot(APP_ID, ISSUER);
   }
 
   @Test
