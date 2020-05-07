@@ -20,7 +20,7 @@ Be sure you have the following installed:
 - Yarn
 - Python
 
-#### Build
+#### Build the App
 
 Type:
 ```shell
@@ -30,7 +30,7 @@ make build
 
 ### Starting the App
 
-**Note:** Make sure you have built the application with Maven (see: [Build with Maven](#build)).
+**Note:** Make sure you have built the application (see: [Build the App](#build-the-app)).
 
 There are two options:
 
@@ -44,9 +44,9 @@ There are two options:
 
 **Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
 
-#### Option 2: Start App in Standalone with Wallclock Time
+#### Option 2: Start App in Standalone with Wall Clock Time
 
-This option starts the application with wallclock time.
+This option starts the application with wall clock time.
 1. Start the DAML Sandbox. Type:
     ```shell
     make start

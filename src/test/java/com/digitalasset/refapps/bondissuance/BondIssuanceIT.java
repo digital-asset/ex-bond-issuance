@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.daml.ledger.javaapi.data.Party;
-import com.digitalasset.refapps.bondissuance.util.PartyAllocator;
+import com.digitalasset.refapps.bondissuance.trigger.Trigger;
 import com.digitalasset.testing.junit4.Sandbox;
 import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
 import com.digitalasset.testing.utils.ContractWithId;
@@ -27,10 +27,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.junit.*;
 import org.junit.rules.ExternalResource;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
 public class BondIssuanceIT {
   private static final Path RELATIVE_DAR_PATH = Paths.get("./target/bond-issuance.dar");
@@ -43,19 +43,7 @@ public class BondIssuanceIT {
   private static final Party BANK3_PARTY = new Party("Bank3");
   private static final Party CENTRALBANK_PARTY = new Party("CentralBank");
 
-  private static String[] parties =
-      new String[] {
-        AGENT_PARTY.getValue(),
-        BANK1_PARTY.getValue(),
-        BANK2_PARTY.getValue(),
-        BANK3_PARTY.getValue(),
-        CENTRALBANK_PARTY.getValue(),
-        CSD_PARTY.getValue(),
-        ISSUER_PARTY.getValue(),
-        "Operator",
-        "Regulator"
-      };
-  private static Sandbox sandbox =
+  private static final Sandbox sandbox =
       Sandbox.builder()
           .dar(RELATIVE_DAR_PATH)
           .parties(
@@ -69,20 +57,45 @@ public class BondIssuanceIT {
           .useWallclockTime()
           .module("DA.RefApps.Bond.Test.MarketSetupScript")
           .startScript("setupMarket")
-          .setupAppCallback(
-              Main.runBots(
-                  true,
-                  new PartyAllocator.AppParties(parties),
-                  new PartyAllocator.AllParties(
-                      Arrays.asList(parties).stream()
-                          .collect(Collectors.toMap(Function.identity(), Function.identity())))))
           .build();
 
   @ClassRule public static ExternalResource sandboxClassRule = sandbox.getClassRule();
-  @Rule public ExternalResource sandboxRule = sandbox.getRule();
+
+  @Rule
+  public TestRule sandboxWithTriggers =
+      RuleChain.outerRule(sandbox.getRule())
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
+                  BANK1_PARTY))
+          .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK1_PARTY))
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
+                  BANK2_PARTY))
+          .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK2_PARTY))
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
+                  BANK3_PARTY))
+          .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK3_PARTY))
+          .around(
+              trigger("DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger", ISSUER_PARTY))
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger",
+                  ISSUER_PARTY))
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger",
+                  AGENT_PARTY))
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger",
+                  CSD_PARTY));
 
   @Test
-  public void testFullWorkflow() throws InvalidProtocolBufferException, InterruptedException {
+  public void testFullWorkflow() throws InvalidProtocolBufferException {
     DefaultLedgerAdapter ledgerAdapter = sandbox.getLedgerAdapter();
 
     // Issuance of a bond
@@ -91,7 +104,7 @@ public class BondIssuanceIT {
     BigDecimal couponRate = BigDecimal.valueOf(0.1);
     BigDecimal denomination = BigDecimal.valueOf(40.1);
     String currency = "USD";
-    List<LocalDate> couponDates = Arrays.asList();
+    List<LocalDate> couponDates = Collections.emptyList();
 
     IssuerRole.ContractId issuerRoleCid =
         ledgerAdapter.getCreatedContractId(
@@ -234,7 +247,7 @@ public class BondIssuanceIT {
             assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(8822000L)) == 0));
   }
 
-  AssetDeposit.ContractId findBondAssetDeposit(String expectedLabel) {
+  private AssetDeposit.ContractId findBondAssetDeposit(String expectedLabel) {
     while (true) {
       // This will fail, after there are no more asset deposit contracts
       ContractWithId<AssetDeposit.ContractId> assetDeposit =
@@ -246,5 +259,15 @@ public class BondIssuanceIT {
         return assetDeposit.contractId;
       }
     }
+  }
+
+  private Trigger trigger(String triggerName, Party party) {
+    return Trigger.builder()
+        .ledgerPort(sandbox::getSandboxPort)
+        .dar(RELATIVE_DAR_PATH)
+        .ledgerHost("localhost")
+        .triggerName(triggerName)
+        .party(party)
+        .build();
   }
 }
