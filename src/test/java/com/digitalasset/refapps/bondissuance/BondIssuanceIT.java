@@ -72,19 +72,40 @@ public class BondIssuanceIT {
           .build();
 
   @ClassRule public static ExternalResource sandboxClassRule = sandbox.getClassRule();
-  @Rule public TestRule sandboxWithTriggers =
-          RuleChain
-          .outerRule(sandbox.getRule())
-          .around(trigger("DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger", BANK1_PARTY))
+
+  @Rule
+  public TestRule sandboxWithTriggers =
+      RuleChain.outerRule(sandbox.getRule())
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
+                  BANK1_PARTY))
           .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK1_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger", BANK2_PARTY))
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
+                  BANK2_PARTY))
           .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK2_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger", BANK3_PARTY))
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
+                  BANK3_PARTY))
           .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK3_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger", ISSUER_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger", ISSUER_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger", AGENT_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger", CSD_PARTY));
+          .around(
+              trigger("DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger", ISSUER_PARTY))
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger",
+                  ISSUER_PARTY))
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger",
+                  AGENT_PARTY))
+          .around(
+              trigger(
+                  "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger",
+                  CSD_PARTY));
+
   @Test
   public void testFullWorkflow() throws InvalidProtocolBufferException, InterruptedException {
     DefaultLedgerAdapter ledgerAdapter = sandbox.getLedgerAdapter();
@@ -254,11 +275,11 @@ public class BondIssuanceIT {
 
   private Trigger trigger(String triggerName, Party party) {
     return Trigger.builder()
-            .ledgerPort(sandbox::getSandboxPort)
-            .dar(RELATIVE_DAR_PATH)
-            .ledgerHost("localhost")
-            .triggerName(triggerName)
-            .party(party)
-            .build();
+        .ledgerPort(sandbox::getSandboxPort)
+        .dar(RELATIVE_DAR_PATH)
+        .ledgerHost("localhost")
+        .triggerName(triggerName)
+        .party(party)
+        .build();
   }
 }
