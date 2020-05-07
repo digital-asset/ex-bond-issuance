@@ -45,7 +45,7 @@ template AuctionSettleRequest
 -- Triggers the settlement bot which settles all the DvPs on behalf an investor party.
 -- It unlocks all the previously locked cash, executes the payment, receives the bonds and
 -- releases the remaining cash to the investor's account.
-template InvestorSettlementBotTrigger
+template InvestorSettlement
   with
     investor: Party
     issuer: Party
@@ -59,7 +59,7 @@ template InvestorSettlementBotTrigger
     observer regulators
 
     controller investor can
-      InvestorSettlementBotTrigger_Finalize: [ContractId RedemptionPayoutInfo]
+      InvestorSettlement_Finalize: [ContractId RedemptionPayoutInfo]
         with
           auctionLockedCashCids: [ContractId AuctionLockedCash]
           cashAssetFungible: ContractId AssetFungible

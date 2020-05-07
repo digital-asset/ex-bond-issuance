@@ -18,7 +18,7 @@ import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Util
 
 {-
--    InvestorSettlementBotTrigger_Finalize   +----------------------+
+-    InvestorSettlement_Finalize             +----------------------+
 -   ---------------------------------------->| RedemptionPayoutInfo |---------------------+
 -                                            +----------------------+                     |
 - Redemption process:                                                                     |

@@ -603,7 +603,7 @@ doSettlement issuance settleRequests auctionProgress = scenario do
 
   (assetCid1, paymentCid1, rdmpPI1) <- submit bank1 do
     settlementStarted <- exercise settleRequests.bank1SettleReqCid AuctionParticipantSettleRequest_Settle
-    [rdmpPayoutInfoCid] <- exercise settlementStarted InvestorSettlementBotTrigger_Finalize with
+    [rdmpPayoutInfoCid] <- exercise settlementStarted InvestorSettlement_Finalize with
       cashAssetFungible = issuance.rules.bank1CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank1Locks
       investorCashSettlementCid = issuance.rules.bank1CashSettlementCid
@@ -618,7 +618,7 @@ doSettlement issuance settleRequests auctionProgress = scenario do
 
   (assetCid2, paymentCid2, rdmpPI2) <- submit bank2 do
     settlementStarted <- exercise settleRequests.bank2SettleReqCid AuctionParticipantSettleRequest_Settle
-    [rdmpPayoutInfoCid] <- exercise  settlementStarted InvestorSettlementBotTrigger_Finalize with
+    [rdmpPayoutInfoCid] <- exercise  settlementStarted InvestorSettlement_Finalize with
       cashAssetFungible = issuance.rules.bank2CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank2Locks
       investorCashSettlementCid = issuance.rules.bank2CashSettlementCid
@@ -634,7 +634,7 @@ doSettlement issuance settleRequests auctionProgress = scenario do
 
   (assetCid3, paymentCid3, rdmpPI3) <- submit bank3 do
     settlementStarted <- exercise settleRequests.bank3SettleReqCid AuctionParticipantSettleRequest_Settle
-    [rdmpPayoutInfoCid] <- exercise  settlementStarted InvestorSettlementBotTrigger_Finalize with
+    [rdmpPayoutInfoCid] <- exercise  settlementStarted InvestorSettlement_Finalize with
       cashAssetFungible = issuance.rules.bank3CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank3Locks
       investorCashSettlementCid = issuance.rules.bank3CashSettlementCid

@@ -500,9 +500,9 @@ template AuctionParticipantSettleRequest
     observer regulators
 
     controller investor can
-      AuctionParticipantSettleRequest_Settle: ContractId InvestorSettlementBotTrigger
+      AuctionParticipantSettleRequest_Settle: ContractId InvestorSettlement
         do
-          create InvestorSettlementBotTrigger with
+          create InvestorSettlement with
             investor = investor
             issuer = issuer
             auctionAgent = auctionAgent

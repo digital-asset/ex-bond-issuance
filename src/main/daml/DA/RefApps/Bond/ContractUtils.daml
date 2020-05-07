@@ -1,0 +1,50 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.ContractUtils where
+
+import DA.Optional
+import DA.List.Total
+
+import DA.Finance.Rule.Asset
+import DA.Finance.Types
+
+import DA.RefApps.Bond.Lock
+
+type Contract a = (ContractId a, a)
+
+class Template a => HasAccount a where
+  accountOf: a -> Account
+
+instance HasAccount AssetSettlement where
+  accountOf t = t.account
+
+instance HasAccount AssetFungible where
+  accountOf t = t.account
+
+filterContractIds: (a -> Bool) -> [Contract a] -> [ContractId a]
+filterContractIds p contracts = [id | (id, value) <- contracts, p value]
+
+headNote: Text -> [a] -> a
+headNote message = (fromSomeNote message) . head
+
+findAsset: (HasAccount a) => Party -> Party -> [Contract a] -> ContractId a
+findAsset provider owner assets =
+  headNote "Can't find any asset contract" $ filterContractIds (accountBelongsTo provider owner) assets
+
+accountBelongsTo: (HasAccount a) => Party -> Party -> a -> Bool
+accountBelongsTo provider owner a = do
+  let account = accountOf a
+  provider == account.provider && owner == account.owner
+
+findAuctionLockedCashes: [Contract AuctionLockedCash] -> Party -> Text -> [ContractId AuctionLockedCash]
+findAuctionLockedCashes auctionLockedCashes auctionAgent auctionName =
+  filterContractIds (auctionBelongsTo auctionAgent auctionName) auctionLockedCashes
+
+auctionBelongsTo: Party -> Text -> AuctionLockedCash -> Bool
+auctionBelongsTo auctionAgent auctionName auction =
+     auctionAgent == auction.auctionAgent
+  && auctionName == auction.auctionName

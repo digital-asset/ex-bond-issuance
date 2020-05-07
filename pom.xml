@@ -199,9 +199,8 @@
                     </excludes>
                     <mapping>
                         <daml>DOUBLEDASHES_STYLE</daml>
-                        <Dockerfile-bots>SCRIPT_STYLE</Dockerfile-bots>
-                        <Dockerfile-sandbox>SCRIPT_STYLE</Dockerfile-sandbox>
-                        <Dockerfile-navigator>SCRIPT_STYLE</Dockerfile-navigator>
+                        <java>SLASHSTAR_STYLE</java>
+                        <Dockerfile>SCRIPT_STYLE</Dockerfile>
                     </mapping>
                 </configuration>
                 <executions>
