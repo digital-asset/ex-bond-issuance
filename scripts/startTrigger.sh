@@ -28,7 +28,11 @@ run_trigger() {
 require "${LEDGER_HOST}" "LEDGER_HOST must be set."
 require "${LEDGER_PORT}" "LEDGER_PORT must be set."
 require "${DAR_FILE}" "DAR_FILE must be set."
-require "$1" "Trigger name must be set as first argument."
-require "$2" "Party name must be set as second argument."
 
-run_trigger "$1" "$2"
+trigger_name="$1"
+party="$2"
+
+require "$trigger_name" "Trigger name must be set as first argument."
+require "$party" "Party name must be set as second argument."
+
+run_trigger "$trigger_name" "$party"
