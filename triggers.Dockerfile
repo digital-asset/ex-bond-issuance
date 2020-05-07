@@ -17,7 +17,7 @@ USER daml
 ENV JAVA_TOOL_OPTIONS -Xmx128m
 ENV DAR_FILE bond-issuance.dar
 
-CMD ~/scripts/waitForSandbox.sh ${LEDGER_HOST} ${LEDGER_PORT} && \
+CMD ~/scripts/waitForLedger.sh ${LEDGER_HOST} ${LEDGER_PORT} && \
     scripts/startTrigger.sh DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank1 & \
     scripts/startTrigger.sh DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank1 & \
     scripts/startTrigger.sh DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank2 & \
