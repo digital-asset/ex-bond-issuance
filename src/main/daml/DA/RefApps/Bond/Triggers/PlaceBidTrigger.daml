@@ -76,6 +76,7 @@ placeBidRule party activeContracts _ _ () = do
 
 -- Tests ---------------------------
 
+testPlaceBidTrigger: Scenario ()
 testPlaceBidTrigger = scenario do
   auctionAgent <- getParty "AuctionAgent"
   bank1 <- getParty "Bank1"
@@ -105,6 +106,7 @@ testPlaceBidTrigger = scenario do
         lockRuleCid = issuance.rules.bank1LockRuleCid
         investorBondAssetSettlementCid = issuance.rules.bank1BondSettlementCid)
 
+testNothingHappensIfNoTrigger: Scenario ()
 testNothingHappensIfNoTrigger = scenario do
   auctionAgent <- getParty "AuctionAgent"
   bank1 <- getParty "Bank1"

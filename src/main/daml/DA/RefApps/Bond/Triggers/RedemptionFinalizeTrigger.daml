@@ -65,6 +65,7 @@ redemptionFinalizeRule party activeContracts _ _ () = do
 
 -- Tests ---------------------------
 
+testFinalizeTrigger: Scenario ()
 testFinalizeTrigger = scenario do
   auctionAgent <- getParty "AuctionAgent"
   issuer <- getParty "Issuer"
@@ -97,6 +98,7 @@ testFinalizeTrigger = scenario do
       cashAssetSettlementCid = issuance.rules.issuerCashSettlementCid
       cashAssetFungibleCid = issuance.rules.issuerCashFungibleCid)
 
+testNoFinalizeTrigger: Scenario ()
 testNoFinalizeTrigger = scenario do
   auctionAgent <- getParty "AuctionAgent"
   issuer <- getParty "Issuer"
@@ -122,6 +124,7 @@ testNoFinalizeTrigger = scenario do
   let flattenedCommands = flattenCommands commands
   length flattenedCommands === 0
 
+redeem: Party -> Party -> MarketSetup.TestIssuance -> MarketSetup.SettleRequests -> MarketSetup.AssetsForRedemption -> ContractId AssetDeposit -> Scenario (ContractId RedemptionFinalizeBotTrigger)
 redeem csd issuer issuance settleRequests assetsForRedemption remainedBondDeposit = do
   (request, leftOverSettlementChain) <-
     submit issuer do

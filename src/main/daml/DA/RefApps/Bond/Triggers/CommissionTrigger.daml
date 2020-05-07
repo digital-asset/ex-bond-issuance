@@ -70,6 +70,7 @@ commissionRule party activeContracts _ _ () = do
 
 -- Tests ---------------------------
 
+testCommissionHappens: Scenario ()
 testCommissionHappens = scenario do
   issuer <- getParty "Issuer"
 
@@ -97,6 +98,7 @@ testCommissionHappens = scenario do
       issuance.bondBundleData.cashSettlementCid
       issuance.fixedRateBondFactCid
 
+testNoCommissionIfNoTrigger: Scenario ()
 testNoCommissionIfNoTrigger = scenario do
   issuer <- getParty "Issuer"
   bank1 <- getParty "Bank1"

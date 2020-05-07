@@ -18,6 +18,7 @@ import DA.Assert
 import DA.List
 import DA.Next.Map qualified as Map
 import DA.Foldable hiding (length)
+import DA.Finance.Rule.Asset (AssetSettlementChain)
 
 
 redemptionCalculationTrigger : Trigger ()
@@ -52,6 +53,7 @@ redemptionCalculationRule party activeContracts _ _ () = do
 
 -- Tests ---------------------------
 
+testWithSomeRemainedBond: Scenario ()
 testWithSomeRemainedBond = scenario do
   auctionAgent <- getParty "AuctionAgent"
   issuer <- getParty "Issuer"
@@ -83,6 +85,7 @@ testWithSomeRemainedBond = scenario do
             redemptionPayoutInfos = []
             bondsAtIssuer = [remainedBond])
 
+testWithNoRemainedBond: Scenario ()
 testWithNoRemainedBond = scenario do
   auctionAgent <- getParty "AuctionAgent"
   issuer <- getParty "Issuer"
@@ -112,6 +115,7 @@ testWithNoRemainedBond = scenario do
             redemptionPayoutInfos = []
             bondsAtIssuer = [])
 
+redeem: Party -> MarketSetup.TestIssuance -> MarketSetup.SettleRequests -> Scenario (ContractId RedemptionRequest, ContractId AssetSettlementChain)
 redeem issuer issuance settleRequests =
   submit issuer do
     redeemRequest <- exercise issuance.roles.issuerRoleCid $ IssuerRole_Redeem issuance.fixedRateBondFactCid

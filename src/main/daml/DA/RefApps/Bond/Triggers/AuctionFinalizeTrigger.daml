@@ -58,6 +58,7 @@ finalizeAuction party activeContracts _ _ () = do
 
 -- Tests ---------------------------
 
+testAuctionWithNoBid: Scenario ()
 testAuctionWithNoBid = scenario do
   auctionAgent <- getParty "AuctionAgent"
 
@@ -82,6 +83,7 @@ testAuctionWithNoBid = scenario do
     assertEq cid finalizeTrigger
     assertEq choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [])
 
+testAuctionWithSingleBid: Scenario ()
 testAuctionWithSingleBid = scenario do
   auctionAgent <- getParty "AuctionAgent"
   bank1 <- getParty "Bank1"
@@ -113,6 +115,7 @@ testAuctionWithSingleBid = scenario do
     assertEq cid finalizeTrigger
     assertEq choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [bid1])
 
+testAuctionWithTwoBids: Scenario ()
 testAuctionWithTwoBids = scenario do
   auctionAgent <- getParty "AuctionAgent"
   bank1 <- getParty "Bank1"

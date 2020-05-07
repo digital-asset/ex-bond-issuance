@@ -17,6 +17,7 @@ import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Triggers.InvestorSettlementTrigger
 import DA.RefApps.Bond.Test.FullScenario qualified as LedgerSetup
 
+investorSettlementTrigger_finalizes_settlement: Scenario ()
 investorSettlementTrigger_finalizes_settlement = scenario do
   bank1 <- getParty "Bank1"
 
