@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import React from "react";
 import { ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
 import { Link } from "react-router-dom";

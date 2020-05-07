@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import React, { useState, useEffect } from "react";
 import { useParty } from '@daml/react';
 import { Drawer, IconButton, List } from "@material-ui/core";

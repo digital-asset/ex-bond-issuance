@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import React, { useState } from "react";
 import { Grid, CircularProgress, Typography, Button, TextField, Fade, Select, MenuItem, InputLabel, FormControl } from "@material-ui/core";
 import { withRouter } from "react-router-dom";
