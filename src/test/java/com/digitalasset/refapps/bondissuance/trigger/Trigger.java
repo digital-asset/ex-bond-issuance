@@ -43,7 +43,9 @@ public class Trigger extends ExternalResource {
     this.ledgerPort = ledgerPort;
     this.party = party;
     this.timeMode = timeMode;
-    this.logger = LoggerFactory.getLogger(String.format("%s: %s-%s", getClass().getCanonicalName(), triggerName, party));
+    this.logger =
+        LoggerFactory.getLogger(
+            String.format("%s: %s-%s", getClass().getCanonicalName(), triggerName, party));
     this.logFile = new File(String.format("integration-test-%s-%s.log", triggerName, party));
   }
 
