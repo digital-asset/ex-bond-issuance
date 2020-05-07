@@ -21,6 +21,7 @@ import DA.RefApps.Bond.Settlement
 import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 import DA.RefApps.Bond.Lock
+import DA.RefApps.Bond.Redemption
 
 data MarketSetupData =
   MarketSetupData
@@ -69,14 +70,17 @@ template MarketSetupSignatureCreator
     centralBank: Party
     signatories: [Party]
   where
-    let everyone = [operator, regulator, auctionAgent, bank1, bank2, bank3,
+    -- TODO: 'everyone' cannot be used here with "unused bindings" turned on.
+    -- See: https://github.com/digital-asset/daml/issues/5878
+    observer [operator, regulator, auctionAgent, bank1, bank2, bank3,
                     csd, issuer, centralBank]
-    observer everyone
     signatory operator
     nonconsuming choice MarketSetupSignatureCreator_CreateSignature : ContractId MarketSetupSignature with
         marketParticipant : Party
       controller marketParticipant
         do
+          let everyone = [operator, regulator, auctionAgent, bank1, bank2, bank3,
+                          csd, issuer, centralBank]
           assertMsg "Only market participants can exercise this choice."
                             $ marketParticipant `elem` everyone
           create MarketSetupSignature with ..
@@ -220,6 +224,7 @@ template MarketSetup
                                    settIss settIssCash cashBank1 funBank1Cash
                                    settBank1 settBank1Cash lockBank1
 
+testMarketSetupContract: Scenario ()
 testMarketSetupContract = scenario do
   operator <- getParty "Operator"
   regulator <- getParty "Regulator"
@@ -256,6 +261,7 @@ testMarketSetupContract = scenario do
   return ()
 
 -- | Initial setup of the market participants and some cash
+testMarketSetup: Scenario MarketSetupData
 testMarketSetup = scenario do
   operator <- getParty "Operator"
   regulator <- getParty "Regulator"
@@ -369,6 +375,7 @@ testMarketSetup = scenario do
                            settIss settIssCash cashBank1 funBank1Cash
                            settBank1 settBank1Cash lockBank1
 
+testMarketSetupFull: Scenario [ContractId RedemptionPayoutInfo]
 testMarketSetupFull = scenario $ do
   MarketSetupData issuer issuerRole csd auctionAgent bank1
                   funIss settIss settIssCash cashBank1
