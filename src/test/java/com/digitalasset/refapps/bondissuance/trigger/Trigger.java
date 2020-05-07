@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Trigger extends ExternalResource {
-  private final Logger logger = LoggerFactory.getLogger(getClass().getCanonicalName());
+  private final Logger logger;
 
   private final String darPath;
   private final String triggerName;
@@ -43,7 +43,8 @@ public class Trigger extends ExternalResource {
     this.ledgerPort = ledgerPort;
     this.party = party;
     this.timeMode = timeMode;
-    this.logFile = new File(String.format("integration-test-%s.log", triggerName));
+    this.logger = LoggerFactory.getLogger(String.format("%s: %s-%s", getClass().getCanonicalName(), triggerName, party));
+    this.logFile = new File(String.format("integration-test-%s-%s.log", triggerName, party));
   }
 
   public static Builder builder() {
