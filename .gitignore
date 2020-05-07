@@ -6,3 +6,4 @@ bond-issuance.iml
 
 .circleci/config_local.yml
 .daml
+*.dar

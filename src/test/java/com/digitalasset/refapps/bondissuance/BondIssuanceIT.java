@@ -43,19 +43,7 @@ public class BondIssuanceIT {
   private static final Party BANK3_PARTY = new Party("Bank3");
   private static final Party CENTRALBANK_PARTY = new Party("CentralBank");
 
-  private static String[] parties =
-      new String[] {
-        AGENT_PARTY.getValue(),
-        BANK1_PARTY.getValue(),
-        BANK2_PARTY.getValue(),
-        BANK3_PARTY.getValue(),
-        CENTRALBANK_PARTY.getValue(),
-        CSD_PARTY.getValue(),
-        ISSUER_PARTY.getValue(),
-        "Operator",
-        "Regulator"
-      };
-  private static Sandbox sandbox =
+  private static final Sandbox sandbox =
       Sandbox.builder()
           .dar(RELATIVE_DAR_PATH)
           .parties(
@@ -107,7 +95,7 @@ public class BondIssuanceIT {
                   CSD_PARTY));
 
   @Test
-  public void testFullWorkflow() throws InvalidProtocolBufferException, InterruptedException {
+  public void testFullWorkflow() throws InvalidProtocolBufferException {
     DefaultLedgerAdapter ledgerAdapter = sandbox.getLedgerAdapter();
 
     // Issuance of a bond
@@ -116,7 +104,7 @@ public class BondIssuanceIT {
     BigDecimal couponRate = BigDecimal.valueOf(0.1);
     BigDecimal denomination = BigDecimal.valueOf(40.1);
     String currency = "USD";
-    List<LocalDate> couponDates = Arrays.asList();
+    List<LocalDate> couponDates = Collections.emptyList();
 
     IssuerRole.ContractId issuerRoleCid =
         ledgerAdapter.getCreatedContractId(
