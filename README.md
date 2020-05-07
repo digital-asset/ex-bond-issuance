@@ -16,16 +16,7 @@ Be sure you have the following installed:
 - [DAML SDK](https://docs.daml.com/)
 - Docker
 - Java
-- Maven
 - Python
-
-#### Build with Maven
-
-Type:
-```shell
-mvn clean package
-```
-**Note:** If you change the DAML models locally, you need to re-run this command before starting the application.
 
 ### Starting the App
 
@@ -43,7 +34,7 @@ There are two options:
 
 **Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
 
-#### Option 2: Start App in Standalone with Wallclock Time
+#### Option 2: Start App in Standalone with Wall Clock Time
 
 This option starts the application with wallclock time. Navigator's time widget won't work in this mode as one cannot modify the time.
 1. Start the DAML Sandbox and Navigator. Type:
@@ -53,7 +44,7 @@ This option starts the application with wallclock time. Navigator's time widget 
     The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic by starting bots. Type:
     ```shell
-    java -jar target/bond-issuance-0.0.1-SNAPSHOT.jar
+    scripts/startTriggers localhost 6865
     ```
 
 ### Stopping the App
