@@ -23,3 +23,8 @@ dependencies:
   - daml-stdlib
   - daml-script
   - target/finlib-master-sdk-1.0.1.dar
+build-options:
+  - '--ghc-option'
+  - '-Werror'
+  - '--ghc-option'
+  - '-Wunused-binds'
