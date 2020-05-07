@@ -4,17 +4,17 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-wait_for_sandbox() {
+wait_for_ledger() {
   local host="$1"
   local port="$2"
   until nc -z "$host" "$port"; do
-    echo "Waiting for sandbox..."
+    echo "Waiting for ledger..."
     sleep 1
   done
-  echo "Connected sandbox."
+  echo "Connected to ledger."
 }
 
-sandbox_host="$1"
-sandbox_port="$2"
+ledger_host="$1"
+ledger_port="$2"
 
-wait_for_sandbox "$sandbox_host" "$sandbox_port"
+wait_for_ledger "$ledger_host" "$ledger_port"
