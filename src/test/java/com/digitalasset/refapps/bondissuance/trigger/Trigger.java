@@ -5,6 +5,7 @@
 package com.digitalasset.refapps.bondissuance.trigger;
 
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,6 +52,8 @@ public class Trigger extends ExternalResource {
 
   private void start() throws Throwable {
     ProcessBuilder processBuilder = createProcess();
+    Map<String, String> environment = processBuilder.environment();
+    environment.put("JAVA_TOOL_OPTIONS", "-Xmx128m");
     logger.debug("Executing: {}", String.join(" ", processBuilder.command()));
     trigger = processBuilder.start();
 
