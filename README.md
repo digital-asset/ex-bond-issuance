@@ -18,6 +18,14 @@ Be sure you have the following installed:
 - Java
 - Python
 
+#### Build the App
+
+Type:
+```shell
+daml build -o bond-issuance.dar
+```
+**Note:** If you change the DAML models locally, you need to re-run this command before starting the application.
+
 ### Starting the App
 
 **Note:** Make sure you have built the application with Maven (see: [Build with Maven](#build-with-maven)).
@@ -44,7 +52,7 @@ This option starts the application with wallclock time. Navigator's time widget 
     The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic by starting bots. Type:
     ```shell
-    scripts/startTriggers localhost 6865
+    scripts/startTriggers localhost 6865 bond-issuance.dar
     ```
 
 ### Stopping the App
