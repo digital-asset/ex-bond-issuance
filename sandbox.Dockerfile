@@ -7,8 +7,6 @@ ARG sdk_vsn=1.0.1
 
 FROM digitalasset/daml-sdk:${sdk_vsn} AS source
 
-RUN echo 'hosts: files dns' > /etc/nsswitch.conf
-
 WORKDIR /home/daml/
 
 USER daml
