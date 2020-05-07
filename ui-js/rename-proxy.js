@@ -11,8 +11,8 @@ fs.readFile('./package.json', 'utf8', function(err, data) {
   let parsedData = JSON.parse(data);
 
   // change the proxy to docker endpoint
-  let proxy = 'http://bi-json-api:7575';
-
+  let proxy = `http://${process.env.JSON_API}:7575`;
+  console.info("Ledger URL: %s", proxy);
   parsedData.proxy = proxy;
 
   // for package.json formatting
@@ -23,4 +23,4 @@ fs.readFile('./package.json', 'utf8', function(err, data) {
   fs.writeFile('./package.json', dataString, err => {
     if (err) console.error(`Error writing file: ${err}`);
   });
-}); 
+});
