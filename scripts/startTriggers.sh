@@ -4,49 +4,31 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-set -e
-
-cleanup() {
-    pids=$(jobs -p)
-    echo Killing "$pids"
-    [ -n "$pids" ] && kill $pids
-}
-
-trap "cleanup" INT QUIT TERM
-
-if [ $# -lt 2 ]; then
-    echo "${0} SANDBOX_HOST SANDBOX_PORT [DAR_FILE]"
+require() {
+  local variable="$1"
+  local message="$2"
+  if [[ -z "$variable" ]]; then
+    echo "$message"
     exit 1
-fi
-
-SANDBOX_HOST="${1}"
-SANDBOX_PORT="${2}"
-DAR_FILE="${3:-/home/daml/bond-issuance.dar}"
+  fi
+}
 
 run_trigger() {
   local trigger_name="$1"
   local party="$2"
   daml trigger \
-      --wall-clock-time \
-      --dar "${DAR_FILE}" \
-      --trigger-name "$trigger_name" \
-      --ledger-host "${SANDBOX_HOST}" \
-      --ledger-port "${SANDBOX_PORT}" \
-      --ledger-party "$party"
+    --wall-clock-time \
+    --dar "${DAR_FILE}" \
+    --ledger-host "${LEDGER_HOST}" \
+    --ledger-port "${LEDGER_PORT}" \
+    --trigger-name "$trigger_name" \
+    --ledger-party "$party"
 }
 
-run_trigger DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank1 &
-run_trigger DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank1 &
-run_trigger DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank2 &
-run_trigger DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank2 &
-run_trigger DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank3 &
-run_trigger DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank3 &
-run_trigger DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger Issuer &
-run_trigger DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger Issuer &
-run_trigger DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger AuctionAgent &
-run_trigger DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger CSD &
+require "${LEDGER_HOST}" "LEDGER_HOST must be set."
+require "${LEDGER_PORT}" "LEDGER_PORT must be set."
+require "${DAR_FILE}" "DAR_FILE must be set."
+require "$1" "Trigger name must be set as first argument."
+require "$2" "Party name must be set as second argument."
 
-sleep 2
-pids=$(jobs -p)
-echo Waiting for $pids
-wait $pids
+run_trigger "$1" "$2"
