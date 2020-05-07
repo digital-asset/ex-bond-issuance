@@ -3,7 +3,7 @@ colon   := :
 
 .PHONY: build
 build:
-	mvn clean package
+	daml build -o target/bond-issuance.dar
 
 .PHONY: clean
 clean:
@@ -25,7 +25,9 @@ start:
 
 .PHONY: automation
 automation:
-	java -jar target/bond-issuance-0.0.1-SNAPSHOT.jar
+	JAVA_TOOL_OPTIONS=-Xmx128m \
+	scripts/waitForSandbox.sh localhost 6865 && \
+  scripts/startTriggers.sh localhost 6865 target/bond-issuance.dar
 
 .PHONY: docker
 docker: buildui
