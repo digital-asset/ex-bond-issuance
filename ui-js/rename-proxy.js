@@ -15,7 +15,8 @@ fs.readFile('./package.json', 'utf8', function(err, data) {
   let parsedData = JSON.parse(data);
 
   // change the proxy to docker endpoint
-  let proxy = `http://${process.env.JSON_API}:7575`;
+  // TODO: Make JSON API URL configurable.
+  let proxy = 'http://bi-sandbox:7575';
   console.info("Ledger URL: %s", proxy);
   parsedData.proxy = proxy;
 
