@@ -7,3 +7,14 @@ bond-issuance.iml
 .circleci/config_local.yml
 .daml
 *.dar
+
+built/*
+./build/**
+build
+node_modules
+.node_modules/
+daml2js/*
+deploy/*
+.env
+.DS_Store
+*.dot

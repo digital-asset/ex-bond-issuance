@@ -13,6 +13,8 @@ services:
     ports:
       - "127.0.0.1:6865:6865"
       - "127.0.0.1:7500:7500"
+      - "127.0.0.1:7575:7575"
+    restart: always
   bi-triggers:
     image: digitalasset/bond-issuance-triggers:0.0.1
     build:
@@ -23,3 +25,14 @@ services:
     environment:
       - LEDGER_HOST=bi-sandbox
       - LEDGER_PORT=6865
+  bi-ui:
+    image: digitalasset/bond-issuance-ui:0.0.1
+    build:
+      context: .
+      dockerfile: ui.Dockerfile
+    depends_on:
+      - "bi-sandbox"
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - JSON_API=bi-sandbox
