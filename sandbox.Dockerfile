@@ -30,4 +30,5 @@ ENTRYPOINT daml start \
 # Relying on default port behaviour as of now.
 #  --navigator-option="--port=7500" \
   --open-browser=no \
+  --json-api-option="--address=0.0.0.0" \
   --json-api-port=7575
