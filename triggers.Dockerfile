@@ -17,5 +17,5 @@ USER daml
 ENV JAVA_TOOL_OPTIONS -Xmx128m
 ENV DAR_FILE bond-issuance.dar
 
-CMD ~/scripts/waitForLedger.sh ${LEDGER_HOST} ${LEDGER_PORT} && \
-    scripts/startTriggers.sh ${LEDGER_HOST} ${LEDGER_PORT} ${DAR_FILE}
+ENTRYPOINT scripts/waitForLedger.sh ${LEDGER_HOST} ${LEDGER_PORT} && \
+           scripts/startTriggers.sh ${LEDGER_HOST} ${LEDGER_PORT} ${DAR_FILE}
