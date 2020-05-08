@@ -18,13 +18,4 @@ ENV JAVA_TOOL_OPTIONS -Xmx128m
 ENV DAR_FILE bond-issuance.dar
 
 CMD ~/scripts/waitForLedger.sh ${LEDGER_HOST} ${LEDGER_PORT} && \
-    scripts/startTrigger.sh DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank1 & \
-    scripts/startTrigger.sh DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank1 & \
-    scripts/startTrigger.sh DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank2 & \
-    scripts/startTrigger.sh DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank2 & \
-    scripts/startTrigger.sh DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank3 & \
-    scripts/startTrigger.sh DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank3 & \
-    scripts/startTrigger.sh DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger Issuer & \
-    scripts/startTrigger.sh DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger Issuer & \
-    scripts/startTrigger.sh DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger AuctionAgent & \
-    scripts/startTrigger.sh DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger CSD
+    scripts/startTriggers.sh ${LEDGER_HOST} ${LEDGER_PORT} ${DAR_FILE}
