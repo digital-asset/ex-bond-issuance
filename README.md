@@ -16,19 +16,21 @@ Be sure you have the following installed:
 - [DAML SDK](https://docs.daml.com/)
 - Docker
 - Java
+- Maven
+- Yarn
 - Python
 
 #### Build the App
 
 Type:
 ```shell
-daml build -o bond-issuance.dar
+make build
 ```
 **Note:** If you change the DAML models locally, you need to re-run this command before starting the application.
 
 ### Starting the App
 
-**Note:** Make sure you have built the application with Maven (see: [Build with Maven](#build-with-maven)).
+**Note:** Make sure you have built the application (see: [Build the App](#build-the-app)).
 
 There are two options:
 
@@ -36,24 +38,28 @@ There are two options:
 
 1. Type:
     ```shell
-    docker-compose up --build
+    make docker
     ```
-2. Open UI with a browser at http://localhost:7500.
+2. Open UI with a browser at http://localhost:3000.
 
 **Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
 
 #### Option 2: Start App in Standalone with Wall Clock Time
 
-This option starts the application with wallclock time. Navigator's time widget won't work in this mode as one cannot modify the time.
-1. Start the DAML Sandbox and Navigator. Type:
+This option starts the application with wall clock time.
+1. Start the DAML Sandbox. Type:
     ```shell
-    daml start --sandbox-option --address=localhost --sandbox-option -w
+    make start
     ```
-    The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic by starting bots. Type:
     ```shell
-    scripts/startTriggers localhost 6865 bond-issuance.dar
+    make automation
     ```
+3. Start the react ui
+    The ui will automatically open in a new browser tab at http://localhost:3000.
+    ```shell
+    make ui
+    ``` 
 
 ### Stopping the App
 
@@ -62,8 +68,8 @@ This option starts the application with wallclock time. Navigator's time widget 
 
 #### Stopping Standalone Run
 1. Stop the bots by pressing **Ctrl+C**.
-1. Stop the Sandbox and the Navigator by pressing **Ctrl+C** in the DAML assistant.
-
+2. Stop the Sandbox and the Navigator by pressing **Ctrl+C** in the DAML assistant.
+3. Stop the ui by pressing **Ctrl+C**.
 ### Resetting the Prototype
 
 Reset the application by following these steps:

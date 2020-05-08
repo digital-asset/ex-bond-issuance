@@ -14,25 +14,21 @@ cleanup() {
 
 trap "cleanup" INT QUIT TERM
 
-if [ $# -lt 2 ]; then
-    echo "${0} SANDBOX_HOST SANDBOX_PORT [DAR_FILE]"
-    exit 1
-fi
-
-SANDBOX_HOST="${1}"
-SANDBOX_PORT="${2}"
-DAR_FILE="${3:-/home/daml/bond-issuance.dar}"
+ledger_host="${1:?Ledger host must be set.}"
+ledger_port="${2:?Ledger port must be set.}"
+dar_file="${3:?DAR file must be set.}"
 
 run_trigger() {
-  local trigger_name="$1"
-  local party="$2"
+  local trigger_name="${1:?Trigger name must be set.}"
+  local party="${2:?Party name must be set.}"
+
   daml trigger \
-      --wall-clock-time \
-      --dar "${DAR_FILE}" \
-      --trigger-name "$trigger_name" \
-      --ledger-host "${SANDBOX_HOST}" \
-      --ledger-port "${SANDBOX_PORT}" \
-      --ledger-party "$party"
+    --wall-clock-time \
+    --dar "$dar_file" \
+    --ledger-host "$ledger_host" \
+    --ledger-port "$ledger_port" \
+    --trigger-name "$trigger_name" \
+    --ledger-party "$party"
 }
 
 run_trigger DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank1 &

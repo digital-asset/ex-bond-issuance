@@ -1,0 +1,31 @@
+#
+# Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+FROM node:alpine
+
+WORKDIR /home/daml
+
+RUN mkdir daml2js/
+RUN mkdir ui-js/
+
+COPY ./daml2js/ daml2js/
+COPY ./ui-js/ ui-js/
+COPY package.json package.json
+
+USER root
+
+WORKDIR /home/daml
+
+# install node dependencies
+RUN npm install -g react-scripts express express-http-proxy
+
+RUN yarn install --silent
+
+WORKDIR /home/daml/ui-js/
+RUN node rename-proxy.js
+
+EXPOSE 3000
+
+CMD ["yarn", "start"]

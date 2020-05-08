@@ -15,6 +15,7 @@ COPY --chown=daml scripts/ /home/daml/scripts/
 USER daml
 
 ENV JAVA_TOOL_OPTIONS -Xmx128m
+ENV DAR_FILE bond-issuance.dar
 
-CMD ~/scripts/waitForSandbox.sh ${SANDBOX_HOST} ${SANDBOX_PORT} && \
-    ~/scripts/startTriggers.sh "${SANDBOX_HOST}" "${SANDBOX_PORT}"
+ENTRYPOINT scripts/waitForLedger.sh ${LEDGER_HOST} ${LEDGER_PORT} && \
+           scripts/startTriggers.sh ${LEDGER_HOST} ${LEDGER_PORT} ${DAR_FILE}
