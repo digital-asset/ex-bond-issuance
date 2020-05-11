@@ -24,8 +24,7 @@ RUN npm install -g react-scripts express express-http-proxy
 RUN yarn install --silent
 
 WORKDIR /home/daml/ui-js/
-RUN node rename-proxy.js
 
 EXPOSE 3000
 
-CMD ["yarn", "start"]
+ENTRYPOINT node rename-proxy.js && yarn start

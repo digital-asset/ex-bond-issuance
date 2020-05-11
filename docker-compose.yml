@@ -35,4 +35,5 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     environment:
-      - JSON_API=bi-sandbox
+      - JSON_API_URL=bi-sandbox
+      - JSON_API_PORT=7575
