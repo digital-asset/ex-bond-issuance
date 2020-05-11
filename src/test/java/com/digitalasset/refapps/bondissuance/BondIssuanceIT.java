@@ -64,27 +64,10 @@ public class BondIssuanceIT {
   @Rule
   public TestRule sandboxWithTriggers =
       RuleChain.outerRule(sandbox.getRule())
-          .around(
-              trigger(
-                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
-                  BANK1_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK1_PARTY))
-          .around(
-              trigger(
-                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
-                  BANK2_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK2_PARTY))
-          .around(
-              trigger(
-                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
-                  BANK3_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK3_PARTY))
-          .around(
-              trigger("DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger", ISSUER_PARTY))
-          .around(
-              trigger(
-                  "DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger",
-                  ISSUER_PARTY))
+          .around(trigger("DA.RefApps.Bond.Triggers.MergedTriggers:bankTrigger", BANK1_PARTY))
+          .around(trigger("DA.RefApps.Bond.Triggers.MergedTriggers:bankTrigger", BANK2_PARTY))
+          .around(trigger("DA.RefApps.Bond.Triggers.MergedTriggers:bankTrigger", BANK3_PARTY))
+          .around(trigger("DA.RefApps.Bond.Triggers.MergedTriggers:issuerTrigger", ISSUER_PARTY))
           .around(
               trigger(
                   "DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger",

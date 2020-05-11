@@ -1,0 +1,28 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+
+module DA.RefApps.Bond.Triggers.MergedTriggers where
+
+import Daml.Trigger
+import DA.RefApps.Bond.TriggerUtils
+
+import DA.RefApps.Bond.Triggers.InvestorSettlementTrigger
+import DA.RefApps.Bond.Triggers.PlaceBidTrigger
+import DA.RefApps.Bond.Triggers.CommissionTrigger
+import DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger
+
+bankTrigger : Trigger ()
+bankTrigger = unionTriggers [
+      investorSettlementTrigger,
+      placeBidTrigger
+    ]
+
+issuerTrigger : Trigger ()
+issuerTrigger = unionTriggers [
+      commissionTrigger,
+      redemptionFinalizeTrigger
+    ]

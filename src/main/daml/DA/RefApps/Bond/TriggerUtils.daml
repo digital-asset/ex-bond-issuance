@@ -1,0 +1,39 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+daml 1.2
+module DA.RefApps.Bond.TriggerUtils where
+
+import DA.Foldable hiding (foldl)
+import DA.Next.Map
+import Daml.Trigger
+
+type RuleType = Party -> ACS -> Time -> Map CommandId [Command] -> () -> TriggerA ()
+
+unionRegisteredTemplates : [RegisteredTemplates] -> RegisteredTemplates
+unionRegisteredTemplates =
+  foldl unionRegTs emptyRT
+ where
+  emptyRT = RegisteredTemplates []
+  unionRegTs AllInDar _rt = AllInDar
+  unionRegTs _acc AllInDar = AllInDar
+  unionRegTs (RegisteredTemplates acc) (RegisteredTemplates rt) =
+    RegisteredTemplates $ acc ++ rt
+
+unionRules : [RuleType] -> RuleType
+unionRules rules party acs time cmds _ =
+  forA_ rules $
+    \rule -> rule party acs time cmds ()
+
+unionTriggers : [Trigger ()] -> Trigger ()
+unionTriggers triggers =  Trigger
+    { initialize = const ()
+    , updateState = \_ _ _ -> ()
+    , rule =
+        unionRules $ rule <$> triggers
+    , registeredTemplates =
+        unionRegisteredTemplates $ registeredTemplates <$> triggers
+    , heartbeat = None
+    }
