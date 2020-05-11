@@ -10,19 +10,19 @@ import DA.Foldable hiding (foldl)
 import DA.Next.Map
 import Daml.Trigger
 
-type RuleType = Party -> ACS -> Time -> Map CommandId [Command] -> () -> TriggerA ()
+type Rule = Party -> ACS -> Time -> Map CommandId [Command] -> () -> TriggerA ()
 
 unionRegisteredTemplates : [RegisteredTemplates] -> RegisteredTemplates
 unionRegisteredTemplates =
   foldl unionRegTs emptyRT
  where
   emptyRT = RegisteredTemplates []
-  unionRegTs AllInDar _rt = AllInDar
-  unionRegTs _acc AllInDar = AllInDar
-  unionRegTs (RegisteredTemplates acc) (RegisteredTemplates rt) =
-    RegisteredTemplates $ acc ++ rt
+  unionRegTs AllInDar _ = AllInDar
+  unionRegTs _ AllInDar = AllInDar
+  unionRegTs (RegisteredTemplates xs) (RegisteredTemplates ys) =
+    RegisteredTemplates $ xs ++ ys
 
-unionRules : [RuleType] -> RuleType
+unionRules : [Rule] -> Rule
 unionRules rules party acs time cmds _ =
   forA_ rules $
     \rule -> rule party acs time cmds ()
