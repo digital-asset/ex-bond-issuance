@@ -35,14 +35,10 @@ run_trigger() {
       --ledger-party "$party"
 }
 
-run_trigger DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank1 &
-run_trigger DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank1 &
-run_trigger DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank2 &
-run_trigger DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank2 &
-run_trigger DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank3 &
-run_trigger DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank3 &
-run_trigger DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger Issuer &
-run_trigger DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger Issuer &
+run_trigger DA.RefApps.Bond.Triggers.MergedTriggers:bankTrigger Bank1 &
+run_trigger DA.RefApps.Bond.Triggers.MergedTriggers:bankTrigger Bank2 &
+run_trigger DA.RefApps.Bond.Triggers.MergedTriggers:bankTrigger Bank3 &
+run_trigger DA.RefApps.Bond.Triggers.MergedTriggers:issuerTrigger Issuer &
 run_trigger DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger AuctionAgent &
 run_trigger DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger CSD &
 
