@@ -9,10 +9,6 @@ executors:
   daml-executor:
     docker:
       - image: circleci/openjdk:11.0-jdk
-  mvn-executor:
-    docker:
-      - image: circleci/openjdk:11.0-jdk
-    resource_class: large
   docker_buildpack:
     docker:
       - image: circleci/buildpack-deps:xenial
@@ -41,7 +37,7 @@ jobs:
     parameters:
       daml_sdk_version:
         type: string
-    executor: mvn-executor
+    executor: daml-executor
     steps:
       - checkout
       - restore_cache:
