@@ -22,11 +22,20 @@ import da.refapps.bond.redemption.RedemptionRequest;
 import da.refapps.bond.roles.issuerrole.IssuanceRequest;
 import da.refapps.bond.roles.issuerrole.IssuerRole;
 import da.refapps.bond.settlement.AuctionSettleRequest;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.*;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.RuleChain;
@@ -77,8 +86,35 @@ public class BondIssuanceIT {
                   "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger",
                   CSD_PARTY));
 
+  public static ScheduledExecutorService scheduler;
+  public static Runnable memoMetrics = () -> {
+    ProcessBuilder pb = new ProcessBuilder();
+    try {
+      pb.command("./memo.sh").redirectOutput(ProcessBuilder.Redirect.appendTo(new File("logs/memoMetrics.log"))).start();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  };
+
+  @BeforeClass
+  public static void runMemoMetrics() throws IOException {
+    new File("logs").mkdirs();
+    File targetLog = new File("logs/memoMetrics.log");
+    if (!targetLog.exists()) {
+      new FileOutputStream(targetLog).close();
+    }
+    scheduler = Executors.newScheduledThreadPool(1);
+    scheduler.scheduleAtFixedRate(memoMetrics, 0, 1, TimeUnit.SECONDS);
+  }
+
+  @AfterClass
+  public static void stopMemoMetrics() {
+    scheduler.shutdown();
+  }
+
   @Test
   public void testFullWorkflow() throws InvalidProtocolBufferException {
+
     DefaultLedgerAdapter ledgerAdapter = sandbox.getLedgerAdapter();
 
     // Issuance of a bond
