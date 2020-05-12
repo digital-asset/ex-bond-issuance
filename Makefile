@@ -1,12 +1,16 @@
 version := 0.1
 colon   := :
 
+SDK_VERSION := $(shell grep 'sdk-version' daml.yaml | cut -d ' ' -f 2)
+
 .PHONY: build
 build:
+	python scripts/getfinlib.py $(SDK_VERSION)
 	daml build -o target/bond-issuance.dar
 
 .PHONY: clean
 clean:
+	rm -rf target
 	yarn cache clean
 	rm -rf daml2js
 	rm -rf ui/build
