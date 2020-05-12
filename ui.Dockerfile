@@ -5,6 +5,9 @@
 
 FROM node:alpine
 
+# install node dependencies
+RUN npm install -g react-scripts express express-http-proxy
+
 WORKDIR /home/daml
 
 RUN mkdir daml2js/
@@ -17,9 +20,6 @@ COPY package.json package.json
 USER root
 
 WORKDIR /home/daml
-
-# install node dependencies
-RUN npm install -g react-scripts express express-http-proxy
 
 RUN yarn install --silent
 
