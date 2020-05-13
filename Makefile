@@ -12,12 +12,12 @@ build:
 clean:
 	rm -rf target
 	yarn cache clean
-	rm -rf daml2js
-	rm -rf ui/build
+	rm -rf daml.js
+	rm -rf ui-js/build
 	rm -rf .daml
 
 buildui:
-	daml codegen js target/*.dar -o daml2js
+	daml codegen js target/*.dar -o daml.js
 	cd ui-js && yarn install --force --frozen-lockfile
 
 .PHONY: ui
