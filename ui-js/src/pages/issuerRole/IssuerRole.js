@@ -109,7 +109,7 @@ export default function Report() {
             <Button onClick={() => setDialogOpen(false)} color="primary">
               Cancel
             </Button>
-            <Button onClick={() => doIssuance(actualContract)} color="primary">
+            <Button onClick={() => { doIssuance(actualContract); setDialogOpen(false); } } color="primary">
               Issue
             </Button>
           </DialogActions>
