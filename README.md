@@ -20,15 +20,20 @@ Be sure you have the following installed:
 
 #### Build the App
 
-Type:
+To get FinLib, use the following:
+```shell
+python ./scripts/getfinlib.py 1.1.1
+```
+
+The type:
 ```shell
 daml build -o bond-issuance.dar
 ```
-**Note:** If you change the DAML models locally, you need to re-run this command before starting the application.
+**Note:** If you change the DAML models locally, you need to re-run this (last) command before starting the application.
 
 ### Starting the App
 
-**Note:** Make sure you have built the application with Maven (see: [Build with Maven](#build-with-maven)).
+**Note:** Make sure you have built the application (see: [Build the App](#build-the-app)).
 
 There are two options:
 
