@@ -25,7 +25,7 @@ To get FinLib, use the following:
 python ./scripts/getfinlib.py 1.1.1
 ```
 
-The type:
+Then type:
 ```shell
 daml build -o target/bond-issuance.dar
 ```
