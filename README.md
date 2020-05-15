@@ -57,7 +57,7 @@ This option starts the application with wallclock time. Navigator's time widget 
     The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic by starting bots. Type:
     ```shell
-    scripts/startTriggers.sh localhost 6865 bond-issuance.dar
+    scripts/startTriggers.sh localhost 6865 target/bond-issuance.dar
     ```
 
 ### Stopping the App
