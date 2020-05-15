@@ -27,7 +27,7 @@ python ./scripts/getfinlib.py 1.1.1
 
 The type:
 ```shell
-daml build -o bond-issuance.dar
+daml build -o target/bond-issuance.dar
 ```
 **Note:** If you change the DAML models locally, you need to re-run this (last) command before starting the application.
 
