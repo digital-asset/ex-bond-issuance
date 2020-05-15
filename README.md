@@ -45,7 +45,7 @@ There are two options:
     ```
 2. Open UI with a browser at http://localhost:7500.
 
-**Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
+**Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 8Gb).
 
 #### Option 2: Start App in Standalone with Wall Clock Time
 

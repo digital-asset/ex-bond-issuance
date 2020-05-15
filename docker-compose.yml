@@ -13,7 +13,6 @@ services:
     ports:
       - "127.0.0.1:6865:6865"
       - "127.0.0.1:7500:7500"
-    restart : always
   bi-triggers:
     image: digitalasset/bond-issuance-triggers:0.0.1
     build:
