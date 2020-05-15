@@ -20,15 +20,20 @@ Be sure you have the following installed:
 
 #### Build the App
 
-Type:
+To get FinLib, use the following:
 ```shell
-daml build -o bond-issuance.dar
+python ./scripts/getfinlib.py 1.1.1
 ```
-**Note:** If you change the DAML models locally, you need to re-run this command before starting the application.
+
+Then type:
+```shell
+daml build -o target/bond-issuance.dar
+```
+**Note:** If you change the DAML models locally, you need to re-run this (last) command before starting the application.
 
 ### Starting the App
 
-**Note:** Make sure you have built the application with Maven (see: [Build with Maven](#build-with-maven)).
+**Note:** Make sure you have built the application (see: [Build the App](#build-the-app)).
 
 There are two options:
 
@@ -40,7 +45,7 @@ There are two options:
     ```
 2. Open UI with a browser at http://localhost:7500.
 
-**Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
+**Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 5Gb).
 
 #### Option 2: Start App in Standalone with Wall Clock Time
 
@@ -52,7 +57,7 @@ This option starts the application with wallclock time. Navigator's time widget 
     The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic by starting bots. Type:
     ```shell
-    scripts/startTriggers localhost 6865 bond-issuance.dar
+    scripts/startTriggers.sh localhost 6865 target/bond-issuance.dar
     ```
 
 ### Stopping the App

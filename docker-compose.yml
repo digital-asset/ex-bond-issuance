@@ -19,7 +19,7 @@ services:
       context: .
       dockerfile: triggers.Dockerfile
     depends_on:
-      - "bi-sandbox"
+      - bi-sandbox
     environment:
       - SANDBOX_HOST=bi-sandbox
       - SANDBOX_PORT=6865
