@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-sdk-version: 1.0.1
+sdk-version: 1.1.1
 name: bond-issuance
 source: src/main/daml
 init-script: DA.RefApps.Bond.Test.MarketSetupScript:setupMarket
@@ -23,7 +23,7 @@ dependencies:
   - daml-stdlib
   - daml-script
   - daml-trigger
-  - target/finlib-master-sdk-1.0.1.dar
+  - target/finlib-master-sdk-1.1.1.dar
 build-options:
   - '--ghc-option'
   - '-Werror'

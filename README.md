@@ -16,7 +16,6 @@ Be sure you have the following installed:
 - [DAML SDK](https://docs.daml.com/)
 - Docker
 - Java
-- Maven
 - Yarn
 - Python
 
@@ -42,15 +41,16 @@ There are two options:
     ```
 2. Open UI with a browser at http://localhost:3000.
 
-**Note:** If you run on Windows or MacOS, you may need to increase the memory limit of the Docker Engine in the preferences if you encounter a `java.lang.OutOfMemoryError: GC overhead limit exceeded` error.
+**Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 5Gb).
 
 #### Option 2: Start App in Standalone with Wall Clock Time
 
-This option starts the application with wall clock time.
+This option starts the application with wall clock time. Navigator's time widget won't work in this mode as one cannot modify the time.
 1. Start the DAML Sandbox. Type:
     ```shell
     make start
     ```
+    The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic by starting bots. Type:
     ```shell
     make automation

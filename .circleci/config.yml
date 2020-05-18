@@ -160,25 +160,25 @@ workflows:
   build_and_test:
     jobs:
       - daml_test:
-          daml_sdk_version: "1.0.1"
+          daml_sdk_version: "1.1.1"
       - mvn_test:
-          daml_sdk_version: "1.0.1"
+          daml_sdk_version: "1.1.1"
           context: refapps
       - blackduck_check:
-          daml_sdk_version: "1.0.1"
+          daml_sdk_version: "1.1.1"
           context: blackduck
   build_and_release:
     jobs:
       - daml_test:
           <<: *only-release-tags
-          daml_sdk_version: "1.0.1"
+          daml_sdk_version: "1.1.1"
       - mvn_test:
           <<: *only-release-tags
-          daml_sdk_version: "1.0.1"
+          daml_sdk_version: "1.1.1"
           context: refapps
       - blackduck_check:
           <<: *only-release-tags
-          daml_sdk_version: "1.0.1"
+          daml_sdk_version: "1.1.1"
           context: blackduck
       - github_release:
           context: github-refapp-repo-context
