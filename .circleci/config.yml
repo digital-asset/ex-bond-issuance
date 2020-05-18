@@ -132,6 +132,8 @@ jobs:
       - run:
           name: Yarn Build
           command: |
+#            TODO: Investigate why we need this.
+            export PATH=${HOME}/.daml/bin:${PATH}
             make buildui
       - run:
           name: Run Blackduck Detect
