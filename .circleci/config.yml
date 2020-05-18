@@ -133,6 +133,7 @@ jobs:
           name: Yarn Build
           # TODO: Investigate why we DAML is not on the path.
           command: |
+            sudo apt install yarn
             export PATH=${HOME}/.daml/bin:${PATH}
             make buildui
       - run:
