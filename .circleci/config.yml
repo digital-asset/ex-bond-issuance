@@ -130,12 +130,21 @@ jobs:
             export PATH=${HOME}/.daml/bin:${PATH}
             mvn clean package
       - run:
+          name: Install Yarn
+          command: |
+            curl -sL https://nodejs.org/dist/v12.16.3/node-v12.16.3-linux-x64.tar.xz -o ${HOME}/nodejs.tar.gz
+            tar -xf ${HOME}/nodejs.tar.gz -C ${HOME}
+            export PATH=${HOME}/node-v12.16.3-linux-x64/bin:${PATH}
+            curl -o- -L https://yarnpkg.com/install.sh | bash
+      - run:
           name: Yarn Build
           # TODO: Investigate why we DAML is not on the path.
           command: |
-            sudo apt install yarn
+            export PATH=${HOME}/node-v12.16.3-linux-x64/bin:${PATH}
             export PATH=${HOME}/.daml/bin:${PATH}
-            make buildui
+            export PATH=${HOME}/.yarn/bin:${PATH}
+            daml codegen js target/*.dar -o daml2js
+            cd ui-js && yarn install --frozen-lockfile
       - run:
           name: Run Blackduck Detect
           command: |
