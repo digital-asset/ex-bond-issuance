@@ -42,7 +42,7 @@ There are two options:
 2. Open Navigator with a browser at http://localhost:7500.
 3. Open React UI with a browser at http://localhost:3000.
 
-**Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 5Gb).
+**Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 5 GB).
 
 #### Option 2: Start App in Standalone with Wall Clock Time
 
