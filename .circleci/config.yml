@@ -131,8 +131,8 @@ jobs:
             mvn clean package
       - run:
           name: Yarn Build
+          # TODO: Investigate why we DAML is not on the path.
           command: |
-#            TODO: Investigate why we need this.
             export PATH=${HOME}/.daml/bin:${PATH}
             make buildui
       - run:
