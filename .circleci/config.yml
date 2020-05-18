@@ -130,6 +130,10 @@ jobs:
             export PATH=${HOME}/.daml/bin:${PATH}
             mvn clean package
       - run:
+          name: Yarn Build
+          command: |
+            make buildui
+      - run:
           name: Run Blackduck Detect
           command: |
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) ci-build digitalasset_ex-inventory-management master --logging.level.com.synopsys.integration=DEBUG --detect.notices.report=true --detect.report.timeout=480
