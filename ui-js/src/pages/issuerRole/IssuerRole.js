@@ -8,11 +8,14 @@ import { field } from "../../components/Contracts/Contracts";
 import { useQuery, useLedger } from "@daml/react";
 
 import { IssuerRole } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/IssuerRole";
+import { FixedRateBondFact } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/FixedRateBond";
 
 export default function Report() {
 
   const ledger = useLedger();
   const roles = useQuery(IssuerRole);
+
+  const fixedRateBondFacts = useQuery(FixedRateBondFact);
 
   const issueSize = "Issue size"
   const issueDate = "Issue date"
@@ -82,7 +85,7 @@ export default function Report() {
          doStartAuction
       ],
       ["Redeem",
-        [field(fixedRateBondFactCid, "text")],
+        [field(fixedRateBondFactCid, "menu", fixedRateBondFacts.contracts.map(c => c.contractId))],
          doRedeem
       ]
     ]}

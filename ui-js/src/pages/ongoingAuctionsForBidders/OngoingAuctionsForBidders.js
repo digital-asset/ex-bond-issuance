@@ -4,28 +4,62 @@
  */
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
-import { useQuery } from "@daml/react";
+import { field } from "../../components/Contracts/Contracts";
+import { useQuery, useLedger } from "@daml/react";
 
 import { BidderParticipation } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Auction";
 
 export default function Report() {
 
+  const ledger = useLedger();
   const reviews = useQuery(BidderParticipation);
-  // const exerciseGive = useExercise(Asset.Give);
+
+  const price = "Price"
+  const quantity = "Quantity"
+  const doPlaceBid = function(c, params) {
+    const payload = {
+      price: params[price],
+      quantity: params[quantity]
+    }
+    ledger.exercise(BidderParticipation.BidderParticipation_PlaceBid, c.contractId, payload)
+  }
+
+  const auctionBidCid = "Bid"
+  const auctionLockedCashCid = "Locked cash"
+  const doRevokeBid = function(c, params) {
+    const payload = {
+      auctionBidCid: params[price],
+      auctionLockedCashCid: params[quantity]
+    }
+    ledger.exercise(BidderParticipation.AuctionBidderParticipantion_RevokeLockedBid, c.contractId, payload)
+  }
 
   return (<Contracts contracts={reviews.contracts}
-    columns={[["Contract Id", "contractId"],
-
-    ["Auction Agent", "payload.auctionAgent"],
-    ["Auction Name", "payload.auctionName"],
-    ["Bidder", "payload.bidder"],
-    ["Issuer", "payload.issuer"],
-    ["Size", "payload.size"],
-    ["Start Date", "payload.startDate"],
-    ["End Date", "payload.endDate"],
-    ["Bond Name", "payload.fixedRateBondFact.instrumentId.label"],
-    ["Denomination", "payload.fixedRateBondFact.denomination"],
-    ["Rate", "payload.fixedRateBondFact.rate"],
-    ["Maturity Date", "payload.fixedRateBondFact.maturityDate"],
-    ]} />);
-}	
+    columns={[
+      ["Contract Id", "contractId"],
+      ["Auction Agent", "payload.auctionAgent"],
+      ["Auction Name", "payload.auctionName"],
+      ["Bidder", "payload.bidder"],
+      ["Issuer", "payload.issuer"],
+      ["Size", "payload.size"],
+      ["Start Date", "payload.startDate"],
+      ["End Date", "payload.endDate"],
+      ["Bond Name", "payload.fixedRateBondFact.instrumentId.label"],
+      ["Denomination", "payload.fixedRateBondFact.denomination"],
+      ["Rate", "payload.fixedRateBondFact.rate"],
+      ["Maturity Date", "payload.fixedRateBondFact.maturityDate"],
+    ]}
+    dialogs={[
+      ["Place bid",
+        [field(price, "number"),
+         field(quantity, "number")],
+         doPlaceBid
+      ],
+      ["Revoke locked bid",
+        [field(auctionBidCid, "text"),
+         field(auctionLockedCashCid, "text")],
+         doRevokeBid
+      ]
+    ]}
+  />);
+}
