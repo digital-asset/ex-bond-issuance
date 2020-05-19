@@ -10,7 +10,7 @@ RUN npm install -g react-scripts express express-http-proxy
 
 WORKDIR /home/daml
 
-COPY ./daml2js/ daml2js/
+COPY ./daml.js/ daml.js/
 COPY ./ui-js/ ui-js/
 COPY package.json package.json
 
