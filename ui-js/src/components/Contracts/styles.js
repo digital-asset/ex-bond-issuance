@@ -4,7 +4,7 @@
  */
 import { makeStyles } from "@material-ui/styles";
 
-export const useStyles = makeStyles(() => ({
+export const useStyles = makeStyles(theme => ({
   tableCell: {
     verticalAlign: "top",
     paddingTop: 6,
@@ -16,5 +16,8 @@ export const useStyles = makeStyles(() => ({
   },
   textField: {
     fontSize: "0.75rem"
+  },
+  marginB: {
+    marginBottom: theme.spacing(2),
   }
 }));

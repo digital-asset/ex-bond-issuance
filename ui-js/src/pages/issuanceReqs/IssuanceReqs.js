@@ -10,13 +10,13 @@ import { IssuanceRequest } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bon
 
 export default function Report() {
 
-  const reviews = useQuery(IssuanceRequest);
-  // const exerciseGive = useExercise(Asset.Give);
+  const requests = useQuery(IssuanceRequest);
 
-  return (<Contracts contracts={reviews.contracts}
+  return (<Contracts contracts={requests.contracts}
     columns={[["Contract Id", "contractId"],
 
     ["Issuer", "payload.issuer"],
     ["Issuesize", "payload.issueSize"],
-    ]} />);
-}	
+    ]}
+  />);
+}

@@ -24,7 +24,8 @@ import CsdInvitation from               "../../pages/csdInvitation/CsdInvitation
 import CsdRedemption from               "../../pages/csdRedemption/CsdRedemption";
 import CsdRole from                     "../../pages/csdRole/CsdRole";
 import Default from                     "../../pages/default/Default";
-import DepositNewAsset from             "../../pages/depositNewAsset/DepositNewAsset";
+import IssuanceReqs from                "../../pages/issuanceReqs/IssuanceReqs";
+import IssuanceReqsCsd from             "../../pages/issuanceReqsCsd/IssuanceReqsCsd";
 import InvalidBids from                 "../../pages/invalidBids/InvalidBids";
 import IssuerInvitation from            "../../pages/issuerInvitation/IssuerInvitation";
 import IssuerRole from                  "../../pages/issuerRole/IssuerRole";
@@ -71,7 +72,8 @@ function Layout() {
                 <Route path="/app/csdRedemption" component={CsdRedemption} />
                 <Route path="/app/csdRole" component={CsdRole} />
                 <Route path="/app/default" component={Default} />
-                <Route path="/app/depositNewAsset" component={DepositNewAsset} />
+                <Route path="/app/issuanceReqs" component={IssuanceReqs} />
+                <Route path="/app/issuanceReqsCsd" component={IssuanceReqsCsd} />
                 <Route path="/app/invalidBids" component={InvalidBids} />
                 <Route path="/app/issuerInvitation" component={IssuerInvitation} />
                 <Route path="/app/issuerRole" component={IssuerRole} />
