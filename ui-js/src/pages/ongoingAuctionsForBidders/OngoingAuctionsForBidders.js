@@ -7,7 +7,8 @@ import Contracts from "../../components/Contracts/Contracts";
 import { field } from "../../components/Contracts/Contracts";
 import { useQuery, useLedger } from "@daml/react";
 
-import { BidderParticipation } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Auction";
+import { BidderParticipation, AuctionBid } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Auction";
+import { AuctionLockedCash } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Lock";
 
 export default function Report() {
 
@@ -24,6 +25,9 @@ export default function Report() {
     ledger.exercise(BidderParticipation.BidderParticipation_PlaceBid, c.contractId, payload)
   }
 
+  const lockedBid = useQuery(AuctionBid);
+  const lockedCash = useQuery(AuctionLockedCash);
+
   const auctionBidCid = "Bid"
   const auctionLockedCashCid = "Locked cash"
   const doRevokeBid = function(c, params) {
@@ -32,6 +36,10 @@ export default function Report() {
       auctionLockedCashCid: params[quantity]
     }
     ledger.exercise(BidderParticipation.AuctionBidderParticipantion_RevokeLockedBid, c.contractId, payload)
+  }
+
+  function bidDataToText(bidData) {
+    return `${bidData.submissionTime}: ${bidData.price} (Quantity: ${bidData.quantity})`
   }
 
   return (<Contracts contracts={reviews.contracts}
@@ -56,8 +64,8 @@ export default function Report() {
          doPlaceBid
       ],
       ["Revoke locked bid",
-        [field(auctionBidCid, "text"),
-         field(auctionLockedCashCid, "text")],
+        [field(auctionBidCid, "menu", lockedBid.contracts.map(c => c.contractId), lockedBid.contracts.map(c => bidDataToText(c.payload.bidData))),
+         field(auctionLockedCashCid, "text", lockedCash.contracts.map(c => c.contractId), lockedCash.contracts.map(c => c.payload.account.id.label))],
          doRevokeBid
       ]
     ]}

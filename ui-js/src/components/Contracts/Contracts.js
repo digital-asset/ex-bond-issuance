@@ -3,11 +3,12 @@ import ReactJson from "react-json-view";
 import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Grid, Table, TableHead, TableRow, TableCell, TableBody, TextField, Button } from "@material-ui/core";
 import { useStyles } from "./styles";
 
-export function field(name, fieldType, items) {
+export function field(name, fieldType, items, itemNames) {
   return {
     "name": name,
     "type": items ? "menu" : fieldType,
-    "items": items
+    "items": items,
+    "itemNames" : itemNames || items
   };
 }
 
@@ -80,8 +81,8 @@ export default function Contracts({ contracts, columns, actions=[], dialogs=[] }
           <InputLabel>{spec["name"]}</InputLabel>
           <Select value={getDialogState(name, spec["name"], spec["items"][0])} defaultValue={spec["items"][0]} onChange={(event) => setDialogState(name, spec["name"], event.target.value)}>
             {
-              spec["items"].map(item =>
-                <MenuItem key={item} value={item}>{item}</MenuItem>
+              spec["items"].map((item, i) =>
+                <MenuItem key={item} value={item}>{spec["itemNames"][i]}</MenuItem>
               )
             }
           </Select>

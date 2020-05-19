@@ -9,6 +9,7 @@ import { useQuery, useLedger } from "@daml/react";
 
 import { IssuerRole } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/IssuerRole";
 import { FixedRateBondFact } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/FixedRateBond";
+import { AssetDeposit } from "@daml.js/finlib-1.0.0/lib/DA/Finance/Fact/Asset";
 
 export default function Report() {
 
@@ -35,6 +36,8 @@ export default function Report() {
     }
     ledger.exercise(IssuerRole.IssuerRole_Issuance, contract.contractId, payload);
   };
+
+  const assetDeposits = useQuery(AssetDeposit);
 
   const bondAssetDepositCid = "Bond asset deposit"
   const startDate = "Start date"
@@ -77,7 +80,7 @@ export default function Report() {
          doIssue
       ],
       ["Commission auction",
-        [field(bondAssetDepositCid, "text"),
+        [field(bondAssetDepositCid, "menu", assetDeposits.contracts.map(c => c.contractId), assetDeposits.contracts.map(c => c.payload.asset.id.label)),
          field(startDate, "date"),
          field(endDate, "date"),
          field(minPrice, "number"),
@@ -85,7 +88,7 @@ export default function Report() {
          doStartAuction
       ],
       ["Redeem",
-        [field(fixedRateBondFactCid, "menu", fixedRateBondFacts.contracts.map(c => c.contractId))],
+        [field(fixedRateBondFactCid, "menu", fixedRateBondFacts.contracts.map(c => c.contractId), fixedRateBondFacts.contracts.map(c => c.payload.isin))],
          doRedeem
       ]
     ]}
