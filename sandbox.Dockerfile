@@ -21,12 +21,14 @@ COPY --chown=daml ui-backend.conf frontend-config.js /home/daml/
 
 EXPOSE 6865
 EXPOSE 7500
+EXPOSE 7575
 
 ENTRYPOINT daml start \
   --sandbox-option="--address=0.0.0.0" \
-  --sandbox-port 6865 \
+  --sandbox-port=6865 \
 # Cannot explicitly specify, because of: https://github.com/digital-asset/daml/issues/5777
 # Relying on default port behaviour as of now.
 #  --navigator-option="--port=7500" \
   --open-browser=no \
-  --json-api-port=none
+  --json-api-option="--address=0.0.0.0" \
+  --json-api-port=7575

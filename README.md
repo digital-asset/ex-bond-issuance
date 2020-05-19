@@ -16,20 +16,18 @@ Be sure you have the following installed:
 - [DAML SDK](https://docs.daml.com/)
 - Docker
 - Java
+- Yarn
+- Node v12
+- Make
 - Python
 
 #### Build the App
 
-To get FinLib, use the following:
+Type:
 ```shell
-python ./scripts/getfinlib.py 1.1.1
+make build
 ```
-
-Then type:
-```shell
-daml build -o target/bond-issuance.dar
-```
-**Note:** If you change the DAML models locally, you need to re-run this (last) command before starting the application.
+**Note:** If you change the DAML models locally, you need to re-run this command before starting the application.
 
 ### Starting the App
 
@@ -41,23 +39,29 @@ There are two options:
 
 1. Type:
     ```shell
-    docker-compose up --build
+    make docker
     ```
-2. Open UI with a browser at http://localhost:7500.
+2. Open Navigator with a browser at http://localhost:7500.
+3. Open React UI with a browser at http://localhost:3000.
 
-**Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 5Gb).
+**Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 5 GB).
 
 #### Option 2: Start App in Standalone with Wall Clock Time
 
-This option starts the application with wallclock time. Navigator's time widget won't work in this mode as one cannot modify the time.
-1. Start the DAML Sandbox and Navigator. Type:
+This option starts the application with wall clock time. Navigator's time widget won't work in this mode as one cannot modify the time.
+1. Start the DAML Sandbox. Type:
     ```shell
-    daml start --sandbox-option --address=localhost --sandbox-option -w
+    make start
     ```
     The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic by starting bots. Type:
     ```shell
-    scripts/startTriggers.sh localhost 6865 target/bond-issuance.dar
+    make automation
+    ```
+3. Start the React UI
+    The UI will automatically open in a new browser tab at http://localhost:3000.
+    ```shell
+    make ui
     ```
 
 ### Stopping the App
@@ -67,13 +71,13 @@ This option starts the application with wallclock time. Navigator's time widget 
 
 #### Stopping Standalone Run
 1. Stop the bots by pressing **Ctrl+C**.
-1. Stop the Sandbox and the Navigator by pressing **Ctrl+C** in the DAML assistant.
-
+2. Stop the Sandbox and the Navigator by pressing **Ctrl+C** in the DAML assistant.
+3. Stop the ui by pressing **Ctrl+C**.
 ### Resetting the Prototype
 
 Reset the application by following these steps:
 1.  Stop the app by following the steps in [Stopping the App](#stopping-the-app) section.
-2.  Start the app in [Docker](#using-docker) or [Standalone](#standalone-mode) by following the steps in the relevant section.
+2.  Start the app in [Docker](#option-1-start-app-with-docker) or [Standalone](#option-2-start-app-in-standalone-with-wall-clock-time) by following the steps in the relevant section.
 
 ## User Guide
 

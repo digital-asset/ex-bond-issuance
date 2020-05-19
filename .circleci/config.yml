@@ -130,9 +130,26 @@ jobs:
             export PATH=${HOME}/.daml/bin:${PATH}
             mvn clean package
       - run:
+          name: Install Yarn
+          command: |
+            curl -sL https://nodejs.org/dist/v12.16.3/node-v12.16.3-linux-x64.tar.xz -o ${HOME}/nodejs.tar.gz
+            tar -xf ${HOME}/nodejs.tar.gz -C ${HOME}
+            export PATH=${HOME}/node-v12.16.3-linux-x64/bin:${PATH}
+            curl -o- -L https://yarnpkg.com/install.sh | bash
+      - run:
+          name: Yarn Build
+          # TODO: Investigate why we DAML is not on the path.
+          command: |
+            export PATH=${HOME}/node-v12.16.3-linux-x64/bin:${PATH}
+            export PATH=${HOME}/.daml/bin:${PATH}
+            export PATH=${HOME}/.yarn/bin:${PATH}
+            make buildui
+            yarn install
+      - run:
           name: Run Blackduck Detect
           command: |
-            bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) ci-build digitalasset_ex-inventory-management master --logging.level.com.synopsys.integration=DEBUG --detect.notices.report=true --detect.report.timeout=480
+            export PATH=${HOME}/node-v12.16.3-linux-x64/bin:${PATH}
+            bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) ci-build digitalasset_ex-inventory-management master --logging.level.com.synopsys.integration=DEBUG --detect.notices.report=true --detect.report.timeout=480 --detect.excluded.detector.types=NPM,YARN
       - run:
           command: cp digitalasset_ex_inventory_management_master_Black_Duck_Notices_Report.txt NOTICE
       - persist_to_workspace:
