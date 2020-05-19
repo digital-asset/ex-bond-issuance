@@ -7,18 +7,6 @@ import ReactJson from "react-json-view";
 import { Grid, Table, TableHead, TableRow, TableCell, TableBody, TextField, Button } from "@material-ui/core";
 import { useStyles } from "./styles";
 
-export function getByPath(data, path) {
-  if (path.length === 0) return data;
-  if (data[path[0]] === undefined) throw new Error("Object doesn't have key '" + path[0] + "': " + JSON.stringify(data));
-  const value = getByPath(data[path[0]], path.slice(1));
-  return value;
-}
-
-export function getValue(data, path) {
-  const split = typeof path === "string" && path !== "" ? path.split(".") : [];
-  return getByPath(data, split);
-}
-
 export default function Contracts({ contracts, columns, actions=[] }) {
 
   actions = actions ? actions : [];
@@ -28,6 +16,18 @@ export default function Contracts({ contracts, columns, actions=[] }) {
   const classes = useStyles();
   var [state, setState] = useState({});
   const handleChange = name => (event => { setState({ ...state, [name]: event.target.value }); });
+
+  function getByPath(data, path) {
+    if (path.length === 0) return data;
+    if (data[path[0]] === undefined) throw new Error("Object doesn't have key '" + path[0] + "': " + JSON.stringify(data));
+    const value = getByPath(data[path[0]], path.slice(1));
+    return value;
+  }
+
+  function getValue(data, path) {
+    const split = typeof path === "string" && path !== "" ? path.split(".") : [];
+    return getByPath(data, split);
+  }
 
   return (
     <>
