@@ -17,6 +17,8 @@ Be sure you have the following installed:
 - Docker
 - Java
 - Yarn
+- Node v12
+- Make
 - Python
 
 #### Build the App
@@ -60,7 +62,7 @@ This option starts the application with wall clock time. Navigator's time widget
     The UI will automatically open in a new browser tab at http://localhost:3000.
     ```shell
     make ui
-    ``` 
+    ```
 
 ### Stopping the App
 
