@@ -1060,46 +1060,52 @@
   integrity sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==
 
 "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7@file:../daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7":
-  version "1.0.1"
+  version "1.1.1"
   dependencies:
-    "@daml/types" "1.0.1"
-    "@mojotech/json-type-validation" "^3.1.0"
-
-"@daml.js/af229a118107d2574f87b269743662935551d75881b400109d92736443e5d71f@file:../daml.js/af229a118107d2574f87b269743662935551d75881b400109d92736443e5d71f":
-  version "1.0.1"
-  dependencies:
-    "@daml/types" "1.0.1"
+    "@daml/ledger" "1.1.1"
+    "@daml/types" "1.1.1"
     "@mojotech/json-type-validation" "^3.1.0"
 
 "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f@file:../daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f":
-  version "1.0.1"
+  version "1.1.1"
   dependencies:
-    "@daml/types" "1.0.1"
+    "@daml/ledger" "1.1.1"
+    "@daml/types" "1.1.1"
     "@mojotech/json-type-validation" "^3.1.0"
 
 "@daml.js/bond-issuance-2.0.0@file:../daml.js/bond-issuance-2.0.0":
-  version "1.0.1"
+  version "1.1.1"
   dependencies:
-    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../Library/Caches/Yarn/v4/npm-@daml-js-bond-issuance-2-0-0-1.0.1-27c9deab-7145-4ea6-aa3a-bbcf88e2eccd-1589359235894/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
-    "@daml.js/af229a118107d2574f87b269743662935551d75881b400109d92736443e5d71f" "file:../../../Library/Caches/Yarn/v4/npm-@daml-js-bond-issuance-2-0-0-1.0.1-27c9deab-7145-4ea6-aa3a-bbcf88e2eccd-1589359235894/node_modules/@daml.js/af229a118107d2574f87b269743662935551d75881b400109d92736443e5d71f"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../Library/Caches/Yarn/v4/npm-@daml-js-bond-issuance-2-0-0-1.0.1-27c9deab-7145-4ea6-aa3a-bbcf88e2eccd-1589359235894/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
-    "@daml.js/finlib-1.0.0" "file:../../../Library/Caches/Yarn/v4/npm-@daml-js-bond-issuance-2-0-0-1.0.1-27c9deab-7145-4ea6-aa3a-bbcf88e2eccd-1589359235894/node_modules/@daml.js/finlib-1.0.0"
-    "@daml/types" "1.0.1"
+    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.1.1-50d1a546-607f-4afe-a32b-714ced78052a-1589893292783/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
+    "@daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.1.1-50d1a546-607f-4afe-a32b-714ced78052a-1589893292783/node_modules/@daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.1.1-50d1a546-607f-4afe-a32b-714ced78052a-1589893292783/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/finlib-1.0.0" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.1.1-50d1a546-607f-4afe-a32b-714ced78052a-1589893292783/node_modules/@daml.js/finlib-1.0.0"
+    "@daml/ledger" "1.1.1"
+    "@daml/types" "1.1.1"
+    "@mojotech/json-type-validation" "^3.1.0"
+
+"@daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8@file:../daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8":
+  version "1.1.1"
+  dependencies:
+    "@daml/ledger" "1.1.1"
+    "@daml/types" "1.1.1"
     "@mojotech/json-type-validation" "^3.1.0"
 
 "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662@file:../daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662":
-  version "1.0.1"
+  version "1.1.1"
   dependencies:
-    "@daml/types" "1.0.1"
+    "@daml/ledger" "1.1.1"
+    "@daml/types" "1.1.1"
     "@mojotech/json-type-validation" "^3.1.0"
 
 "@daml.js/finlib-1.0.0@file:../daml.js/finlib-1.0.0":
-  version "1.0.1"
+  version "1.1.1"
   dependencies:
-    "@daml.js/af229a118107d2574f87b269743662935551d75881b400109d92736443e5d71f" "file:../../../Library/Caches/Yarn/v4/npm-@daml-js-finlib-1-0-0-1.0.1-eaa20337-2a2f-47c9-8042-e78c6ec07ae5-1589359235765/node_modules/@daml.js/af229a118107d2574f87b269743662935551d75881b400109d92736443e5d71f"
-    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../Library/Caches/Yarn/v4/npm-@daml-js-finlib-1-0-0-1.0.1-eaa20337-2a2f-47c9-8042-e78c6ec07ae5-1589359235765/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../Library/Caches/Yarn/v4/npm-@daml-js-finlib-1-0-0-1.0.1-eaa20337-2a2f-47c9-8042-e78c6ec07ae5-1589359235765/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
-    "@daml/types" "1.0.1"
+    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.1.1-16e7e3ec-129c-4283-bab1-abf53a164b51-1589893292627/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
+    "@daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.1.1-16e7e3ec-129c-4283-bab1-abf53a164b51-1589893292627/node_modules/@daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.1.1-16e7e3ec-129c-4283-bab1-abf53a164b51-1589893292627/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml/ledger" "1.1.1"
+    "@daml/types" "1.1.1"
     "@mojotech/json-type-validation" "^3.1.0"
 
 "@daml/ledger@1.0.1", "@daml/ledger@^1.0.1":
@@ -1108,6 +1114,18 @@
   integrity sha512-ZwKTisImwHtSvIr+XDsAkBXLRjrGkj9yh/VViKUX2sgd+unD85vyhV37Iumi1remhPmT48Ja2/z0/cYrx5AMQw==
   dependencies:
     "@daml/types" "1.0.1"
+    "@mojotech/json-type-validation" "^3.1.0"
+    cross-fetch "^3.0.4"
+    events "^3.1.0"
+    isomorphic-ws "^4.0.1"
+    ws "^7.2.1"
+
+"@daml/ledger@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@daml/ledger/-/ledger-1.1.1.tgz#eca8174707c128e8a5029c553c3d7ac7dfcaa8bd"
+  integrity sha512-WBZRdquLSnfsyy+iqdWSEn4X5UWs81bv5qFOZlvhGWjDRNkiukEZOVnihS3EYaO9jt+U2RLMnQVo9yvgDx1cQA==
+  dependencies:
+    "@daml/types" "1.1.1"
     "@mojotech/json-type-validation" "^3.1.0"
     cross-fetch "^3.0.4"
     events "^3.1.0"
@@ -1123,10 +1141,17 @@
     "@daml/types" "1.0.1"
     react "^16.12.0"
 
-"@daml/types@1.0.1", "@daml/types@^1.0.1":
+"@daml/types@1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@daml/types/-/types-1.0.1.tgz#872f0ad82a957a550bb7281bf59a5f969ca162de"
   integrity sha512-OZWLNWE50BYxVfAqatuqlqP/wjkBHZ4zsLiWJaeGyUP4KUwRFp3xe8QIMQY+qFlEEqAMMX1BQM/NAZpH1SJIjQ==
+  dependencies:
+    "@mojotech/json-type-validation" "^3.1.0"
+
+"@daml/types@1.1.1", "@daml/types@^^1.0.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@daml/types/-/types-1.1.1.tgz#8bf1fc63277f1411200069d24c6eb2bfa46cb21c"
+  integrity sha512-saW9Aowt/kItDSkxb1RuQlEvucBxPsbwKxIUH3krtZ4HBgmNedGDLYTe6OmKv3vFA4c7DF/WuBQ1ttFBUseXqg==
   dependencies:
     "@mojotech/json-type-validation" "^3.1.0"
 
@@ -1668,6 +1693,16 @@
     eslint-scope "^5.0.0"
     eslint-utils "^2.0.0"
 
+"@typescript-eslint/experimental-utils@2.34.0":
+  version "2.34.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/experimental-utils/-/experimental-utils-2.34.0.tgz#d3524b644cdb40eebceca67f8cf3e4cc9c8f980f"
+  integrity sha512-eS6FTkq+wuMJ+sgtuNTtcqavWXqsflWcfBnlYhg/nS4aZ1leewkXGbvBhaapn1q6qf4M71bsR1tez5JTRMuqwA==
+  dependencies:
+    "@types/json-schema" "^7.0.3"
+    "@typescript-eslint/typescript-estree" "2.34.0"
+    eslint-scope "^5.0.0"
+    eslint-utils "^2.0.0"
+
 "@typescript-eslint/parser@^2.10.0":
   version "2.33.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-2.33.0.tgz#395c0ef229ebef883608f8632a34f0acf02b9bdd"
@@ -1678,10 +1713,33 @@
     "@typescript-eslint/typescript-estree" "2.33.0"
     eslint-visitor-keys "^1.1.0"
 
+"@typescript-eslint/parser@^2.31.0":
+  version "2.34.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-2.34.0.tgz#50252630ca319685420e9a39ca05fe185a256bc8"
+  integrity sha512-03ilO0ucSD0EPTw2X4PntSIRFtDPWjrVq7C3/Z3VQHRC7+13YB55rcJI3Jt+YgeHbjUdJPcPa7b23rXCBokuyA==
+  dependencies:
+    "@types/eslint-visitor-keys" "^1.0.0"
+    "@typescript-eslint/experimental-utils" "2.34.0"
+    "@typescript-eslint/typescript-estree" "2.34.0"
+    eslint-visitor-keys "^1.1.0"
+
 "@typescript-eslint/typescript-estree@2.33.0":
   version "2.33.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-2.33.0.tgz#33504c050ccafd38f397a645d4e9534d2eccbb5c"
   integrity sha512-d8rY6/yUxb0+mEwTShCQF2zYQdLlqihukNfG9IUlLYz5y1CH6G/9XYbrxQLq3Z14RNvkCC6oe+OcFlyUpwUbkg==
+  dependencies:
+    debug "^4.1.1"
+    eslint-visitor-keys "^1.1.0"
+    glob "^7.1.6"
+    is-glob "^4.0.1"
+    lodash "^4.17.15"
+    semver "^7.3.2"
+    tsutils "^3.17.1"
+
+"@typescript-eslint/typescript-estree@2.34.0":
+  version "2.34.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-2.34.0.tgz#14aeb6353b39ef0732cc7f1b8285294937cf37d5"
+  integrity sha512-OMAr+nJWKdlVM9LOqCqh3pQQPwxHAN7Du8DR6dmwCrAmxtiXQnhHJ6tBNtf+cggqfo51SG/FCwnKhXCIM7hnVg==
   dependencies:
     debug "^4.1.1"
     eslint-visitor-keys "^1.1.0"
@@ -4081,6 +4139,13 @@ escodegen@^1.11.0, escodegen@^1.9.1:
   optionalDependencies:
     source-map "~0.6.1"
 
+eslint-config-prettier@^6.10.0:
+  version "6.11.0"
+  resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-6.11.0.tgz#f6d2238c1290d01c859a8b5c1f7d352a0b0da8b1"
+  integrity sha512-oB8cpLWSAjOVFEJhhyMZh6NOEOtBVziaqdDQ86+qhDHFbZXoRTM7pNSvFRfW/W/L/LrQ38C99J5CGuRBBzBsdA==
+  dependencies:
+    get-stdin "^6.0.0"
+
 eslint-config-react-app@^5.2.0:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/eslint-config-react-app/-/eslint-config-react-app-5.2.1.tgz#698bf7aeee27f0cea0139eaef261c7bf7dd623df"
@@ -4154,6 +4219,13 @@ eslint-plugin-jsx-a11y@6.2.3:
     emoji-regex "^7.0.2"
     has "^1.0.3"
     jsx-ast-utils "^2.2.1"
+
+eslint-plugin-prettier@^3.1.2:
+  version "3.1.3"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-prettier/-/eslint-plugin-prettier-3.1.3.tgz#ae116a0fc0e598fdae48743a4430903de5b4e6ca"
+  integrity sha512-+HG5jmu/dN3ZV3T6eCD7a4BlAySdN7mLIbJYo0z1cFQuI+r2DiTJEFeF68ots93PsnrMxbzIZ2S/ieX+mkrBeQ==
+  dependencies:
+    prettier-linter-helpers "^1.0.0"
 
 eslint-plugin-react-hooks@^1.6.1:
   version "1.7.0"
@@ -4474,6 +4546,11 @@ fast-deep-equal@^3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.1.tgz#545145077c501491e33b15ec408c294376e94ae4"
   integrity sha512-8UEa58QDLauDNfpbrX55Q9jrGHThw2ZMdOky5Gl1CDtVeJDPVrG4Jxx1N8jw2gkWaff5UUuX1KJd+9zGe2B+ZA==
+
+fast-diff@^1.1.2:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/fast-diff/-/fast-diff-1.2.0.tgz#73ee11982d86caaf7959828d519cfe927fac5f03"
+  integrity sha512-xJuoT5+L99XlZ8twedaRf6Ax2TgQVxvgZOYoPKqZufmJib0tL2tegPBOZb1pVNgIhlqDlA0eO0c3wBvQcmzx4w==
 
 fast-glob@^2.0.2:
   version "2.2.7"
@@ -4870,6 +4947,11 @@ get-own-enumerable-property-symbols@^3.0.0:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/get-own-enumerable-property-symbols/-/get-own-enumerable-property-symbols-3.0.2.tgz#b5fde77f22cbe35f390b4e089922c50bce6ef664"
   integrity sha512-I0UBV/XOz1XkIJHEUDMZAbzCThU/H8DxmSfmdGcKPnVhu2VfFqr34jr9777IyaTYvxjedWhqVIilEDsCdP5G6g==
+
+get-stdin@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/get-stdin/-/get-stdin-6.0.0.tgz#9e09bf712b360ab9225e812048f71fde9c89657b"
+  integrity sha512-jp4tHawyV7+fkkSKyvjuLZswblUtz+SQKzSWnBbii16BuZksJlU1wuBYXY75r+duh/llF1ur6oNwi+2ZzjKZ7g==
 
 get-stream@^4.0.0:
   version "4.1.0"
@@ -8651,6 +8733,13 @@ prepend-http@^1.0.0:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-1.0.4.tgz#d4f4562b0ce3696e41ac52d0e002e57a635dc6dc"
   integrity sha1-1PRWKwzjaW5BrFLQ4ALlemNdxtw=
+
+prettier-linter-helpers@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/prettier-linter-helpers/-/prettier-linter-helpers-1.0.0.tgz#d23d41fe1375646de2d0104d3454a3008802cf7b"
+  integrity sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==
+  dependencies:
+    fast-diff "^1.1.2"
 
 prettier@^2.0.5:
   version "2.0.5"
