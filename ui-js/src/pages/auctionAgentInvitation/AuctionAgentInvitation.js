@@ -4,14 +4,13 @@
  */
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
-import { useQuery } from "@daml/react";
+import { useStreamQuery } from "@daml/react";
 
 import { AuctionAgentRoleInvitation } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/AuctionAgentRole";
 
 export default function Report() {
 
-  const invitations = useQuery(AuctionAgentRoleInvitation);
-  // const exerciseGive = useExercise(Asset.Give);
+  const invitations = useStreamQuery(AuctionAgentRoleInvitation);
 
   return (
     <Contracts
@@ -20,4 +19,4 @@ export default function Report() {
       ["Auction Agent", "payload.auctionAgent"],
       ["Regulators", "payload.regulators"],
       ]} />);
-}	
+}

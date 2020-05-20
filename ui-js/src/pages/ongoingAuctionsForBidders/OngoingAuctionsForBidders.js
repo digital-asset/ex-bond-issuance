@@ -5,7 +5,7 @@
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
 import { field } from "../../components/Contracts/Contracts";
-import { useQuery, useLedger } from "@daml/react";
+import { useStreamQuery, useLedger } from "@daml/react";
 
 import { BidderParticipation, AuctionBid } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Auction";
 import { AuctionLockedCash } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Lock";
@@ -13,7 +13,7 @@ import { AuctionLockedCash } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/B
 export default function Report() {
 
   const ledger = useLedger();
-  const reviews = useQuery(BidderParticipation);
+  const reviews = useStreamQuery(BidderParticipation);
 
   const price = "Price"
   const quantity = "Quantity"
@@ -25,8 +25,8 @@ export default function Report() {
     ledger.exercise(BidderParticipation.BidderParticipation_PlaceBid, c.contractId, payload)
   }
 
-  const lockedBid = useQuery(AuctionBid);
-  const lockedCash = useQuery(AuctionLockedCash);
+  const lockedBid = useStreamQuery(AuctionBid);
+  const lockedCash = useStreamQuery(AuctionLockedCash);
 
   const auctionBidCid = "Bid"
   const auctionLockedCashCid = "Locked cash"

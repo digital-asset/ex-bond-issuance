@@ -5,7 +5,7 @@
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
 import { field } from "../../components/Contracts/Contracts";
-import { useStreamQuery, useQuery, useLedger } from "@daml/react";
+import { useStreamQuery, useLedger } from "@daml/react";
 
 import { IssuerRole } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/IssuerRole";
 import { FixedRateBondFact } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/FixedRateBond";
@@ -16,7 +16,7 @@ export default function Report() {
   const ledger = useLedger();
   const roles = useStreamQuery(IssuerRole);
 
-  const fixedRateBondFacts = useQuery(FixedRateBondFact);
+  const fixedRateBondFacts = useStreamQuery(FixedRateBondFact);
 
   const issueSize = "Issue size"
   const issueDate = "Issue date"
@@ -37,7 +37,7 @@ export default function Report() {
     ledger.exercise(IssuerRole.IssuerRole_Issuance, contract.contractId, payload);
   };
 
-  const assetDeposits = useQuery(AssetDeposit);
+  const assetDeposits = useStreamQuery(AssetDeposit);
 
   const bondAssetDepositCid = "Bond asset deposit"
   const startDate = "Start date"

@@ -4,14 +4,13 @@
  */
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
-import { useQuery } from "@daml/react";
+import { useStreamQuery } from "@daml/react";
 
 import { InvalidBidNotification } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Auction";
 
 export default function Report() {
 
-  const reviews = useQuery(InvalidBidNotification);
-  // const exerciseGive = useExercise(Asset.Give);
+  const reviews = useStreamQuery(InvalidBidNotification);
 
   return (<Contracts contracts={reviews.contracts}
 
@@ -23,4 +22,4 @@ export default function Report() {
     ["Quantity", "payload.bid.bidData.quantity"],
     ["Reason", "payload.reason"],
     ]} />);
-}	
+}

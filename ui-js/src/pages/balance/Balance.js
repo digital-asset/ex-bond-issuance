@@ -4,12 +4,12 @@
  */
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
-import { useQuery } from "@daml/react";
+import { useStreamQuery } from "@daml/react";
 
 import { AssetDeposit } from "@daml.js/finlib-1.0.0/lib/DA/Finance/Fact/Asset";
 export default function Report() {
 
-  const deposits = useQuery(AssetDeposit);
+  const deposits = useStreamQuery(AssetDeposit);
 
   return (
     <Contracts
