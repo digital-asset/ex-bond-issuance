@@ -28,7 +28,7 @@ function Login(props) {
         <img src={logo} alt="logo" className={classes.logotypeImage} />
         <Typography className={classes.logotypeText}>BOND Issuance</Typography>
       </div>
-      <div class="makeStyles-formContainer-8">
+      <div className="makeStyles-formContainer-8">
         <div className="makeStyles-form-12">
             <React.Fragment>
               <Fade in={error}>

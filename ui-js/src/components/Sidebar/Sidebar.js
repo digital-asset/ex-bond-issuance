@@ -6,7 +6,7 @@ import React, { useState, useEffect } from "react";
 import { useParty } from '@daml/react';
 import { Drawer, IconButton, List } from "@material-ui/core";
 import { green} from '@material-ui/core/colors';
-import { List as ListIcon, TouchApp, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, Build, CardMembership, DirectionsRun, ListAlt } from "@material-ui/icons";
+import { List as ListIcon, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, Build, CardMembership, DirectionsRun, ListAlt } from "@material-ui/icons";
 import { useTheme } from "@material-ui/styles";
 import { withRouter } from "react-router-dom";
 import classNames from "classnames";
@@ -32,7 +32,8 @@ function Sidebar({ location }) {
     ['csdInvitationView', ["Operator"]],
     ['csdRedemptionView', ["CSD"]],
     ['csdRoleView', ["CSD", "Operator", "Regulator"]],
-    ['depositNewAssetView', ["CSD", "Issuer"]],
+    ['issuanceReqsView', ["Issuer"]],
+    ['issuanceReqsCsdView', ["CSD"]],
     ['invalidBidsView', ["AuctionAgent", "Bank1", "Bank2", "Bank3"]],
     ['issuerInvitationView', ["Operator"]],
     ['issuerRoleView', ["Issuer", "Operator", "Regulator"]],
@@ -59,7 +60,8 @@ function Sidebar({ location }) {
     ['issuerRoleView',"Issuer Actions"],
     ['ongoingAuctionsView',"Ongoing Auctions"],
     ['bidView',"Bids"],
-    ['depositNewAssetView',"Issuance and ISIN Request"],
+    ['issuanceReqsView',"Issuance and ISIN Request"],
+    ['issuanceReqsCsdView',"Issuance and ISIN Request"],
     ['pendingSettlementsViewForBanks',"Pending Settlements"],
     ['pendingSettlementsViewForIssuer',"Pending Settlements"],
     ['auctionRequestView',"Auction Request"],
@@ -289,14 +291,30 @@ function Sidebar({ location }) {
     return null;
 
   }
-  function DepositNewAsset() {
-    var panelMap = sigObsMap.get('depositNewAssetView');
+  function IssuanceReqs() {
+    var panelMap = sigObsMap.get('issuanceReqsView');
     if (panelMap.includes(party) || panelMap.includes("All")) {
       return (
         <SidebarLink
-          key="DepositNewAsset"
-          label={panelNames.get('depositNewAssetView') || "unassigned"}
-          path="/app/depositNewAsset"
+          key="IssuanceReqs"
+          label={panelNames.get('issuanceReqsView') || "unassigned"}
+          path="/app/issuanceReqs"
+          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function IssuanceReqsCsd() {
+    var panelMap = sigObsMap.get('issuanceReqsCsdView');
+    if (panelMap.includes(party) || panelMap.includes("All")) {
+      return (
+        <SidebarLink
+          key="IssuanceReqsCsd"
+          label={panelNames.get('issuanceReqsCsdView') || "unassigned"}
+          path="/app/issuanceReqsCsd"
           icon={(<ListIcon style={{ color: '#536DFE' }} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
@@ -433,19 +451,6 @@ function Sidebar({ location }) {
     return null;
 
   }
-  function Default() {
-    
-    // var panelMap = sigObsMap.get('pendingSettlementsViewForIssuer');
-      return (
-        <SidebarLink
-          key="Default"
-          label="Contracts"
-          path="/app/default"
-          icon={(<TouchApp style={{ color: '#536DFE' }} />)}
-          location={location}
-          isSidebarOpened={isSidebarOpened}
-        />);
-  }
 
   return (
     <Drawer
@@ -473,7 +478,6 @@ function Sidebar({ location }) {
         </IconButton>
       </div>
       <List className={classes.sidebarList}>
-        <Default/>
         <AuctionAgentInvitation/>
         <AuctionAgentRole />
         <AuctionRequest />
@@ -487,7 +491,8 @@ function Sidebar({ location }) {
         <CsdInvitation />
         <CsdRedemption />
         <CsdRole />
-        <DepositNewAsset />
+        <IssuanceReqs />
+        <IssuanceReqsCsd />
         <InvalidBids />
         <IssuerInvitation />
         <IssuerRole />

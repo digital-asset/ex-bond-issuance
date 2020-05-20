@@ -4,14 +4,19 @@
  */
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
-import { useQuery } from "@daml/react";
+import { useStreamQuery, useLedger } from "@daml/react";
 
-import { AuctionInvition } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/AuctionAgentRole";
+import { AuctionInvitation } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Auction";
 
 export default function Report() {
 
-  const invitations = useQuery(AuctionInvition);
-  // const exerciseGive = useExercise(Asset.Give);
+  const ledger = useLedger();
+  const invitations = useStreamQuery(AuctionInvitation);
+
+  const doAccept = function(c, param) {
+    ledger.exercise(AuctionInvitation.AuctionInvitation_Accept, c.contractId, { auctionName: param })
+  }
+
   return (
     <Contracts
       contracts={invitations.contracts}
@@ -20,5 +25,9 @@ export default function Report() {
       ["Requestor", "payload.auction.issuer"],
       ["Asset", "payload.auction.bondBundleData.assetLabel"],
       ["Quantity", "payload.auction.size"],
-      ]} />);
-}	
+      ]}
+      actions={[
+        ["Accept", doAccept, "Auction name"]
+      ]}
+    />);
+}

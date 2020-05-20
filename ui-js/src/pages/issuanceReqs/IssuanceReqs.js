@@ -6,16 +6,17 @@ import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
 import { useStreamQuery } from "@daml/react";
 
-import { CsdRoleInvitation } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/CsdRole";
+import { IssuanceRequest } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/IssuerRole";
 
 export default function Report() {
 
-  const reviews = useStreamQuery(CsdRoleInvitation);
+  const requests = useStreamQuery(IssuanceRequest);
 
-  return (<Contracts contracts={reviews.contracts}
+  return (<Contracts contracts={requests.contracts}
     columns={[["Contract Id", "contractId"],
 
-    ["Csd", "payload.csd"],
-    ["Regulators", "payload.regulators"],
-    ]} />);
+    ["Issuer", "payload.issuer"],
+    ["Issuesize", "payload.issueSize"],
+    ]}
+  />);
 }
