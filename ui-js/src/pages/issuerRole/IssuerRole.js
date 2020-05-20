@@ -5,7 +5,7 @@
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
 import { field } from "../../components/Contracts/Contracts";
-import { useQuery, useLedger } from "@daml/react";
+import { useStreamQuery, useQuery, useLedger } from "@daml/react";
 
 import { IssuerRole } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/IssuerRole";
 import { FixedRateBondFact } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/FixedRateBond";
@@ -14,7 +14,7 @@ import { AssetDeposit } from "@daml.js/finlib-1.0.0/lib/DA/Finance/Fact/Asset";
 export default function Report() {
 
   const ledger = useLedger();
-  const roles = useQuery(IssuerRole);
+  const roles = useStreamQuery(IssuerRole);
 
   const fixedRateBondFacts = useQuery(FixedRateBondFact);
 

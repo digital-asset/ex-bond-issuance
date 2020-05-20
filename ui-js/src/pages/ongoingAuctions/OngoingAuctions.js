@@ -5,14 +5,14 @@
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
 import { field } from "../../components/Contracts/Contracts";
-import { useQuery, useLedger } from "@daml/react";
+import { useStreamQuery, useLedger } from "@daml/react";
 
 import { Auction } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Auction";
 
 export default function Report() {
 
   const ledger = useLedger()
-  const reviews = useQuery(Auction);
+  const ongoingAuctions = useStreamQuery(Auction);
 
   const bidders = "Bidders (separated by commas)"
   const doInviteBidders = function(contract, params) {
@@ -27,7 +27,7 @@ export default function Report() {
     ledger.exercise(Auction.Auction_Finalize, c.contractId, {})
   }
 
-  return (<Contracts contracts={reviews.contracts}
+  return (<Contracts contracts={ongoingAuctions.contracts}
     columns={[["Contract Id", "contractId"],
     ["Auction Name", "payload.auctionName"],
     ["Issuer", "payload.issuer"],

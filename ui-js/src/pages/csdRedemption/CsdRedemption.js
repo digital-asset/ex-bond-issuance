@@ -4,14 +4,14 @@
  */
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
-import { useQuery, useLedger } from "@daml/react";
+import { useStreamQuery, useLedger } from "@daml/react";
 
 import { RedemptionRequest } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Redemption";
 
 export default function Report() {
 
   const ledger = useLedger();
-  const reviews = useQuery(RedemptionRequest);
+  const reviews = useStreamQuery(RedemptionRequest);
 
   const doAccept = function(c) {
     ledger.exercise(RedemptionRequest.RedemptionRequest_Accept, c.contractId, {})
