@@ -17,7 +17,7 @@ export const useStyles = makeStyles(theme => ({
   textField: {
     fontSize: "0.75rem"
   },
-  marginB: {
+  formField: {
     marginBottom: theme.spacing(2),
   }
 }));

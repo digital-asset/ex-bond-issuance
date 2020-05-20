@@ -78,7 +78,7 @@ export default function Contracts({ contracts, columns, actions=[], dialogs=[] }
     return (
       <>
       {dialogFieldSpec.map(spec =>
-       <Grid item key={spec["name"]} className={classes.marginB}>
+       <Grid item key={spec["name"]} className={classes.formField}>
        {(spec["type"] === "menu")
         ?
           <FormControl className={classes.formControl} key={spec["name"]} fullWidth={true}>
