@@ -4,7 +4,7 @@
  */
 import React, { useState } from "react";
 import ReactJson from "react-json-view";
-import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Grid, Table, TableHead, TableRow, TableCell, TableBody, TextField, Button } from "@material-ui/core";
+import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, Tooltip, MenuItem, Grid, Table, TableHead, TableRow, TableCell, TableBody, TextField, Button } from "@material-ui/core";
 import { useStyles } from "./styles";
 
 export function field(name, fieldType, items, itemNames) {
@@ -56,7 +56,15 @@ export default function Contracts({ contracts, columns, actions=[], dialogs=[] }
 
   function getValue(data, path) {
     const split = typeof path === "string" && path !== "" ? path.split(".") : [];
-    return getByPath(data, split);
+    const result = getByPath(data, split);
+    return result;
+  }
+
+  function shorten(text) {
+    if (typeof text === "string" && text.length > 15) {
+      return `${text.substr(0,15)}...`;
+    }
+    return text;
   }
 
   function setDialogOpen(name, value) {
@@ -98,6 +106,10 @@ export default function Contracts({ contracts, columns, actions=[], dialogs=[] }
             key={spec["name"]}
             label={spec["name"]}
             type={spec["type"]}
+            className={classes.textField}
+            InputLabelProps={{
+              shrink: true,
+            }}
             onChange={(event) => setDialogState(name, spec["name"], event.target.value)}
             />}
       </Grid>
@@ -121,12 +133,22 @@ export default function Contracts({ contracts, columns, actions=[], dialogs=[] }
           <TableBody>
             {contracts.map((c, i) => (
               <TableRow key={i} className={classes.tableRow}>
-                { columns.map(col => (<TableCell key={col[0]} className={classes.tableCell}>{getValue(c, col[1])}</TableCell>)) }
+                { columns.map(col =>
+                    (<Tooltip key={col[0]} className={classes.tableCell} title={getValue(c, col[1])}>
+                      <TableCell key={col[0]} className={classes.tableCell}>
+
+                        {shorten(getValue(c, col[1]))}
+
+                      </TableCell>
+                     </Tooltip>
+                     ))
+                }
                 { isDefault
                     ? (<TableCell key="payload" className={classes.tableCell}>
                         <ReactJson src={c.payload} name={false} collapsed={true} enableClipboard={false}/>
                       </TableCell>)
-                    : <></> }
+                    : <></>
+                }
                 { actions.map(action => (
                   <TableCell key={action[0]} className={classes.tableCell}>
                       { action.length > 2
