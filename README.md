@@ -41,7 +41,7 @@ There are two options:
     ```shell
     make docker
     ```
-2. Open React UI with a browser at http://localhost:3000.
+2. Open the new React UI with a browser at http://localhost:3000.
 
 Navigator is available at at http://localhost:7500.
 
