@@ -43,7 +43,7 @@ There are two options:
     ```
 2. Open the new React UI with a browser at http://localhost:3000.
 
-Navigator is available at at http://localhost:7500.
+We also keep the deprecated Navigator available at at http://localhost:7500.
 
 **Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 5 GB).
 
