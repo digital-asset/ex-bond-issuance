@@ -8,6 +8,8 @@ module DA.RefApps.Bond.Redemption where
 
 import DA.List
 import DA.Optional
+import DA.Foldable (forA_)
+import DA.Action
 
 import DA.Finance.Types
 import DA.Finance.Rule.Trade.Dvp
@@ -121,13 +123,10 @@ template RedemptionCalculationBotTrigger
           let bondInstrumentId = fixedRateBond.instrumentId
 
           -- archive the bonds left at issuer
-          forA bondsAtIssuer \depositCid -> do
+          forA_ bondsAtIssuer \depositCid -> do
             deposit <- fetch depositCid
-            assertMsg ("Account owner of bondsAtIssuer should be " <> show issuer) $ deposit.account.owner == issuer
-            let factInstrumentId = deposit.asset.id
-            assertMsg ("Identifier of the asset [" <> show factInstrumentId <> "] should match the bond [" <> show bondInstrumentId) $
-              factInstrumentId == bondInstrumentId
-            archive depositCid
+            when (deposit.account.owner == issuer && deposit.asset.id == bondInstrumentId) $
+              archive depositCid
 
           -- proceed with redemption of the sold bonds
           zippedInstructions <- forA redemptionPayoutInfos \redemptionPayoutInfoCid -> do
@@ -160,15 +159,13 @@ template RedemptionCalculationBotTrigger
                     bondArchivalRequestCid = arcReq
             return (instruction, payoutInfo.investorCashAccount.provider)
           let (instructions, cashProviders) = unzip zippedInstructions
-          finalizer <- create RedemptionFinalizeBotTrigger with
+          create RedemptionFinalizeBotTrigger with
             issuer = issuer
             bondAccountProvider = provider
             instructions = instructions
             cashAccountProvider = head cashProviders
             cashAssetId = fixedRateBond.cashAssetId
             regulators = regulators
-
-          return finalizer
 
 data RedemptionInstruction = RedemptionInstruction
   with
