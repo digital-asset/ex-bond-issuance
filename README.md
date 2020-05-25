@@ -173,7 +173,7 @@ Invited banks can start bidding on the auction. The banks cannot see the minimum
 
 ### Choosing and Changing Roles
 
-When you launch Bond Issuance application, you will see the login screen where you can choose your user / role.
+When you launch Bond Issuance application, you will see the login screen where you can choose your party with the desired role.
 
 To log in:
 
