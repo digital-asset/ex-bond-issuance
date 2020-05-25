@@ -26,7 +26,7 @@ ui: buildui
 
 .PHONY: start
 start:
-	daml start --sandbox-option --address=localhost --sandbox-option -w
+	daml start --sandbox-option --address=localhost --sandbox-option -w --open-browser no
 
 .PHONY: automation
 automation:

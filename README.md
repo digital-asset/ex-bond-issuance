@@ -41,14 +41,15 @@ There are two options:
     ```shell
     make docker
     ```
-2. Open Navigator with a browser at http://localhost:7500.
-3. Open React UI with a browser at http://localhost:3000.
+2. Open the new React UI with a browser at http://localhost:3000.
+
+We also keep the deprecated Navigator available at at http://localhost:7500.
 
 **Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 5 GB).
 
 #### Option 2: Start App in Standalone with Wall Clock Time
 
-This option starts the application with wall clock time. Navigator's time widget won't work in this mode as one cannot modify the time.
+This option starts the application with wall clock time. Note that Navigator's time widget won't work in this mode as one cannot modify the time.
 1. Start the DAML Sandbox. Type:
     ```shell
     make start
@@ -71,7 +72,7 @@ This option starts the application with wall clock time. Navigator's time widget
 
 #### Stopping Standalone Run
 1. Stop the bots by pressing **Ctrl+C**.
-2. Stop the Sandbox and the Navigator by pressing **Ctrl+C** in the DAML assistant.
+2. Stop the Sandbox by pressing **Ctrl+C** in the DAML assistant.
 3. Stop the ui by pressing **Ctrl+C**.
 ### Resetting the Prototype
 
@@ -81,9 +82,7 @@ Reset the application by following these steps:
 
 ## User Guide
 
-This User Guide will take you step-by-step through the whole bond issuance, bond auction, and redemption process. It will lead you through all the major Navigator screens and data fields that you will need to use.
-
-After working through these steps, you can use the Navigator interface to explore other functionality that is available in the application.
+This User Guide will take you step-by-step through the whole bond issuance, bond auction, and redemption process. It will lead you through all the major UI screens and data fields that you will need to use.
 
 **Note**: This demo is designed to show successful conclusion of the Bond Issuance workflow without exceptions or error conditions. A full production implementation would include additional features, handle errors and exceptions, and incorporate appropriate security controls.
 
@@ -158,7 +157,7 @@ There are three parties set up with the Bank role, other roles have a single cor
 
 The Bond Issuance application includes these steps:
 
-1. **Market Set Up:** The application starts with an automated market set-up process. Participants and their roles are created, relationships are set up, and Participants also have their cash account set up in the Central Bank, with an initial balance.
+1. **Market Setup:** The application starts with an automated market setup process. Participants and their roles are created, relationships are set up, and Participants also have their cash account set up in the Central Bank, with an initial balance.
 2. **Bond Issuance:** The entire issuance process is modeled in DAML, with transparency and accuracy. The Bond Issuer requests the issuance, and the CSD approves the request and issues the bond. The ledger keeps an immutable, auditable history of the bond issuance.
 3. **Create a Bond Auction:** The entire auction logic is modeled in DAML, enforcing the actions of the Auction Agent and market participants. The process starts with the Issuer defining the key parameters of the bond auction, including the start and end date of the auction, and the minimum price for the bond. The Issuer submits the auction request to its Auction Agent. The Auction Agent reviews the auction parameters and can commission the auction.
 4. **Execute a Bond Auction:** The application uses the example of the Dutch auction to calculate winning bids and quantities.
@@ -174,27 +173,16 @@ Invited banks can start bidding on the auction. The banks cannot see the minimum
 
 ### Choosing and Changing Roles
 
-When you launch Bond Issuance application, you will see the Navigator screen with the option to choose your role.
+When you launch Bond Issuance application, you will see the login screen where you can choose your party with the desired role.
 
 To log in:
 
-*   On the home screen, select the party from the list.
+*   On the home screen, select the party from the list (no password needs to be entered).
 
 To switch users:
 
-1. Click the name of the current party at the top of the screen.
+1. In the top right corner, click on the logout icon.
 2. On the home screen, select a different party.
-
-### Setting the System Date
-
-The system date is visible in the top-right corner after you log in. The application starts with the example system date of March 21, 2019.
-
-To change the system date:
-
-1. Log-in as any role.
-2. Click on current date.
-3. Select the new date in the calendar view.
-4. Choose the **Set** button.
 
 ### Market Setup
 
@@ -212,21 +200,19 @@ To request a new bond issuance:
 
 1. Log in as **Issuer**.
 2. Choose the **Issuer Actions** tab.
-3. Click on the Issuer **role contract.**
-4. Select the **IssuerRole_Issuance** choice.
-5. Fill out the new issuance parameters:
+3. Select the **Issuer Bond** choice on the Issuer role contract.
+4. Fill out the new issuance parameters:
     *   Issue size: quantity of new bonds to be issued: e.g.:1000000
     *   Issue date: date for the issue date, e.g., today
     *   Currency: USD
     *   Denomination: bond’s value at maturity and the initial price for the bond set for the auction. e.g.: 100
-    *   Maturity date: Note that redemption of the bond will be only possible on the defined maturity date. At redemption the face value of the bond plus the coupon rate is paid to the buyer.
+    *   Maturity date: Note that redemption of a bond is usually only possible on the defined maturity date, but the application does not model this. At redemption the face value of the bond plus the coupon rate is paid to the buyer.
     *   Coupon rate: rate expressed in numeric value for the duration of the bond: 0.01 = 1%
-    *   Coupon Dates: Leave blank (**Note**: The application does not handle interim coupon payments.)
-6. Choose **Submit**.
+6. Choose **Okay**.
 
 #### Approving New Bond Issuance Request
 
-Once the Issuer submitted its new bind issuance request, the CSD receives a notification of the request. The CSD needs to approve the bond issuance request to issue the bonds and assign the ISIN.
+Once the Issuer submitted its new bond issuance request, the CSD receives a notification of the request. The CSD needs to approve the bond issuance request to issue the bonds and assign the ISIN.
 
 To approve:
 
@@ -234,9 +220,7 @@ To approve:
 2. Choose the **Issuance and ISIN Request** tab.
 3. Select the contract in the table view.
 4. View the parameters of the new issuance request.
-5. Choose **IssuanceRequest_Accept**.
-6. Add and ISIN. enter an arbitrary ISIN manually. e.g.: Bond007.
-7. Choose **Submit**.
+5. Add an ISIN (arbirarily, e.g.: Bond007). Choose **Accept**.
 
 #### Viewing New Bond Issue
 
@@ -245,7 +229,7 @@ The Issuer can view the newly issued Bonds.
 To view:
 
 1. Log in as the **Issuer**.
-2. Go to the **Balance** tab.
+2. Go to the **Balance view** tab.
 
    The newly issued bond will be visible.
 
@@ -261,15 +245,14 @@ To create an auction request:
 
 1. Log in as the **Issuer**.
 2. Select the **Issuer Actions** tab.
-3. Click on the Issuer **role contract.**
-4. Select the **IssuerRole_CommissionAuction** choice.
-5. Enter parameters of New Bond Auction:
-    *  Bond asset deposit ID: #13:2 (Copy contract id for the Bond from the **Balance** tab).
+3. Select the **Commission Auction** choice.
+4. Enter parameters of New Bond Auction:
+    *  Bond asset deposit contract ID (choose the name of the bond just issued)
     *  Start date
     *  End date
     *  Minimum price: e.g: 96 (must be smaller the the bond's denomination)
     *  Size: e.g.: 500000 (The size of the auction cannot be larger than the balance of available bonds).
-6. Choose **Submit**.
+6. Choose **Okay**.
 
 #### Commissioning New Bond Auction
 
@@ -279,9 +262,7 @@ To commission the auction:
 
 1. Log in as the **Auction Agent**.
 2. Select the **Auction Requests** tab.
-3. Select a new auction commission request.
-4. Click on the **AuctionInvitation_Accept** choice and enter the name of the auction, e.g., Auction 1.
-5. Choose **Submit**.
+3. Next to the new auction commission request enter an auction name (e.g.: Auction001) and click on the **Accept** choice.
 
 Once the auction had been approved, the auction disappears from the **Auction Request** tab and appears in the **Ongoing Auctions** tab.
 
@@ -293,12 +274,8 @@ To invite Banks:
 
 1. Stay logged in as the **Auction Agent**.
 2. Select the **Ongoing Auctions** tab.
-3. Click on **Auction**.
-4. Select the **Auction_InviteBidders** choice and invite bank by clicking on the **Add new element** button. Invite:
-    *  Bank1
-    *  Bank2
-    *  Bank3
-5. Choose **Submit**.
+3. In the row of the just started auction, select the **Invite Bidders** choice and invite the banks: 'Bank1, Bank2, Bank3'
+5. Choose **Okay**.
 
 #### Viewing the Auction Invite
 
@@ -317,30 +294,24 @@ Invited banks can start bidding to an auction. As discussed above, Banks cannot 
 
 To bid:
 
-Banks can start bidding only on the set auction start date. Move the system date to the Auction start date. This must be the start date as defined by the Issuer in the auction request contract.
-
 1. Log in as a **bank (Bank1, Bank2, or Bank3)**.
 2. Select the **Ongoing Auctions** tab.
-3. Click on the relevant auction.
-4. Select the **AuctionBidderParticipation_PlaceBid** choice and enter details:
+3. Next to the relevant auction, select the **Place Bid** choice and enter details:
     *  Price
     *  Quantity
-5. Choose **Submit**.
+5. Choose **Okay**.
 
 Repeat this process for other Banks or for multiple bids for the same Bank.
 
 #### Finalizing an Auction
 
-On the end date, the Auction Agent finalizes the auction and the automated delivery of bonds and cash occurs. The Auction Agent can only finalize an Auction at the auction end date. When finalizing an auction, the application will automatically calculate the winning bids based on the Dutch auction logic. A bid that is under the minimum price will be regarded as an invalid bid.
+On the end date, the Auction Agent finalizes the auction and the automated delivery of bonds and cash occurs.  When finalizing an auction, the application will automatically calculate the winning bids based on the Dutch auction logic. A bid that is under the minimum price will be regarded as an invalid bid.
 
 To finalize:
 
 1. Log is as the **Auction Agent*.
-2. Move the system date to the auction end date.
-3. Click on the **Ongoing Auctions** tab.
-4. Select the auction.
-5. Select the **Auction_Finalize** choice.
-6. Choose **Submit**.
+2. Click on the **Ongoing Auctions** tab.
+3. Next to the auction, select the **Finalize** choice.
 
 #### Committing Cash for Simultaneous Settlement of Cash and Bonds
 
@@ -350,9 +321,7 @@ To commit cash:
 
 1. Log in as a bidding **Bank**.
 2. Select the **Pending Settlements** tab.
-3. Select the auction.
-4. Select the **AuctionParticipantSettleRequest_Settle** choice.
-5. Choose **Submit**.
+4. Select the **Settle** choice for the relevant row.
 
 Simultaneous delivery of cash from the bidding Banks account to the Issuer cash account in exchange of bonds will occur.
 
@@ -360,16 +329,13 @@ Simultaneous delivery of cash from the bidding Banks account to the Issuer cash 
 
 #### Kicking off the Redemption Process
 
-The Issuer can start the redemption at maturity date.
-
 To start the redemption:
 
 1. Log in as the **Issuer**.
-2. Set the calendar date to the Redemption date.
-3. Select the **Issuer Actions** tab and click on the contract.
-4. Select the **IssuerRole_Redeem** choice.
-5. Enter the Fixed rate bond fact contract id. You can find the contract id by searching for fixedRateBondFact on the **Contracts** tab.
-6. Choose **Submit**.
+2. Select the **Issuer Actions** tab.
+3. Select the **Redeem** choice.
+4. Select the appropriate bond you would like to redeem.
+6. Choose **Okay**.
 
 A redemption request is now sent to the CSD for its approval.
 
@@ -381,9 +347,7 @@ To approve:
 
 1. Log in as the **CSD**.
 2. Select the **Redemption Requests** tab.
-3. Select the redemption request.
-4. Select **RedemptionRequest_Accept**.
-5. Choose **Submit**.
+3. Select **Accept**.
 
 ## Additional Exploration
 
