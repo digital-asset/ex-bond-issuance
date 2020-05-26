@@ -114,7 +114,7 @@ template RedemptionCalculationBotTrigger
     observer regulators
 
     controller provider can
-      RedemptionCalculationBotTrigger_Start: ContractId RedemptionFinalizeBotTrigger
+      RedemptionCalculationBotTrigger_Start: Optional (ContractId RedemptionFinalizeBotTrigger)
         with
           redemptionPayoutInfos: [ContractId RedemptionPayoutInfo]
           bondsAtIssuer: [ContractId AssetDeposit]
@@ -167,14 +167,17 @@ template RedemptionCalculationBotTrigger
                   pure $ Some (instruction, payoutInfo.investorCashAccount.provider)
                 None ->
                   pure None
-          let (instructions, cashProviders) = unzip $ catOptionals zippedInstructionsWithNoops
-          create RedemptionFinalizeBotTrigger with
-            issuer = issuer
-            bondAccountProvider = provider
-            cashAccountProviders = cashProviders
-            instructions = instructions
-            cashAssetId = fixedRateBond.cashAssetId
-            regulators = regulators
+          case unzip $ catOptionals zippedInstructionsWithNoops of
+            ([], []) ->
+              pure None
+            (instructions, cashProviders) ->
+              Some <$> create RedemptionFinalizeBotTrigger with
+                issuer = issuer
+                bondAccountProvider = provider
+                cashAccountProviders = cashProviders
+                instructions = instructions
+                cashAssetId = fixedRateBond.cashAssetId
+                regulators = regulators
 
 getDeliveredAssetDeposit : RedemptionPayoutInfo -> Optional (ContractId AssetDeposit)
 getDeliveredAssetDeposit payoutInfo = do
