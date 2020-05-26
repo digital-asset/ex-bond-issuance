@@ -33,12 +33,17 @@ headNote message = (fromSomeNote message) . head
 
 findAsset: (HasAccount a) => Party -> Party -> [Contract a] -> ContractId a
 findAsset provider owner assets =
-  headNote "Can't find any asset contract" $ filterContractIds (accountBelongsTo provider owner) assets
+  findAsset' [provider] owner assets
 
-accountBelongsTo: (HasAccount a) => Party -> Party -> a -> Bool
-accountBelongsTo provider owner a = do
+findAsset': (HasAccount a) => [Party] -> Party -> [Contract a] -> ContractId a
+findAsset' providers owner assets =
+  headNote "Can't find any asset contract" $
+    filterContractIds (accountBelongsToAnyOf providers owner) assets
+
+accountBelongsToAnyOf: (HasAccount a) => [Party] -> Party -> a -> Bool
+accountBelongsToAnyOf providers owner a = do
   let account = accountOf a
-  provider == account.provider && owner == account.owner
+  account.provider `elem` providers && owner == account.owner
 
 findAuctionLockedCashes: [Contract AuctionLockedCash] -> Party -> Text -> [ContractId AuctionLockedCash]
 findAuctionLockedCashes auctionLockedCashes auctionAgent auctionName =

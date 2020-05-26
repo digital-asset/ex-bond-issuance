@@ -7,7 +7,9 @@ daml 1.2
 module DA.RefApps.Bond.Redemption where
 
 import DA.List
+import DA.List.Total qualified as TotalList
 import DA.Optional
+import DA.Foldable (forA_)
 
 import DA.Finance.Types
 import DA.Finance.Rule.Trade.Dvp
@@ -112,63 +114,88 @@ template RedemptionCalculationBotTrigger
     observer regulators
 
     controller provider can
-      RedemptionCalculationBotTrigger_Start: ContractId RedemptionFinalizeBotTrigger
+      RedemptionCalculationBotTrigger_Start: Optional (ContractId RedemptionFinalizeBotTrigger)
         with
           redemptionPayoutInfos: [ContractId RedemptionPayoutInfo]
           bondsAtIssuer: [ContractId AssetDeposit]
         do
           fixedRateBond <- fetch fixedRateBondFactCid
-          let bondInstrumentId = fixedRateBond.instrumentId
+          let redeemedBondInstrumentId = fixedRateBond.instrumentId
 
           -- archive the bonds left at issuer
-          forA bondsAtIssuer \depositCid -> do
+          forA_ bondsAtIssuer \depositCid -> do
             deposit <- fetch depositCid
-            assertMsg ("Account owner of bondsAtIssuer should be " <> show issuer) $ deposit.account.owner == issuer
-            let factInstrumentId = deposit.asset.id
-            assertMsg ("Identifier of the asset [" <> show factInstrumentId <> "] should match the bond [" <> show bondInstrumentId) $
-              factInstrumentId == bondInstrumentId
+            assertMsg "BondsAtIssuer: all bonds should be owned by the issuer." $
+              deposit.account.owner == issuer
+            assertMsg ("BondsAtIssuer: IDs should be " <> show redeemedBondInstrumentId) $
+              deposit.asset.id == redeemedBondInstrumentId
             archive depositCid
 
           -- proceed with redemption of the sold bonds
-          zippedInstructions <- forA redemptionPayoutInfos \redemptionPayoutInfoCid -> do
-            payoutInfo <- fetch redemptionPayoutInfoCid
-            let bondAssetDepositCid = head $ head payoutInfo.settlementResult.deliveryDepositCids
-            asset <- fetch bondAssetDepositCid
-            assertMsg ("Bond owner [" <> (show asset.account.owner) <> "] and account owner [" <> (show payoutInfo.investor) <> "] should be the same") $
-              asset.account.owner == payoutInfo.investor
-            assertMsg ("Asset fact instrumentId [" <> show asset.asset.id <> "] should match " <> show bondInstrumentId) $
-              asset.asset.id == bondInstrumentId
-            assertMsg ("RedemptionPayoutInfo instrumentId [" <> show payoutInfo.bondInstrumentId <> "] should match " <> show bondInstrumentId) $
-              payoutInfo.bondInstrumentId == bondInstrumentId
-            arcReq <- create BondArchivalRequest with
-              provider = provider
-              issuer = issuer
-              owner = payoutInfo.investor
-              bondAssetDepositCid = bondAssetDepositCid
-              regulators = regulators
-            let payment = fixedRateBond.denomination * (1.0 + fixedRateBond.rate) * asset.asset.quantity
-                instruction = RedemptionInstruction with
-                    issuer = issuer
-                    provider = provider
-                    investor = payoutInfo.investor
-                    payment = payment
-                    bondAssetId = fixedRateBond.instrumentId
-                    currency = fixedRateBond.cashAssetId.label
-                    bondAssetDepositCid = bondAssetDepositCid
-                    redemptionPayoutInfoCid = redemptionPayoutInfoCid
-                    fixedRateBondFactCid = fixedRateBondFactCid
-                    bondArchivalRequestCid = arcReq
-            return (instruction, payoutInfo.investorCashAccount.provider)
-          let (instructions, cashProviders) = unzip zippedInstructions
-          finalizer <- create RedemptionFinalizeBotTrigger with
-            issuer = issuer
-            bondAccountProvider = provider
-            instructions = instructions
-            cashAccountProvider = head cashProviders
-            cashAssetId = fixedRateBond.cashAssetId
-            regulators = regulators
+          zippedInstructionsWithNoops
+            <- forA redemptionPayoutInfos \redemptionPayoutInfoCid -> do
+              payoutInfo <- fetch redemptionPayoutInfoCid
+              case getDeliveredAssetDeposit payoutInfo of
+                Some bondAssetDepositCid -> do
+                  asset <- fetch bondAssetDepositCid
 
-          return finalizer
+                  assertMsg (ownerErrorText asset.account.owner payoutInfo.investor) $
+                    asset.account.owner == payoutInfo.investor
+                  assertMsg (assetIdErrorText asset.asset.id redeemedBondInstrumentId) $
+                    asset.asset.id == redeemedBondInstrumentId
+                  assertMsg (instrumentIdErrorText payoutInfo.bondInstrumentId redeemedBondInstrumentId) $
+                    payoutInfo.bondInstrumentId == redeemedBondInstrumentId
+
+                  arcReq <- create BondArchivalRequest with
+                    provider = provider
+                    issuer = issuer
+                    owner = payoutInfo.investor
+                    bondAssetDepositCid = bondAssetDepositCid
+                    regulators = regulators
+                  let payment = fixedRateBond.denomination * (1.0 + fixedRateBond.rate) * asset.asset.quantity
+                      instruction = RedemptionInstruction with
+                          issuer = issuer
+                          provider = provider
+                          investor = payoutInfo.investor
+                          payment = payment
+                          bondAssetId = fixedRateBond.instrumentId
+                          currency = fixedRateBond.cashAssetId.label
+                          bondAssetDepositCid = bondAssetDepositCid
+                          redemptionPayoutInfoCid = redemptionPayoutInfoCid
+                          fixedRateBondFactCid = fixedRateBondFactCid
+                          bondArchivalRequestCid = arcReq
+                  pure $ Some (instruction, payoutInfo.investorCashAccount.provider)
+                None ->
+                  pure None
+          case unzip $ catOptionals zippedInstructionsWithNoops of
+            ([], []) ->
+              pure None
+            (instructions, cashProviders) ->
+              Some <$> create RedemptionFinalizeBotTrigger with
+                issuer = issuer
+                bondAccountProvider = provider
+                cashAccountProviders = cashProviders
+                instructions = instructions
+                cashAssetId = fixedRateBond.cashAssetId
+                regulators = regulators
+
+getDeliveredAssetDeposit : RedemptionPayoutInfo -> Optional (ContractId AssetDeposit)
+getDeliveredAssetDeposit payoutInfo = do
+  firstDeliveryObligation <-
+    TotalList.head payoutInfo.settlementResult.deliveryDepositCids
+  TotalList.head firstDeliveryObligation
+
+ownerErrorText : Party -> Party -> Text
+ownerErrorText owner investor =
+  "Bond owner [" <> show owner <> "] and account owner [" <> show investor <> "] should be the same"
+
+assetIdErrorText : Id -> Id -> Text
+assetIdErrorText identifier redeemedBondInstrumentId =
+  "Asset fact instrumentId [" <> show identifier <> "] should match " <> show redeemedBondInstrumentId
+
+instrumentIdErrorText : Id -> Id -> Text
+instrumentIdErrorText bondInstrumentId redeemedBondInstrumentId =
+  "RedemptionPayoutInfo instrumentId [" <> show bondInstrumentId <> "] should match " <> show redeemedBondInstrumentId
 
 data RedemptionInstruction = RedemptionInstruction
   with
@@ -191,7 +218,8 @@ processInstructions: [RedemptionInstruction] ->
                      [ContractId AssetDeposit] ->
                      Update [ContractId AssetDeposit]
 processInstructions instructions cashAssetDepositCids cashAssetFungibleCid cashAssetSettlementCid payments
-  | length instructions == 0 = do return payments
+  | null instructions =
+      pure payments
   | otherwise = do
       let instruction :: otherInstructions = instructions
       let firstCid = head cashAssetDepositCids
@@ -214,7 +242,7 @@ template RedemptionFinalizeBotTrigger
     issuer: Party
     bondAccountProvider: Party
     instructions: [RedemptionInstruction]
-    cashAccountProvider: Party
+    cashAccountProviders: [Party]
     cashAssetId: Id
     regulators: [Party]
   where

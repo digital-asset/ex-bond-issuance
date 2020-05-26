@@ -15,6 +15,7 @@ import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.ContractUtils
 import Daml.Trigger
 import Daml.Trigger.Assert
+import DA.Optional
 import DA.Assert
 import DA.List
 import DA.Next.Map qualified as Map
@@ -44,13 +45,13 @@ redemptionFinalizeRule party activeContracts _ _ () = do
 
   forA_ redemptionFinalizeTriggers $ \(triggerCid, trigger) -> do
     let assetSettlementCid =
-          findAsset
-            trigger.cashAccountProvider
+          findAsset'
+            trigger.cashAccountProviders
             trigger.issuer
             assetSettlements
         assetFungibleCid =
-          findAsset
-            trigger.cashAccountProvider
+          findAsset'
+            trigger.cashAccountProviders
             trigger.issuer
             assetFungibles
         assetDepositCids =
@@ -124,7 +125,8 @@ testNoFinalizeTrigger = scenario do
   let flattenedCommands = flattenCommands commands
   length flattenedCommands === 0
 
-redeem: Party -> Party -> MarketSetup.TestIssuance -> MarketSetup.SettleRequests -> MarketSetup.AssetsForRedemption -> ContractId AssetDeposit -> Scenario (ContractId RedemptionFinalizeBotTrigger)
+redeem: Party -> Party -> MarketSetup.TestIssuance -> MarketSetup.SettleRequests -> MarketSetup.AssetsForRedemption -> ContractId AssetDeposit
+            -> Scenario (ContractId RedemptionFinalizeBotTrigger)
 redeem csd issuer issuance settleRequests assetsForRedemption remainedBondDeposit = do
   (request, leftOverSettlementChain) <-
     submit issuer do
@@ -134,6 +136,9 @@ redeem csd issuer issuance settleRequests assetsForRedemption remainedBondDeposi
       return (redeemRequest, otherSettleReq.bondSettlementChainCid)
   submit csd do
     calc <- exercise request RedemptionRequest_Accept
-    exercise calc $ RedemptionCalculationBotTrigger_Start
-      [assetsForRedemption.bank1RedemptionPayoutInfoCid, assetsForRedemption.bank2RedemptionPayoutInfoCid, assetsForRedemption.bank3RedemptionPayoutInfoCid]
-      [remainedBondDeposit]
+    fromSomeNote "Redeem: start should have returned a Some value." <$>
+      exercise calc (RedemptionCalculationBotTrigger_Start
+        [assetsForRedemption.bank1RedemptionPayoutInfoCid,
+         assetsForRedemption.bank2RedemptionPayoutInfoCid,
+         assetsForRedemption.bank3RedemptionPayoutInfoCid]
+        [remainedBondDeposit])

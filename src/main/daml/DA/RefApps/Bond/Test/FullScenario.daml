@@ -687,7 +687,7 @@ redemption issuance assetsForRedemption remainedBondDeposit settleRequests = sce
     otherSettleReq <- fetch $ head otherParticipantReq.settleRequestCids
     return (redeemRequest, otherSettleReq.bondSettlementChainCid)
 
-  redemptionFinalizer <- submit csd do
+  Some redemptionFinalizer <- submit csd do
     calc <- exercise request RedemptionRequest_Accept
     exercise calc $ RedemptionCalculationBotTrigger_Start
       [assetsForRedemption.bank1RedemptionPayoutInfoCid, assetsForRedemption.bank2RedemptionPayoutInfoCid, assetsForRedemption.bank3RedemptionPayoutInfoCid]
