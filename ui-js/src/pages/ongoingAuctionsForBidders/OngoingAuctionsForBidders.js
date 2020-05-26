@@ -32,8 +32,8 @@ export default function Report() {
   const auctionLockedCashCid = "Locked cash"
   const doRevokeBid = function(c, params) {
     const payload = {
-      auctionBidCid: params[price],
-      auctionLockedCashCid: params[quantity]
+      auctionBidCid: params[auctionBidCid],
+      auctionLockedCashCid: params[auctionLockedCashCid]
     }
     ledger.exercise(BidderParticipation.AuctionBidderParticipantion_RevokeLockedBid, c.contractId, payload)
   }
