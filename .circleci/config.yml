@@ -199,3 +199,21 @@ workflows:
             - daml_test
             - mvn_test
           <<: *only-release-tags
+  weekly_test:
+    triggers:
+      - schedule:
+          cron: "5 1 * * 1"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - daml_test:
+          daml_sdk_version: "1.1.1"
+      - mvn_test:
+          daml_sdk_version: "1.1.1"
+          context: refapps
+      - blackduck_check:
+          daml_sdk_version: "1.1.1"
+          context: blackduck
+
