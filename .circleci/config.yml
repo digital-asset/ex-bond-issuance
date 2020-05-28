@@ -81,7 +81,10 @@ jobs:
             - "*.dar"
             - "lib"
             - "NOTICE"
-      - slack/notify-on-failure
+      - slack/notify:
+          fail_only: true
+          # only_for_branches: master
+          webhook: "https://hooks.slack.com/services/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"
 
   daml_test:
     parameters:
@@ -109,7 +112,10 @@ jobs:
           path: target/daml-test-reports
       - store_artifacts:
           path: target/daml-test-reports
-      - slack/notify-on-failure
+      - slack/notify:
+          fail_only: true
+          # only_for_branches: master
+          webhook: "https://hooks.slack.com/services/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"
 
   blackduck_check:
     parameters:
