@@ -24,7 +24,7 @@
         <daml-sdk.damlversion>1.1.1</daml-sdk.damlversion>
         <daml-plugin.version>0.1.4</daml-plugin.version>
     </properties>
-    <dependencies>
+    <dependencies
         <dependency>
             <groupId>com.daml</groupId>
             <artifactId>bindings-rxjava</artifactId>
