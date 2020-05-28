@@ -81,7 +81,7 @@ jobs:
             - "*.dar"
             - "lib"
             - "NOTICE"
-      - slack/notify:
+      - slack/status:
           fail_only: true
           # only_for_branches: master
           webhook: "https://hooks.slack.com/services/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"
@@ -112,7 +112,7 @@ jobs:
           path: target/daml-test-reports
       - store_artifacts:
           path: target/daml-test-reports
-      - slack/notify:
+      - slack/status:
           fail_only: true
           # only_for_branches: master
           webhook: "https://hooks.slack.com/services/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"
