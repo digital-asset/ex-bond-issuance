@@ -38,7 +38,13 @@ commands:
       - run:
           command: |
             ./scripts/install-daml.sh << parameters.version >>
-
+  slack_notification:
+    description: "Notify about failure on Slack"
+    steps:
+      - slack/status:
+          fail_only: true
+          # only_for_branches: master
+          webhook: '${SLACK_WEBHOOK}'
 jobs:
   mvn_test:
     parameters:
@@ -81,10 +87,7 @@ jobs:
             - "*.dar"
             - "lib"
             - "NOTICE"
-      - slack/status:
-          fail_only: true
-          # only_for_branches: master
-          webhook: "https://hooks.slack.com/services/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"
+      - slack_notification
 
   daml_test:
     parameters:
@@ -112,10 +115,7 @@ jobs:
           path: target/daml-test-reports
       - store_artifacts:
           path: target/daml-test-reports
-      - slack/status:
-          fail_only: true
-          # only_for_branches: master
-          webhook: "https://hooks.slack.com/services/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"
+      - slack_notification
 
   blackduck_check:
     parameters:
@@ -185,6 +185,7 @@ workflows:
     jobs:
       - daml_test:
           daml_sdk_version: "1.1.1"
+          context: refapps
       - mvn_test:
           daml_sdk_version: "1.1.1"
           context: refapps
@@ -196,6 +197,7 @@ workflows:
       - daml_test:
           <<: *only-release-tags
           daml_sdk_version: "1.1.1"
+          context: refapps
       - mvn_test:
           <<: *only-release-tags
           daml_sdk_version: "1.1.1"
@@ -221,6 +223,7 @@ workflows:
     jobs:
       - daml_test:
           daml_sdk_version: "1.1.1"
+          context: refapps
       - mvn_test:
           daml_sdk_version: "1.1.1"
           context: refapps
