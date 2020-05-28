@@ -81,8 +81,7 @@ jobs:
             - "*.dar"
             - "lib"
             - "NOTICE"
-      - slack/notify-on-failure:
-          channel: "team-cx-engineering"
+      - slack/notify-on-failure
 
   daml_test:
     parameters:
@@ -110,8 +109,7 @@ jobs:
           path: target/daml-test-reports
       - store_artifacts:
           path: target/daml-test-reports
-      - slack/notify-on-failure:
-          channel: "team-cx-engineering"
+      - slack/notify-on-failure
 
   blackduck_check:
     parameters:
