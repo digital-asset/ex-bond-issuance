@@ -5,6 +5,9 @@
 
 version: 2.1
 
+orbs:
+  slack: circleci/slack@3.4.2
+
 executors:
   daml-executor:
     docker:
@@ -35,7 +38,13 @@ commands:
       - run:
           command: |
             ./scripts/install-daml.sh << parameters.version >>
-
+  slack_notification:
+    description: "Notify about failure on Slack"
+    steps:
+      - slack/status:
+          fail_only: true
+          only_for_branches: master
+          webhook: '${SLACK_WEBHOOK}'
 jobs:
   mvn_test:
     parameters:
@@ -78,6 +87,7 @@ jobs:
             - "*.dar"
             - "lib"
             - "NOTICE"
+      - slack_notification
 
   daml_test:
     parameters:
@@ -105,6 +115,7 @@ jobs:
           path: target/daml-test-reports
       - store_artifacts:
           path: target/daml-test-reports
+      - slack_notification
 
   blackduck_check:
     parameters:
@@ -174,6 +185,7 @@ workflows:
     jobs:
       - daml_test:
           daml_sdk_version: "1.1.1"
+          context: refapps
       - mvn_test:
           daml_sdk_version: "1.1.1"
           context: refapps
@@ -185,6 +197,7 @@ workflows:
       - daml_test:
           <<: *only-release-tags
           daml_sdk_version: "1.1.1"
+          context: refapps
       - mvn_test:
           <<: *only-release-tags
           daml_sdk_version: "1.1.1"
@@ -199,3 +212,18 @@ workflows:
             - daml_test
             - mvn_test
           <<: *only-release-tags
+  scheduled_test:
+    triggers:
+      - schedule:
+          cron: "0 1 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - daml_test:
+          daml_sdk_version: "1.1.1"
+          context: refapps
+      - mvn_test:
+          daml_sdk_version: "1.1.1"
+          context: refapps
