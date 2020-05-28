@@ -212,7 +212,7 @@ workflows:
             - daml_test
             - mvn_test
           <<: *only-release-tags
-  weekly_test:
+  scheduled_test:
     triggers:
       - schedule:
           cron: "0 1 * * *"
