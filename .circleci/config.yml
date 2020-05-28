@@ -5,6 +5,9 @@
 
 version: 2.1
 
+orbs:
+  slack: circleci/slack@3.4.2
+
 executors:
   daml-executor:
     docker:
@@ -78,6 +81,8 @@ jobs:
             - "*.dar"
             - "lib"
             - "NOTICE"
+      - slack/notify-on-failure:
+          channel: "team-cx-engineering"
 
   daml_test:
     parameters:
@@ -105,6 +110,8 @@ jobs:
           path: target/daml-test-reports
       - store_artifacts:
           path: target/daml-test-reports
+      - slack/notify-on-failure:
+          channel: "team-cx-engineering"
 
   blackduck_check:
     parameters:
@@ -202,7 +209,7 @@ workflows:
   weekly_test:
     triggers:
       - schedule:
-          cron: "5 1 * * 1"
+          cron: "0 1 * * *"
           filters:
             branches:
               only:
@@ -213,7 +220,3 @@ workflows:
       - mvn_test:
           daml_sdk_version: "1.1.1"
           context: refapps
-      - blackduck_check:
-          daml_sdk_version: "1.1.1"
-          context: blackduck
-
