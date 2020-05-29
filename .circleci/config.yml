@@ -160,7 +160,12 @@ jobs:
           name: Run Blackduck Detect
           command: |
             export PATH=${HOME}/node-v12.16.3-linux-x64/bin:${PATH}
-            bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) ci-build digitalasset_ex-inventory-management master --logging.level.com.synopsys.integration=DEBUG --detect.notices.report=true --detect.report.timeout=480 --detect.excluded.detector.types=NPM,YARN
+            bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) \
+            ci-build digitalasset_ex-bond-issuance master \
+            --logging.level.com.synopsys.integration=DEBUG \
+            --detect.notices.report=true \
+            --detect.report.timeout=480 \
+            --detect.excluded.detector.types=NPM,YARN
       - run:
           command: cp digitalasset_ex_inventory_management_master_Black_Duck_Notices_Report.txt NOTICE
       - persist_to_workspace:
