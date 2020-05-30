@@ -156,7 +156,7 @@ jobs:
             export PATH=${HOME}/.yarn/bin:${PATH}
             make buildui
             yarn install
-            find . -type f \( ! -name node_modules \) -name 'package.json' | sed -E 's|/[^/]+$||' |sort -u | grep -v node_modules | xargs -L 1 bash -c 'cd "$0" && yarn install'
+            find . -type f \( ! -path '*node_modules*' \) -name package.json -exec dirname '{}' \; | while read dir ; do yarn install --cwd "$dir" ; done
       - run:
           name: Run Blackduck Detect
           command: |
