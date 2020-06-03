@@ -43,7 +43,7 @@ There are two options:
     ```
 2. Open the new React UI with a browser at http://localhost:3000.
 
-We also keep the deprecated Navigator available at at http://localhost:7500.
+We also keep the deprecated Navigator available at http://localhost:7500.
 
 **Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 5 GB).
 
@@ -54,7 +54,6 @@ This option starts the application with wall clock time. Note that Navigator's t
     ```shell
     make start
     ```
-    The navigator will automatically open in new browser tab at http://localhost:7500.
 2. Start the automation logic by starting bots. Type:
     ```shell
     make automation
@@ -205,7 +204,7 @@ To request a new bond issuance:
     *   Issue size: quantity of new bonds to be issued: e.g.:1000000
     *   Issue date: date for the issue date, e.g., today
     *   Currency: USD
-    *   Denomination: bond’s value at maturity and the initial price for the bond set for the auction. e.g.: 100
+    *   Denomination: bond’s value at maturity, and the initial price for the bond set for the auction. e.g.: 100
     *   Maturity date: Note that redemption of a bond is usually only possible on the defined maturity date, but the application does not model this. At redemption the face value of the bond plus the coupon rate is paid to the buyer.
     *   Coupon rate: rate expressed in numeric value for the duration of the bond: 0.01 = 1%
 6. Choose **Okay**.
@@ -220,7 +219,7 @@ To approve:
 2. Choose the **Issuance and ISIN Request** tab.
 3. Select the contract in the table view.
 4. View the parameters of the new issuance request.
-5. Add an ISIN (arbirarily, e.g.: Bond007). Choose **Accept**.
+5. Add an ISIN (arbitrarily, e.g.: Bond007). Choose **Accept**.
 
 #### Viewing New Bond Issue
 
@@ -247,10 +246,10 @@ To create an auction request:
 2. Select the **Issuer Actions** tab.
 3. Select the **Commission Auction** choice.
 4. Enter parameters of New Bond Auction:
-    *  Bond asset deposit contract ID (choose the name of the bond just issued)
+    *  Bond asset deposit: choose the name of the [bond just issued](#approving-new-bond-issuance-request), e.g.: Bond007
     *  Start date
     *  End date
-    *  Minimum price: e.g: 96 (must be smaller the the bond's denomination)
+    *  Minimum price: e.g: 96 (must be smaller the bond's denomination)
     *  Size: e.g.: 500000 (The size of the auction cannot be larger than the balance of available bonds).
 6. Choose **Okay**.
 
@@ -305,7 +304,7 @@ Repeat this process for other Banks or for multiple bids for the same Bank.
 
 #### Finalizing an Auction
 
-On the end date, the Auction Agent finalizes the auction and the automated delivery of bonds and cash occurs.  When finalizing an auction, the application will automatically calculate the winning bids based on the Dutch auction logic. A bid that is under the minimum price will be regarded as an invalid bid.
+On the end date, the Auction Agent finalizes the auction and the automated delivery of bonds and cash occurs. When finalizing an auction, the application will automatically calculate the winning bids based on the Dutch auction logic. A bid that is under the minimum price will be regarded as an invalid bid.
 
 To finalize:
 
