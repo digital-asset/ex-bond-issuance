@@ -12,7 +12,6 @@ WORKDIR /home/daml
 
 COPY ./daml.js/ daml.js/
 COPY ./ui-js/ ui-js/
-COPY package.json package.json
 
 USER root
 
