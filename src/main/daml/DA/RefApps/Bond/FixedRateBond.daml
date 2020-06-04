@@ -29,4 +29,4 @@ template FixedRateBondFact
   where
     signatory provider
     observer observers
-    ensure denomination > 0.0 && rate > 0.0 && length couponDates >= 0 && paymentLag >= 0
+    ensure denomination > 0.0 && rate > 0.0 && paymentLag >= 0
