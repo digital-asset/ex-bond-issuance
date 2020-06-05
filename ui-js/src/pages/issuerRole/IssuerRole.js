@@ -2,7 +2,7 @@
  * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-import React from "react";
+import React, {useMemo} from "react";
 import Contracts from "../../components/Contracts/Contracts";
 import { field } from "../../components/Contracts/Contracts";
 import { useStreamQuery, useLedger } from "@daml/react";
@@ -63,6 +63,10 @@ export default function Report() {
     ledger.exercise(IssuerRole.IssuerRole_Redeem, contract.contractId, payload);
   };
 
+  const filteredAssets = useMemo(
+      () => filterByFixedRateBondFact(assetDeposits.contracts, fixedRateBondFacts.contracts),
+      [assetDeposits, fixedRateBondFacts]
+  );
   return (<Contracts contracts={roles.contracts}
     columns={[["Contract Id", "contractId"],
 
@@ -80,7 +84,7 @@ export default function Report() {
          doIssue
       ],
       ["Commission auction",
-        [field(bondAssetDepositCid, "menu", assetDeposits.contracts.map(c => c.contractId), assetDeposits.contracts.map(c => c.payload.asset.id.label)),
+        [field(bondAssetDepositCid, "menu", filteredAssets.map(c => c.contractId), filteredAssets.map(c => c.payload.asset.id.label)),
          field(startDate, "date"),
          field(endDate, "date"),
          field(minPrice, "number"),
@@ -93,4 +97,18 @@ export default function Report() {
       ]
     ]}
   />);
+}
+
+function hasSameIsin(assetDeposit, fixedRateBondFact) {
+  return fixedRateBondFact.payload.isin === assetDeposit.payload.asset.id.label;
+}
+
+function isinExistsIn(assetDeposit, fixedRateBondFacts) {
+  return fixedRateBondFacts.some(fixedRateBondFact => hasSameIsin(assetDeposit, fixedRateBondFact));
+}
+
+function filterByFixedRateBondFact(assetDeposits, fixedRateBondFacts) {
+  console.log(`Asset deposits: ${JSON.stringify(assetDeposits)}`);
+  console.log(`Fixed rate bond facts: ${JSON.stringify(fixedRateBondFacts)}`);
+  return assetDeposits.filter(x => isinExistsIn(x, fixedRateBondFacts));
 }
