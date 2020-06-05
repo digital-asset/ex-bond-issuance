@@ -84,7 +84,7 @@ export default function Report() {
          doIssue
       ],
       ["Commission auction",
-        [field(bondAssetDepositCid, "menu", filteredAssets.map(c => c.contractId), filteredAssets.map(c => c.payload.asset.id.label)),
+        [field(bondAssetDepositCid, "menu", filteredAssets.map(c => c.contractId), filteredAssets.map(displayAssetDeposit)),
          field(startDate, "date"),
          field(endDate, "date"),
          field(minPrice, "number"),
@@ -111,4 +111,8 @@ function filterByFixedRateBondFact(assetDeposits, fixedRateBondFacts) {
   console.log(`Asset deposits: ${JSON.stringify(assetDeposits)}`);
   console.log(`Fixed rate bond facts: ${JSON.stringify(fixedRateBondFacts)}`);
   return assetDeposits.filter(x => isinExistsIn(x, fixedRateBondFacts));
+}
+
+function displayAssetDeposit(assetDeposit) {
+  return `${assetDeposit.payload.asset.id.label} (Quantity: ${assetDeposit.payload.asset.quantity})`;
 }
