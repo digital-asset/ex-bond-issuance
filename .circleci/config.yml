@@ -198,6 +198,10 @@ workflows:
       - blackduck_check:
           daml_sdk_version: "1.1.1"
           context: blackduck
+          filters:
+            branches:
+              only:
+                - master
   build_and_release:
     jobs:
       - daml_test:
