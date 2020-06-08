@@ -156,6 +156,7 @@ jobs:
             export PATH=${HOME}/.yarn/bin:${PATH}
             make buildui
             yarn install
+            # recurse all directories with a package.json and run yarn install on them to resolve dependencies
             find . -type f \( ! -path '*node_modules*' \) -name package.json | while read hit ; do yarn install --cwd $(dirname "$hit") ; done
       - run:
           name: Run Blackduck Detect
@@ -165,8 +166,7 @@ jobs:
             ci-build digitalasset_ex-bond-issuance master \
             --logging.level.com.synopsys.integration=DEBUG \
             --detect.notices.report=true \
-            --detect.report.timeout=480 \
-            --detect.excluded.detector.types=NPM,YARN
+            --detect.report.timeout=1800
       - run:
           command: cp digitalasset_ex_bond_issuance_master_Black_Duck_Notices_Report.txt NOTICE
       - persist_to_workspace:
