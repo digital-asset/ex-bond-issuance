@@ -1076,10 +1076,10 @@
 "@daml.js/bond-issuance-2.0.0@file:../daml.js/bond-issuance-2.0.0":
   version "1.1.1"
   dependencies:
-    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.1.1-ba8acab7-15d6-4579-b2b4-c3805d9a4bf7-1589894869853/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
-    "@daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.1.1-ba8acab7-15d6-4579-b2b4-c3805d9a4bf7-1589894869853/node_modules/@daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.1.1-ba8acab7-15d6-4579-b2b4-c3805d9a4bf7-1589894869853/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
-    "@daml.js/finlib-1.0.0" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.1.1-ba8acab7-15d6-4579-b2b4-c3805d9a4bf7-1589894869853/node_modules/@daml.js/finlib-1.0.0"
+    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
+    "@daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8" "file:../daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/finlib-1.0.0" "file:../daml.js/finlib-1.0.0"
     "@daml/ledger" "1.1.1"
     "@daml/types" "1.1.1"
     "@mojotech/json-type-validation" "^3.1.0"
@@ -1101,9 +1101,9 @@
 "@daml.js/finlib-1.0.0@file:../daml.js/finlib-1.0.0":
   version "1.1.1"
   dependencies:
-    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.1.1-49f18023-4d63-4d62-9321-73e322d6db32-1589894868037/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
-    "@daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.1.1-49f18023-4d63-4d62-9321-73e322d6db32-1589894868037/node_modules/@daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.1.1-49f18023-4d63-4d62-9321-73e322d6db32-1589894868037/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
+    "@daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8" "file:../daml.js/c08d2403f35a02789f9fb516d21d1222a3c1f9b4a9e637827c4fb04c8de0bda8"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
     "@daml/ledger" "1.1.1"
     "@daml/types" "1.1.1"
     "@mojotech/json-type-validation" "^3.1.0"
@@ -10987,9 +10987,9 @@ websocket-driver@>=0.5.1:
     websocket-extensions ">=0.1.1"
 
 websocket-extensions@>=0.1.1:
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/websocket-extensions/-/websocket-extensions-0.1.3.tgz#5d2ff22977003ec687a4b87073dfbbac146ccf29"
-  integrity sha512-nqHUnMXmBzT0w570r2JpJxfiSD1IzoI+HGVdd3aZ0yNi3ngvQ4jv1dtHt5VGxfI2yj5yqImPhOK4vmIh2xMbGg==
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/websocket-extensions/-/websocket-extensions-0.1.4.tgz#7f8473bc839dfd87608adb95d7eb075211578a42"
+  integrity sha512-OqedPIGOfsDlo31UNwYbCFMSaO9m9G/0faIHj5/dZFDMFqPTcx6UwqyOy3COEaEOg/9VsGIpdqn62W5KhoKSpg==
 
 whatwg-encoding@^1.0.1, whatwg-encoding@^1.0.3, whatwg-encoding@^1.0.5:
   version "1.0.5"
