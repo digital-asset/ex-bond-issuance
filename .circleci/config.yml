@@ -166,7 +166,7 @@ jobs:
             ci-build digitalasset_ex-bond-issuance master \
             --logging.level.com.synopsys.integration=DEBUG \
             --detect.notices.report=true \
-            --detect.report.timeout=600
+            --detect.report.timeout=900
       - run:
           command: cp digitalasset_ex_bond_issuance_master_Black_Duck_Notices_Report.txt NOTICE
       - persist_to_workspace:
