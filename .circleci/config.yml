@@ -195,9 +195,15 @@ workflows:
       - mvn_test:
           daml_sdk_version: "1.1.1"
           context: refapps
-      - blackduck_check:
+  long_blackduck_only_on_master:
+    jobs:
+       - blackduck_check:
           daml_sdk_version: "1.1.1"
           context: blackduck
+          filters:
+            branches:
+              only:
+                - master
   build_and_release:
     jobs:
       - daml_test:
