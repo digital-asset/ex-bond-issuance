@@ -190,15 +190,15 @@ workflows:
   build_and_test:
     jobs:
       - daml_test:
-          daml_sdk_version: "1.1.1"
+          daml_sdk_version: "1.2.0"
           context: refapps
       - mvn_test:
-          daml_sdk_version: "1.1.1"
+          daml_sdk_version: "1.2.0"
           context: refapps
   long_blackduck_only_on_master:
     jobs:
        - blackduck_check:
-          daml_sdk_version: "1.1.1"
+          daml_sdk_version: "1.2.0"
           context: blackduck
           filters:
             branches:
@@ -208,15 +208,15 @@ workflows:
     jobs:
       - daml_test:
           <<: *only-release-tags
-          daml_sdk_version: "1.1.1"
+          daml_sdk_version: "1.2.0"
           context: refapps
       - mvn_test:
           <<: *only-release-tags
-          daml_sdk_version: "1.1.1"
+          daml_sdk_version: "1.2.0"
           context: refapps
       - blackduck_check:
           <<: *only-release-tags
-          daml_sdk_version: "1.1.1"
+          daml_sdk_version: "1.2.0"
           context: blackduck
       - github_release:
           context: github-refapp-repo-context
@@ -234,8 +234,8 @@ workflows:
                 - master
     jobs:
       - daml_test:
-          daml_sdk_version: "1.1.1"
+          daml_sdk_version: "1.2.0"
           context: refapps
       - mvn_test:
-          daml_sdk_version: "1.1.1"
+          daml_sdk_version: "1.2.0"
           context: refapps
