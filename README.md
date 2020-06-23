@@ -101,41 +101,41 @@ Participants in the following roles are involved in the Bond Issuance workflow.
   <tr>
    <td>Issuer
    </td>
-   <td>Requests creation of a new bond
+   <td>Requests creation of a new bond.
 <p>
-Defines parameters of a bond “auction”
+Defines parameters of a bond “auction.”
 <p>
-Starts redemption at bond maturity
+Starts redemption at bond maturity.
    </td>
   </tr>
   <tr>
    <td>CSD
    </td>
-   <td>Approves and issues a new bond
+   <td>Approves and issues a new bond.
 <p>
-Approves redemption of the bond at maturity
+Approves redemption of the bond at maturity.
    </td>
   </tr>
   <tr>
    <td>Auction Agent
    </td>
-   <td>Commissions the auction
+   <td>Commissions the auction.
 <p>
-Invites bidding banks
+Invites bidding banks.
 <p>
-Finalizes the auction
+Finalizes the auction.
    </td>
   </tr>
   <tr>
    <td>Bank
    </td>
-   <td>Bids on bond auction
+   <td>Bids on bond auction.
    </td>
   </tr>
   <tr>
    <td>Central Bank
    </td>
-   <td>Backer of money on the ledger
+   <td>Backer of money on the ledger.
    </td>
   </tr>
   <tr>
@@ -148,7 +148,7 @@ Finalizes the auction
   <tr>
    <td>Operator
    </td>
-   <td>System operator
+   <td>System operator.
    </td>
   </tr>
 </table>
