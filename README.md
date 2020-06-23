@@ -2,7 +2,7 @@
 
 ## Overview
 
-Issuing a new bond is currently a fragmented process. A Distributed Ledger Technology (DLT) approach to bond issuance creates opportunity for Issuers, Auction Agents, CSDs, and Banks to reduce costs and risks associated with the process, while at the same time providing additional benefits.
+Issuing a new bond is currently a fragmented process. A Distributed Ledger Technology (DLT) approach to bond issuance creates opportunity for Issuers, Auction Agents, CSDs (Central Securities Depositories), and Banks to reduce costs and risks associated with the process, while at the same time providing additional benefits.
 
 ## Getting Started
 
