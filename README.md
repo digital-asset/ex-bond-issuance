@@ -103,9 +103,9 @@ Participants in the following roles are involved in the Bond Issuance workflow.
    </td>
    <td>Requests creation of a new bond.
 <p>
-Defines parameters of a bond “auction.”
+Defines parameters of a bond auction.
 <p>
-Starts redemption at bond maturity.
+Starts redemption of bond at maturity.
    </td>
   </tr>
   <tr>
@@ -113,13 +113,13 @@ Starts redemption at bond maturity.
    </td>
    <td>Approves and issues a new bond.
 <p>
-Approves redemption of the bond at maturity.
+Approves redemption of bonds at maturity.
    </td>
   </tr>
   <tr>
    <td>Auction Agent
    </td>
-   <td>Commissions the auction.
+   <td>Commissions the bond auction.
 <p>
 Invites bidding banks.
 <p>
@@ -129,7 +129,7 @@ Finalizes the auction.
   <tr>
    <td>Bank
    </td>
-   <td>Bids on bond auction.
+   <td>Bids on bonds in the auction.
    </td>
   </tr>
   <tr>
