@@ -153,7 +153,7 @@ Finalizes the auction.
   </tr>
 </table>
 
-There are three parties set up with the Bank role, other roles have a single corresponding party configured. Setting up a given role with different parties (e.g. having two parties with the AuctionaAgent role) would require changing the DAML models.
+There are three parties set up with the Bank role, other roles have a single corresponding party configured. Setting up a given role with different parties (e.g. having two parties with the Auction Agent role) would require changing the DAML models.
 
 The Bond Issuance application includes these steps:
 
