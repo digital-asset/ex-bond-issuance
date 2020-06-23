@@ -141,7 +141,8 @@ Finalizes the auction
   <tr>
    <td>Regulator
    </td>
-   <td>Plays no part in the functional workflow. Role was added to indicate that there is a role for regulators.
+   <td>Has no functional obligation in the demo.
+   <p> Acts as a passive observer of the proceess.
    </td>
   </tr>
   <tr>
