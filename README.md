@@ -165,7 +165,7 @@ Invited banks can bid in the auction. The banks cannot see the minimum price for
 
     All investors are guaranteed to be treated equally and according to the auction rules.
 
-   **Note:** The settlement is guaranteed to be successful if Investors have a valid bid at the close of the auction as the Bond is already locked.
+   **Note:** The settlement is guaranteed to be successful if Investors have a valid bid at the close of the auction, as the Bond is already locked.
 
 5. **Redemption:** The Issuer can start the redemption of a bond, where all bonds are redeemed, and the face value of the bond plus interest is paid to owners. The CSD must approve the redemption. Communication to all relevant market participants occurs in real time.
 
