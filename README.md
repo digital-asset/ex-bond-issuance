@@ -160,8 +160,8 @@ The Bond Issuance application includes these steps:
 1. **Market Setup:** The application starts with an automated market setup process. Participants and their roles are created, relationships are set up, and Participants also have their cash account set up in the Central Bank, with an initial balance.
 2. **Bond Issuance:** The entire issuance process is modeled in DAML, with transparency and accuracy. The Bond Issuer requests the issuance, and the CSD approves the request and issues the bond. The ledger keeps an immutable, auditable history of the bond issuance.
 3. **Create a Bond Auction:** The entire auction logic is modeled in DAML, enforcing the actions of the Auction Agent and market participants. The process starts with the Issuer defining the key parameters of the bond auction, including the start and end date of the auction, and the minimum price for the bond. The Issuer submits the auction request to its Auction Agent. The Auction Agent reviews the auction parameters and can commission the auction.
-4. **Execute a Bond Auction:** The application uses the example of the Dutch auction to calculate winning bids and quantities.
-Invited banks can start bidding on the auction. The banks cannot see the minimum price for the auction, only the denomination and total quantity of available bonds. Banks can place multiple bids for an auction to ensure that they have different bids at different prices.
+4. **Execute a Bond Auction:** The application uses a Dutch auction to calculate winning bids and quantities.
+Invited banks can bid in the auction. The banks cannot see the minimum price for the auction, only the denomination and total quantity of available bonds. Banks can place multiple bids for in the auction so that they have different bids at different prices.
 
     All investors are guaranteed to be treated equally and according to the auction rules.
 
