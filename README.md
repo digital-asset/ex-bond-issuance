@@ -173,7 +173,7 @@ Invited banks can bid in the auction. The banks cannot see the minimum price for
 
 ### Choosing and Changing Roles
 
-When you launch Bond Issuance application, you will see the login screen where you can choose your party with the desired role.
+When you launch the Bond Issuance application, you will see the login screen where you can choose your party with the desired role.
 
 To log in:
 
@@ -186,7 +186,7 @@ To switch users:
 
 ### Market Setup
 
-The participants listed above in Roles and Responsibilities are added automatically at market setup along with other required reference data.
+The participants listed above in Roles and Responsibilities are added automatically at market setup along with required reference data.
 
 ### Creating a New Bond Issuance
 
