@@ -290,7 +290,7 @@ To view the invitation as a Bank:
 
 #### Bidding on an Auction
 
-Invited banks can start bidding to an auction. As discussed above, Banks cannot see the minimum price for the auction, only the denomination and total quantity of available bonds. They can place multiple bids for an auction to ensure that they have different bids at different prices.
+Invited banks can start bidding on an auction. As discussed above, Banks cannot see the minimum price for the auction, only the denomination and total quantity of available bonds. They can place multiple bids for an auction to ensure that they have different bids at different prices.
 
 To bid:
 
