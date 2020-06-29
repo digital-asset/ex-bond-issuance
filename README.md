@@ -212,7 +212,7 @@ To request a new bond issuance:
 
 #### Approving New Bond Issuance Request
 
-Once the Issuer submitted its new bond issuance request, the CSD receives a notification of the request. The CSD needs to approve the bond issuance request to issue the bonds and assign the ISIN.
+Once the Issuer submitted a new bond issuance request, the CSD receives a notification of this request. The CSD needs to approve the bond issuance request to issue the bonds and assign the ISIN.
 
 To approve:
 
