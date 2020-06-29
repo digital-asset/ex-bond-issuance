@@ -200,7 +200,7 @@ To request a new bond issuance:
 
 1. Log in as **Issuer**.
 2. Choose the **Issuer Actions** tab.
-3. Select the **Issuer Bond** choice on the Issuer role contract.
+3. Select the **Issue Bond** choice on the Issuer role contract.
 4. Fill out the new issuance parameters:
     *   Issue size: quantity of new bonds to be issued: e.g.:1000000
     *   Issue date: date for the issue date, e.g., today
