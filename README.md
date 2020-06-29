@@ -262,7 +262,7 @@ To commission the auction:
 
 1. Log in as the **Auction Agent**.
 2. Select the **Auction Requests** tab.
-3. Next to the new auction commission request enter an auction name (e.g.: Auction001) and click on the **Accept** choice.
+3. Next to the **Accept** button, enter an auction name (e.g.: Auction001) and click the button.
 
 Once the auction had been approved, the auction disappears from the **Auction Request** tab and appears in the **Ongoing Auctions** tab.
 
