@@ -2,7 +2,7 @@
 
 ## Overview
 
-Issuing a new bond is currently a fragmented process. A Distributed Ledger Technology (DLT) approach to bond issuance creates opportunity for Issuers, Auction Agents, CSDs, and Banks to reduce costs and risks associated with the process, while at the same time providing additional benefits.
+Issuing a new bond is currently a fragmented process. A Distributed Ledger Technology (DLT) approach to bond issuance creates opportunity for Issuers, Auction Agents, CSDs (Central Securities Depositories), and Banks to reduce costs and risks associated with the process, while at the same time providing additional benefits.
 
 ## Getting Started
 
@@ -101,70 +101,71 @@ Participants in the following roles are involved in the Bond Issuance workflow.
   <tr>
    <td>Issuer
    </td>
-   <td>Requests creation of a new bond
+   <td>Requests creation of a new bond.
 <p>
-Defines parameters of a bond “auction”
+Defines parameters of a bond auction.
 <p>
-Starts redemption at bond maturity
+Starts redemption of bond at maturity.
    </td>
   </tr>
   <tr>
    <td>CSD
    </td>
-   <td>Approves and issues a new bond
+   <td>Approves and issues a new bond.
 <p>
-Approves redemption of the bond at maturity
+Approves redemption of bonds at maturity.
    </td>
   </tr>
   <tr>
    <td>Auction Agent
    </td>
-   <td>Commissions the auction
+   <td>Commissions the bond auction.
 <p>
-Invites bidding banks
+Invites bidding banks.
 <p>
-Finalizes the auction
+Finalizes the auction.
    </td>
   </tr>
   <tr>
    <td>Bank
    </td>
-   <td>Bids on bond auction
+   <td>Bids on bonds in the auction.
    </td>
   </tr>
   <tr>
    <td>Central Bank
    </td>
-   <td>Backer of money on the ledger
+   <td>Backer of money on the ledger.
    </td>
   </tr>
   <tr>
    <td>Regulator
    </td>
-   <td>Plays no part in the functional workflow. Role was added to indicate that there is a role for regulators.
+   <td>Has no functional obligation in the demo.
+   <p> Acts as a passive observer of the proceess.
    </td>
   </tr>
   <tr>
    <td>Operator
    </td>
-   <td>System operator
+   <td>System operator.
    </td>
   </tr>
 </table>
 
-There are three parties set up with the Bank role, other roles have a single corresponding party configured. Setting up a given role with different parties (e.g. having two parties with the AuctionaAgent role) would require changing the DAML models.
+There are three parties set up with the Bank role, other roles have a single corresponding party configured. Setting up a given role with different parties (e.g. having two parties with the Auction Agent role) would require changing the DAML models.
 
 The Bond Issuance application includes these steps:
 
 1. **Market Setup:** The application starts with an automated market setup process. Participants and their roles are created, relationships are set up, and Participants also have their cash account set up in the Central Bank, with an initial balance.
 2. **Bond Issuance:** The entire issuance process is modeled in DAML, with transparency and accuracy. The Bond Issuer requests the issuance, and the CSD approves the request and issues the bond. The ledger keeps an immutable, auditable history of the bond issuance.
 3. **Create a Bond Auction:** The entire auction logic is modeled in DAML, enforcing the actions of the Auction Agent and market participants. The process starts with the Issuer defining the key parameters of the bond auction, including the start and end date of the auction, and the minimum price for the bond. The Issuer submits the auction request to its Auction Agent. The Auction Agent reviews the auction parameters and can commission the auction.
-4. **Execute a Bond Auction:** The application uses the example of the Dutch auction to calculate winning bids and quantities.
-Invited banks can start bidding on the auction. The banks cannot see the minimum price for the auction, only the denomination and total quantity of available bonds. Banks can place multiple bids for an auction to ensure that they have different bids at different prices.
+4. **Execute a Bond Auction:** The application uses a Dutch auction to calculate winning bids and quantities.
+Invited banks can bid in the auction. The banks cannot see the minimum price for the auction, only the denomination and total quantity of available bonds. Banks can place multiple bids in the auction so that they have different bids at different prices.
 
     All investors are guaranteed to be treated equally and according to the auction rules.
 
-   **Note:** The settlement is guaranteed to be successful if Investors have a valid bid at the close of the auction as the Bond is already locked.
+   **Note:** The settlement is guaranteed to be successful if Investors have a valid bid at the close of the auction, as the Bond is already locked.
 
 5. **Redemption:** The Issuer can start the redemption of a bond, where all bonds are redeemed, and the face value of the bond plus interest is paid to owners. The CSD must approve the redemption. Communication to all relevant market participants occurs in real time.
 
@@ -172,7 +173,7 @@ Invited banks can start bidding on the auction. The banks cannot see the minimum
 
 ### Choosing and Changing Roles
 
-When you launch Bond Issuance application, you will see the login screen where you can choose your party with the desired role.
+When you launch the Bond Issuance application, you will see the login screen where you can choose your party with the desired role.
 
 To log in:
 
@@ -185,7 +186,7 @@ To switch users:
 
 ### Market Setup
 
-The participants listed above in Roles and Responsibilities are added automatically at market setup along with other required reference data.
+The participants listed above in Roles and Responsibilities are added automatically at market setup along with required reference data.
 
 ### Creating a New Bond Issuance
 
@@ -199,7 +200,7 @@ To request a new bond issuance:
 
 1. Log in as **Issuer**.
 2. Choose the **Issuer Actions** tab.
-3. Select the **Issuer Bond** choice on the Issuer role contract.
+3. Select the **Issue Bond** choice on the Issuer role contract.
 4. Fill out the new issuance parameters:
     *   Issue size: quantity of new bonds to be issued: e.g.:1000000
     *   Issue date: date for the issue date, e.g., today
@@ -211,7 +212,7 @@ To request a new bond issuance:
 
 #### Approving New Bond Issuance Request
 
-Once the Issuer submitted its new bond issuance request, the CSD receives a notification of the request. The CSD needs to approve the bond issuance request to issue the bonds and assign the ISIN.
+Once the Issuer submitted a new bond issuance request, the CSD receives a notification of this request. The CSD needs to approve the bond issuance request to issue the bonds and assign the ISIN.
 
 To approve:
 
@@ -261,7 +262,7 @@ To commission the auction:
 
 1. Log in as the **Auction Agent**.
 2. Select the **Auction Requests** tab.
-3. Next to the new auction commission request enter an auction name (e.g.: Auction001) and click on the **Accept** choice.
+3. Next to the **Accept** button, enter an auction name (e.g.: Auction001) and click the button.
 
 Once the auction had been approved, the auction disappears from the **Auction Request** tab and appears in the **Ongoing Auctions** tab.
 
@@ -283,13 +284,13 @@ To view the invitation as a Bank:
 1. Log in as any **bank (Bank1, Bank2, Bank3)**.
 2. Select the **Ongoing Auctions** tab.
 
-    See that the auction is now active
+    Observe that the auction is now active.
 
 ### Bidding and Finalizing Auction
 
 #### Bidding on an Auction
 
-Invited banks can start bidding to an auction. As discussed above, Banks cannot see the minimum price for the auction, only the denomination and total quantity of available bonds. They can place multiple bids for an auction to ensure that they have different bids at different prices.
+Invited banks can start bidding on an auction. As discussed above, Banks cannot see the minimum price for the auction, only the denomination and total quantity of available bonds. They can place multiple bids for an auction to ensure that they have different bids at different prices.
 
 To bid:
 
