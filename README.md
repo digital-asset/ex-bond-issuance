@@ -284,7 +284,7 @@ To view the invitation as a Bank:
 1. Log in as any **bank (Bank1, Bank2, Bank3)**.
 2. Select the **Ongoing Auctions** tab.
 
-    Observse that the auction is now active.
+    Observe that the auction is now active.
 
 ### Bidding and Finalizing Auction
 
