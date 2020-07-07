@@ -41,7 +41,6 @@ public class TriggerService extends ExternalResource {
 
   private void start() throws Throwable {
     ProcessBuilder processBuilder = createProcess();
-    processBuilder.environment().put("JAVA_TOOL_OPTIONS", "-Xmx350m");
     logger.debug("Executing: {}", String.join(" ", processBuilder.command()));
     triggerService = processBuilder.start();
 
@@ -74,7 +73,7 @@ public class TriggerService extends ExternalResource {
   private void waitForTriggerServiceToStart() throws MalformedURLException, InterruptedException {
     HttpClient httpClient = new HttpClient();
     int timeout = defaultTimeout;
-    while (!httpClient.ping(getStartUrl(this.ledgerHost)) && timeout > 0) {
+    while (!httpClient.isAvailable(getStartUrl(this.ledgerHost)) && timeout > 0) {
       Thread.sleep(1000);
       timeout--;
     }

@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 public class HttpClient {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  public boolean ping(URL url) {
+  public boolean isAvailable(URL url) {
     try {
       HttpURLConnection con = (HttpURLConnection) url.openConnection();
       con.connect();
