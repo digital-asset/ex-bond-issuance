@@ -46,9 +46,7 @@ wait_for_service() {
 
 # We grep package ID from damlc DAR inspection output
 # It is line that starts with the DAR name and containts the package ID between quotation marks
-DAR_FILE_BASENAME="${DAR_FILE##*/}"
-DAR_NAME="${DAR_FILE_BASENAME%%.*}"
-PACKAGE_ID=$(daml damlc inspect-dar "${DAR_FILE}" | grep "${DAR_NAME}" | grep "\".*\"" | cut -d'"' -f 2)
+PACKAGE_ID=$(daml damlc inspect-dar --json "${DAR_FILE}" | grep main_package_id | cut -d":" -f2 | grep "\".*\"" | cut -d'"' -f 2)
 echo "Package ID: ${PACKAGE_ID}"
 
 echo "Starting trigger service."
