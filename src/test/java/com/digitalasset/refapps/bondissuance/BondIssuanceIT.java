@@ -9,10 +9,10 @@ import static org.junit.Assert.assertTrue;
 
 import com.daml.ledger.javaapi.data.Party;
 import com.digitalasset.refapps.bondissuance.trigger.Trigger;
+import com.digitalasset.refapps.bondissuance.triggerservice.TriggerService;
 import com.digitalasset.testing.junit4.Sandbox;
 import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
 import com.digitalasset.testing.utils.ContractWithId;
-import com.google.protobuf.InvalidProtocolBufferException;
 import da.finance.fact.asset.AssetDeposit;
 import da.refapps.bond.auction.*;
 import da.refapps.bond.fixedratebond.FixedRateBondFact;
@@ -22,6 +22,7 @@ import da.refapps.bond.redemption.RedemptionRequest;
 import da.refapps.bond.roles.issuerrole.IssuanceRequest;
 import da.refapps.bond.roles.issuerrole.IssuerRole;
 import da.refapps.bond.settlement.AuctionSettleRequest;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,6 +65,7 @@ public class BondIssuanceIT {
   @Rule
   public TestRule sandboxWithTriggers =
       RuleChain.outerRule(sandbox.getRule())
+          .around(triggerService())
           .around(
               trigger(
                   "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
@@ -95,7 +97,7 @@ public class BondIssuanceIT {
                   CSD_PARTY));
 
   @Test
-  public void testFullWorkflow() throws InvalidProtocolBufferException {
+  public void testFullWorkflow() throws IOException {
     DefaultLedgerAdapter ledgerAdapter = sandbox.getLedgerAdapter();
 
     // Issuance of a bond
@@ -131,6 +133,7 @@ public class BondIssuanceIT {
         issuerRoleCid.exerciseIssuerRole_CommissionAuction(
             assetDeposit, auctionStartDate, auctionEndDate, minPrize, size));
 
+    //    System.in.read();
     // Commission, by bot.
     // Acceptance of invitation
     AuctionInvitation.ContractId auctionInvitation =
@@ -262,12 +265,15 @@ public class BondIssuanceIT {
   }
 
   private Trigger trigger(String triggerName, Party party) {
-    return Trigger.builder()
+    return Trigger.builder().ledgerHost("localhost").triggerName(triggerName).party(party).build();
+  }
+
+  private TriggerService triggerService() {
+    return TriggerService.builder()
         .ledgerPort(sandbox::getSandboxPort)
         .dar(RELATIVE_DAR_PATH)
         .ledgerHost("localhost")
-        .triggerName(triggerName)
-        .party(party)
+        .useWallClockTime()
         .build();
   }
 }

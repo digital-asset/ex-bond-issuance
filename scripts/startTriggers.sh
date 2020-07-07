@@ -29,7 +29,7 @@ start_trigger() {
   local trigger_name="$2"
   local party="$3"
   curl --user ${party}':secret' \
-     -X POST localhost:8088/v1/start \
+     -X POST localhost:${DEFAULT_SERVICE_PORT}/v1/start \
      -H "Content-type: application/json" -H "Accept: application/json" \
      -d '{"triggerName":"'${pkg_id}:${trigger_name}'"}'
 }

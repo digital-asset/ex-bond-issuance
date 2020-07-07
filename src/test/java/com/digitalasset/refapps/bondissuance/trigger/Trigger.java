@@ -4,49 +4,31 @@
  */
 package com.digitalasset.refapps.bondissuance.trigger;
 
-import java.io.File;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-import org.apache.commons.io.input.Tailer;
-import org.apache.commons.io.input.TailerListenerAdapter;
+import da.refapps.bond.roles.issuerrole.IssuanceRequest;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Base64;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Trigger extends ExternalResource {
-  private final Logger logger;
+  private static final int defaultTriggerServicePort = 8088;
 
-  private final String darPath;
+  private final Logger logger;
   private final String triggerName;
   private final String ledgerHost;
-  private final Supplier<String> ledgerPort;
   private final String party;
-  private final String timeMode;
-  private final File logFile;
 
-  private Process trigger;
+  private HttpClient httpClient = new HttpClient();
 
-  Trigger(
-      String darPath,
-      String triggerName,
-      String ledgerHost,
-      Supplier<String> ledgerPort,
-      String party,
-      String timeMode) {
-    this.darPath = darPath;
+  Trigger(String triggerName, String ledgerHost, String party) {
     this.triggerName = triggerName;
     this.ledgerHost = ledgerHost;
-    this.ledgerPort = ledgerPort;
     this.party = party;
-    this.timeMode = timeMode;
     this.logger =
         LoggerFactory.getLogger(
             String.format("%s: %s-%s", getClass().getCanonicalName(), triggerName, party));
-    this.logFile = new File(String.format("integration-test-%s-%s.log", triggerName, party));
   }
 
   public static Builder builder() {
@@ -54,78 +36,11 @@ public class Trigger extends ExternalResource {
   }
 
   private void start() throws Throwable {
-    ProcessBuilder processBuilder = createProcess();
-    Map<String, String> environment = processBuilder.environment();
-    environment.put("JAVA_TOOL_OPTIONS", "-Xmx128m");
-    logger.debug("Executing: {}", String.join(" ", processBuilder.command()));
-    trigger = processBuilder.start();
-
-    waitForTriggerToStart();
-
-    logger.info("Started.");
-  }
-
-  private ProcessBuilder createProcess() {
-    return command()
-        .redirectError(ProcessBuilder.Redirect.appendTo(logFile))
-        .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
-  }
-
-  private ProcessBuilder command() {
-    return new ProcessBuilder()
-        .command(
-            "daml",
-            "trigger",
-            timeMode,
-            "--dar",
-            darPath,
-            "--trigger-name",
-            triggerName,
-            "--ledger-host",
-            ledgerHost,
-            "--ledger-port",
-            ledgerPort.get(),
-            "--ledger-party",
-            party);
-  }
-
-  private void waitForTriggerToStart() throws InterruptedException {
-    final CountDownLatch hasStarted = new CountDownLatch(1);
-    Tailer tailer =
-        new Tailer(
-            logFile,
-            new TailerListenerAdapter() {
-              @Override
-              public void handle(String line) {
-                if (line != null && line.contains("Trigger is running")) {
-                  hasStarted.countDown();
-                } else {
-                  logger.debug("Waiting for trigger...");
-                }
-              }
-            },
-            0L,
-            true);
-    ExecutorService executor = Executors.newSingleThreadExecutor();
-    executor.submit(tailer);
-
-    try {
-      hasStarted.await(30L, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      throw new IllegalStateException("Trigger did not start within timeout.");
-    } finally {
-      tailer.stop();
-      executor.shutdown();
-      executor.awaitTermination(10L, TimeUnit.SECONDS);
-    }
-  }
-
-  private void stop() {
-    try {
-      trigger.destroyForcibly().waitFor();
-    } catch (InterruptedException e) {
-      logger.error("Could not stop trigger.", e);
-    }
+    URL startUrl = getStartUrl();
+    String starterJsonBody = getTriggerStarterJsonBody();
+    logger.info("Starting trigger.");
+    httpClient.post(startUrl, starterJsonBody, getAuthString());
+    logger.info("Trigger started.");
   }
 
   @Override
@@ -136,7 +51,23 @@ public class Trigger extends ExternalResource {
 
   @Override
   protected void after() {
-    stop();
     super.after();
+  }
+
+  private URL getStartUrl() throws MalformedURLException {
+    return new URL(
+        String.format("http://%s:%s/v1/start", this.ledgerHost, defaultTriggerServicePort));
+  }
+
+  private String getAuthString() {
+    String authString = String.format("%s:secret", this.party);
+    String encodedAuthString = Base64.getEncoder().encodeToString(authString.getBytes());
+    return String.format("Basic %s", encodedAuthString);
+  }
+
+  private String getTriggerStarterJsonBody() {
+    return String.format(
+        "{ \"triggerName\" : \"%s:%s\" }",
+        IssuanceRequest.TEMPLATE_ID.getPackageId(), this.triggerName);
   }
 }
