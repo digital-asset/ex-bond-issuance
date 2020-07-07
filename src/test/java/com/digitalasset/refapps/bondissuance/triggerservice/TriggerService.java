@@ -4,14 +4,12 @@
  */
 package com.digitalasset.refapps.bondissuance.triggerservice;
 
+import static com.digitalasset.refapps.bondissuance.trigger.Trigger.getStartUrl;
+
+import com.digitalasset.refapps.bondissuance.trigger.HttpClient;
 import java.io.File;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.net.MalformedURLException;
 import java.util.function.Supplier;
-import org.apache.commons.io.input.Tailer;
-import org.apache.commons.io.input.TailerListenerAdapter;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +22,7 @@ public class TriggerService extends ExternalResource {
   private final Supplier<String> ledgerPort;
   private final String timeMode;
   private final File logFile;
+  private final int defaultTimeout = 30;
 
   private Process triggerService;
 
@@ -72,34 +71,12 @@ public class TriggerService extends ExternalResource {
             "--no-secret-key");
   }
 
-  private void waitForTriggerServiceToStart() throws InterruptedException {
-    final CountDownLatch hasStarted = new CountDownLatch(1);
-    Tailer tailer =
-        new Tailer(
-            logFile,
-            new TailerListenerAdapter() {
-              @Override
-              public void handle(String line) {
-                if (line != null && line.contains("Server online at")) {
-                  hasStarted.countDown();
-                } else {
-                  logger.debug("Waiting for trigger service...");
-                }
-              }
-            },
-            0L,
-            true);
-    ExecutorService executor = Executors.newSingleThreadExecutor();
-    executor.submit(tailer);
-
-    try {
-      hasStarted.await(30L, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      throw new IllegalStateException("Trigger service did not start within timeout.");
-    } finally {
-      tailer.stop();
-      executor.shutdown();
-      executor.awaitTermination(10L, TimeUnit.SECONDS);
+  private void waitForTriggerServiceToStart() throws MalformedURLException, InterruptedException {
+    HttpClient httpClient = new HttpClient();
+    int timeout = defaultTimeout;
+    while (!httpClient.ping(getStartUrl(this.ledgerHost)) && timeout > 0) {
+      Thread.sleep(1000);
+      timeout--;
     }
   }
 

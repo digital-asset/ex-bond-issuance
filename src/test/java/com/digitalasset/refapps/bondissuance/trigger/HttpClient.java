@@ -17,6 +17,17 @@ import org.slf4j.LoggerFactory;
 public class HttpClient {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
+  public boolean ping(URL url) {
+    try {
+      HttpURLConnection con = (HttpURLConnection) url.openConnection();
+      con.connect();
+      con.disconnect();
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
   void post(URL url, String body, String authentication) throws Exception {
     try {
       HttpURLConnection con = (HttpURLConnection) url.openConnection();

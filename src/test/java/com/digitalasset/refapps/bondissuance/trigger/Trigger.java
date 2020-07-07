@@ -36,7 +36,7 @@ public class Trigger extends ExternalResource {
   }
 
   private void start() throws Throwable {
-    URL startUrl = getStartUrl();
+    URL startUrl = getStartUrl(this.ledgerHost);
     String starterJsonBody = getTriggerStarterJsonBody();
     logger.info("Starting trigger.");
     httpClient.post(startUrl, starterJsonBody, getAuthString());
@@ -54,9 +54,8 @@ public class Trigger extends ExternalResource {
     super.after();
   }
 
-  private URL getStartUrl() throws MalformedURLException {
-    return new URL(
-        String.format("http://%s:%s/v1/start", this.ledgerHost, defaultTriggerServicePort));
+  public static URL getStartUrl(String ledgerHost) throws MalformedURLException {
+    return new URL(String.format("http://%s:%s/v1/start", ledgerHost, defaultTriggerServicePort));
   }
 
   private String getAuthString() {
