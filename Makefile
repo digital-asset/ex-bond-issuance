@@ -14,6 +14,7 @@ clean:
 	yarn cache clean
 	rm -rf daml.js
 	rm -rf ui-js/build
+	rm -rf ui-js/node_modules/
 	rm -rf .daml
 
 .PHONY: buildui
