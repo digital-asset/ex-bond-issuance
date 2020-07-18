@@ -1083,10 +1083,10 @@
 "@daml.js/bond-issuance-2.0.0@file:../daml.js/bond-issuance-2.0.0":
   version "1.2.0"
   dependencies:
-    "@daml.js/2e496c511afa01bee46a954470a0d8433a28dcce7afa1cfaaabb92604a64c542" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.2.0-458f67e0-e086-4e18-8d29-449de78839ee-1594047789745/node_modules/@daml.js/2e496c511afa01bee46a954470a0d8433a28dcce7afa1cfaaabb92604a64c542"
-    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.2.0-458f67e0-e086-4e18-8d29-449de78839ee-1594047789745/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.2.0-458f67e0-e086-4e18-8d29-449de78839ee-1594047789745/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
-    "@daml.js/finlib-1.0.0" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.2.0-458f67e0-e086-4e18-8d29-449de78839ee-1594047789745/node_modules/@daml.js/finlib-1.0.0"
+    "@daml.js/2e496c511afa01bee46a954470a0d8433a28dcce7afa1cfaaabb92604a64c542" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.2.0-4e586ca8-351b-4254-9654-5e7dfbe97012-1594122861830/node_modules/@daml.js/2e496c511afa01bee46a954470a0d8433a28dcce7afa1cfaaabb92604a64c542"
+    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.2.0-4e586ca8-351b-4254-9654-5e7dfbe97012-1594122861830/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.2.0-4e586ca8-351b-4254-9654-5e7dfbe97012-1594122861830/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/finlib-1.0.0" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.2.0-4e586ca8-351b-4254-9654-5e7dfbe97012-1594122861830/node_modules/@daml.js/finlib-1.0.0"
     "@daml/ledger" "1.2.0"
     "@daml/types" "1.2.0"
     "@mojotech/json-type-validation" "^3.1.0"
@@ -1101,9 +1101,9 @@
 "@daml.js/finlib-1.0.0@file:../daml.js/finlib-1.0.0":
   version "1.2.0"
   dependencies:
-    "@daml.js/2e496c511afa01bee46a954470a0d8433a28dcce7afa1cfaaabb92604a64c542" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.2.0-627e877f-fa10-4638-b8b1-e2f6d491d6ca-1594047789760/node_modules/@daml.js/2e496c511afa01bee46a954470a0d8433a28dcce7afa1cfaaabb92604a64c542"
-    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.2.0-627e877f-fa10-4638-b8b1-e2f6d491d6ca-1594047789760/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.2.0-627e877f-fa10-4638-b8b1-e2f6d491d6ca-1594047789760/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/2e496c511afa01bee46a954470a0d8433a28dcce7afa1cfaaabb92604a64c542" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.2.0-fae9c5c9-75aa-4d42-961a-a69fd9e5728d-1594122861859/node_modules/@daml.js/2e496c511afa01bee46a954470a0d8433a28dcce7afa1cfaaabb92604a64c542"
+    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.2.0-fae9c5c9-75aa-4d42-961a-a69fd9e5728d-1594122861859/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.2.0-fae9c5c9-75aa-4d42-961a-a69fd9e5728d-1594122861859/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
     "@daml/ledger" "1.2.0"
     "@daml/types" "1.2.0"
     "@mojotech/json-type-validation" "^3.1.0"
