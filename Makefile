@@ -16,6 +16,7 @@ clean:
 	rm -rf ui-js/build
 	rm -rf .daml
 
+.PHONY: buildui
 buildui:
 	daml codegen js target/*.dar -o daml.js
 	cd ui-js && yarn install
