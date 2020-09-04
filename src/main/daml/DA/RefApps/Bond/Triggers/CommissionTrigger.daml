@@ -7,6 +7,8 @@ daml 1.2
 
 module DA.RefApps.Bond.Triggers.CommissionTrigger where
 
+import Daml.Script (Script, script)
+import qualified Daml.Script as Script
 import Daml.Trigger
 import DA.Next.Map qualified as Maps
 import DA.Foldable hiding (length)
@@ -70,12 +72,11 @@ commissionRule party activeContracts _ _ () = do
 
 -- Tests ---------------------------
 
-testCommissionHappens: Scenario ()
-testCommissionHappens = scenario do
-  issuer <- getParty "Issuer"
-
+testCommissionHappens: Script ()
+testCommissionHappens = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
   issuance <-
-    MarketSetup.setupIssuance
+    MarketSetup.setupIssuance parties
   commissionBotTrigger <-
     commissionAuction issuer issuance
 
@@ -98,15 +99,11 @@ testCommissionHappens = scenario do
       issuance.bondBundleData.cashSettlementCid
       issuance.fixedRateBondFactCid
 
-testNoCommissionIfNoTrigger: Scenario ()
-testNoCommissionIfNoTrigger = scenario do
-  issuer <- getParty "Issuer"
-  bank1 <- getParty "Bank1"
-  bank2 <- getParty "Bank2"
-  issuer <- getParty "Issuer"
-
+testNoCommissionIfNoTrigger: Script ()
+testNoCommissionIfNoTrigger = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
   issuance <-
-    MarketSetup.setupIssuance
+    MarketSetup.setupIssuance parties
 
   let activeContracts = toACS issuance.bondBundleData.assetDepositCid <>
                         toACS issuance.bondBundleData.bondSettlementCid <>
@@ -121,10 +118,10 @@ testNoCommissionIfNoTrigger = scenario do
 
 -- Helpers -------------------------
 
-commissionAuction : Party -> MarketSetup.TestIssuance -> Scenario (ContractId CommissionBotTrigger)
-commissionAuction issuer issuance = scenario $
+commissionAuction : Party -> MarketSetup.TestIssuance -> Script (ContractId CommissionBotTrigger)
+commissionAuction issuer issuance =
   submit issuer do
-    exercise issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
+    Script.exerciseCmd issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
       bondAssetDepositCid = issuance.bondBundleData.assetDepositCid
       startDate = MarketSetup.auctionStartDate
       endDate = MarketSetup.auctionEndDate

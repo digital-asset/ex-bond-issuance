@@ -12,6 +12,8 @@ import DA.RefApps.Bond.Redemption
 import DA.Finance.Fact.Asset
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.ContractUtils
+import Daml.Script (Script, script)
+import qualified Daml.Script as Script
 import Daml.Trigger
 import Daml.Trigger.Assert
 import DA.Assert
@@ -54,24 +56,22 @@ redemptionCalculationRule party activeContracts _ _ () = do
 
 -- Tests ---------------------------
 
-testWithSomeRemainedBond: Scenario ()
-testWithSomeRemainedBond = scenario do
-  auctionAgent <- getParty "AuctionAgent"
-  issuer <- getParty "Issuer"
-  csd <- getParty "CSD"
+testWithSomeRemainedBond: Script ()
+testWithSomeRemainedBond = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
 
   issuance <-
-    MarketSetup.setupIssuance
+    MarketSetup.setupIssuance parties
   progress <-
-    MarketSetup.startAuction issuance
+    MarketSetup.startAuction parties issuance
   (settleRequests, remainedBond) <-
-    MarketSetup.finalizeAuction progress
+    MarketSetup.finalizeAuction parties progress
   assetsForRedemption <-
-    MarketSetup.doSettlement issuance settleRequests progress
+    MarketSetup.doSettlement parties issuance settleRequests progress
   (request, leftOverSettlementChain) <-
     redeem issuer issuance settleRequests
   calcTrigger <-
-    submit csd $ exercise request RedemptionRequest_Accept
+    submit csd $ Script.exerciseCmd request RedemptionRequest_Accept
 
   let activeContracts =
           toACS calcTrigger <>
@@ -86,24 +86,22 @@ testWithSomeRemainedBond = scenario do
             redemptionPayoutInfos = []
             bondsAtIssuer = [remainedBond])
 
-testWithNoRemainedBond: Scenario ()
-testWithNoRemainedBond = scenario do
-  auctionAgent <- getParty "AuctionAgent"
-  issuer <- getParty "Issuer"
-  csd <- getParty "CSD"
+testWithNoRemainedBond: Script ()
+testWithNoRemainedBond = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
 
   issuance <-
-    MarketSetup.setupIssuance
+    MarketSetup.setupIssuance parties
   progress <-
-    MarketSetup.startAuction issuance
+    MarketSetup.startAuction parties issuance
   (settleRequests, _unusedRemainedBond) <-
-    MarketSetup.finalizeAuction progress
+    MarketSetup.finalizeAuction parties progress
   assetsForRedemption <-
-    MarketSetup.doSettlement issuance settleRequests progress
+    MarketSetup.doSettlement parties issuance settleRequests progress
   (request, leftOverSettlementChain) <-
     redeem issuer issuance settleRequests
   calcTrigger <-
-    submit csd $ exercise request RedemptionRequest_Accept
+    submit csd $ Script.exerciseCmd request RedemptionRequest_Accept
 
   let activeContracts = toACS calcTrigger
   commands <-
@@ -116,10 +114,10 @@ testWithNoRemainedBond = scenario do
             redemptionPayoutInfos = []
             bondsAtIssuer = [])
 
-redeem: Party -> MarketSetup.TestIssuance -> MarketSetup.SettleRequests -> Scenario (ContractId RedemptionRequest, ContractId AssetSettlementChain)
-redeem issuer issuance settleRequests =
-  submit issuer do
-    redeemRequest <- exercise issuance.roles.issuerRoleCid $ IssuerRole_Redeem issuance.fixedRateBondFactCid
-    otherParticipantReq <- fetch settleRequests.otherSettleReqCid
-    otherSettleReq <- fetch $ head otherParticipantReq.settleRequestCids
-    return (redeemRequest, otherSettleReq.bondSettlementChainCid)
+redeem: Party -> MarketSetup.TestIssuance -> MarketSetup.SettleRequests -> Script (ContractId RedemptionRequest, ContractId AssetSettlementChain)
+redeem issuer issuance settleRequests = do
+  redeemRequest <- submit issuer do
+    Script.exerciseCmd issuance.roles.issuerRoleCid $ IssuerRole_Redeem issuance.fixedRateBondFactCid
+  Some otherParticipantReq <- Script.queryContractId issuer settleRequests.otherSettleReqCid
+  Some otherSettleReq <- Script.queryContractId issuer $ head otherParticipantReq.settleRequestCids
+  return (redeemRequest, otherSettleReq.bondSettlementChainCid)
