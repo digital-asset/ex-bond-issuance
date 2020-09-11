@@ -150,7 +150,7 @@ allocateParties = do
   csd <- allocateParty "CSD"
   issuer <- allocateParty "Issuer"
   centralBank <- allocateParty "CentralBank"
-  return Parties with ..
+  pure Parties with ..
 
 setupRoles: Parties -> Script TestRoles
 setupRoles Parties{..} = script do
@@ -189,7 +189,7 @@ setupRoles Parties{..} = script do
       centralBankCid
         <- exerciseCmd operatorCid OperatorRole_InviteCentralBank with
               centralBank = centralBank
-      return (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, bankInvitationCid4, csdInvitationCid, issuerCid, centralBankCid)
+      pure (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, bankInvitationCid4, csdInvitationCid, issuerCid, centralBankCid)
 
   auctionAgentRole <- submit auctionAgent do
     exerciseCmd auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
@@ -214,7 +214,7 @@ setupRoles Parties{..} = script do
 
   centralBankRoleCid <- submit centralBank do
     exerciseCmd centralBankCid CentralBankRoleInvitation_Accept
-  return TestRoles {
+  pure TestRoles {
     issuerRoleCid = issuerRole
   , csdRoleCid = csdRole
   , centralBankRoleCid = centralBankRoleCid
@@ -249,36 +249,36 @@ setupIssuance parties@Parties{..} = script do
     bank1Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
     bank1Fungible <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1CashAccount
     bank1Lock <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
-    return (bank1Settlement, bank1Fungible, bank1Lock, bank1CashAsset)
+    pure (bank1Settlement, bank1Fungible, bank1Lock, bank1CashAsset)
   (bank2CashSettlement, bank2Fungible, bank2Lock, bank2CashAsset) <- submit centralBank do
     bank2CashAsset <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank2CashAccount "USD" 600000000.0
     bank2Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount []
     bank2Fungible <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank2CashAccount
     bank2Lock <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank2CashAccount
-    return (bank2Settlement, bank2Fungible, bank2Lock, bank2CashAsset)
+    pure (bank2Settlement, bank2Fungible, bank2Lock, bank2CashAsset)
   (bank3CashSettlement, bank3Fungible, bank3Lock, bank3CashAsset) <- submit centralBank do
     bank3CashAsset <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank3CashAccount "USD" 30000000.0
     bank3Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount []
     bank3Fungible <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank3CashAccount
     bank3Lock <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank3CashAccount
-    return (bank3Settlement, bank3Fungible, bank3Lock, bank3CashAsset)
+    pure (bank3Settlement, bank3Fungible, bank3Lock, bank3CashAsset)
 
   (issuerCashAsset, issuerCashSettlement, issuerCashFungibleCid) <- submit centralBank do
     issuerCashAsset <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_IssueCash issuerCashAccount "USD" 100000000.0
     issuerCashSettlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount [auctionAgent, bank1, bank2, bank3]
     issuerCashFungibleCid <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule issuerCashAccount
-    return (issuerCashAsset, issuerCashSettlement, issuerCashFungibleCid)
+    pure (issuerCashAsset, issuerCashSettlement, issuerCashFungibleCid)
 
   (issuerFungibleRule, issuerBondSettlement) <- submit csd do
     issuerFungibleRule <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
     issuerSettlementRule <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
-    return (issuerFungibleRule, issuerSettlementRule)
+    pure (issuerFungibleRule, issuerSettlementRule)
 
   (bank1BondSettlement, bank2BondSettlement, bank3BondSettlement) <- submit csd do
     bank1Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount []
     bank2Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank2BondAccount []
     bank3Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
-    return (bank1Settlement, bank2Settlement, bank3Settlement)
+    pure (bank1Settlement, bank2Settlement, bank3Settlement)
 
   -- Bond Issuance ------------------------
   now <- toDateUTC <$> getTime
@@ -326,7 +326,7 @@ setupIssuance parties@Parties{..} = script do
                       cashSettlementCid = issuerCashSettlement
                       assetLabel = bondIsin, ..
       cashAssetId = Id (DA.Next.Set.singleton centralBank) "USD" 0
-  return TestIssuance {
+  pure TestIssuance {
     roles = testRoles
   , fixedRateBondFactCid = fixedRateBondFactCid
   , bondBundleData = bondBundleData
@@ -504,7 +504,7 @@ startAuction Parties{..} issuance = script do
 
   passTime $ seconds 1
 
-  return $ AuctionProgress
+  pure $ AuctionProgress
     auction'
     bidderParticipationCid1
     bidderParticipationCid2
@@ -575,7 +575,7 @@ finalizeAuction Parties{..} auctionProgress = script do
   settleReq.investor === bank1
   settleReq.cashAmountToPay === 50.0 * 500000.0
 
-  return (SettleRequests with
+  pure (SettleRequests with
       bank1SettleReqCid = bank1SettleReq
       bank2SettleReqCid = bank2SettleReq
       bank3SettleReqCid = bank3SettleReq
@@ -644,7 +644,7 @@ doSettlement Parties{..} issuance settleRequests auctionProgress = script do
   payment3.asset.quantity === 16800000.0
   payment3.asset.id.label === "USD"
 
-  return AssetsForRedemption with
+  pure AssetsForRedemption with
     bank1BondDepositCid = assetCid1
     bank2BondDepositCid = assetCid2
     bank3BondDepositCid = assetCid3
@@ -704,4 +704,4 @@ testFullScenario = script do
   (settleRequests, remainedBond) <- finalizeAuction parties progress
   assetsForRedemption <- doSettlement parties issuance settleRequests progress
   redemption parties issuance assetsForRedemption remainedBond settleRequests
-  return ()
+  pure ()
