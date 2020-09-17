@@ -7,6 +7,8 @@ daml 1.2
 
 module DA.RefApps.Bond.Triggers.PlaceBidTrigger where
 
+import Daml.Script (Script, script)
+import qualified Daml.Script as Script
 import Daml.Trigger
 import DA.Next.Map qualified as Map
 import Daml.Trigger.Assert
@@ -76,15 +78,14 @@ placeBidRule party activeContracts _ _ () = do
 
 -- Tests ---------------------------
 
-testPlaceBidTrigger: Scenario ()
-testPlaceBidTrigger = scenario do
-  auctionAgent <- getParty "AuctionAgent"
-  bank1 <- getParty "Bank1"
+testPlaceBidTrigger: Script ()
+testPlaceBidTrigger = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
 
   issuance <-
-    MarketSetup.setupIssuance
+    MarketSetup.setupIssuance parties
   (_, [participation1, _]) <-
-    AuctFin.startAuction auctionAgent issuance
+    AuctFin.startAuction parties issuance
   pbTrigger <-
     placeBid bank1 42.0 20000 participation1
 
@@ -106,14 +107,12 @@ testPlaceBidTrigger = scenario do
         lockRuleCid = issuance.rules.bank1LockRuleCid
         investorBondAssetSettlementCid = issuance.rules.bank1BondSettlementCid)
 
-testNothingHappensIfNoTrigger: Scenario ()
-testNothingHappensIfNoTrigger = scenario do
-  auctionAgent <- getParty "AuctionAgent"
-  bank1 <- getParty "Bank1"
-
+testNothingHappensIfNoTrigger: Script ()
+testNothingHappensIfNoTrigger = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
   issuance <-
-    MarketSetup.setupIssuance
-  AuctFin.startAuction auctionAgent issuance
+    MarketSetup.setupIssuance parties
+  AuctFin.startAuction parties issuance
 
   let activeContracts =
           toACS issuance.cashAssets.bank1CashDepositCid <>
@@ -128,10 +127,9 @@ testNothingHappensIfNoTrigger = scenario do
 -- Helpers -------------------------
 
 placeBid : Party -> Decimal -> Int -> ContractId BidderParticipation
-            -> Scenario (ContractId PlaceBidBotTrigger)
+            -> Script (ContractId PlaceBidBotTrigger)
 placeBid bank price quantity bidderParticipationCid =
-  scenario $
-    submit bank $
-      exercise bidderParticipationCid BidderParticipation_PlaceBid with
-        price = price
-        quantity = quantity
+  submit bank $
+    Script.exerciseCmd bidderParticipationCid BidderParticipation_PlaceBid with
+      price = price
+      quantity = quantity

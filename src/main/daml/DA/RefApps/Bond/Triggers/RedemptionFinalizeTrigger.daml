@@ -7,6 +7,8 @@ daml 1.2
 
 module DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger where
 
+import Daml.Script (Script, script)
+import qualified Daml.Script as Script
 import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
 import DA.RefApps.Bond.Redemption
 import DA.Finance.Fact.Asset
@@ -66,20 +68,17 @@ redemptionFinalizeRule party activeContracts _ _ () = do
 
 -- Tests ---------------------------
 
-testFinalizeTrigger: Scenario ()
-testFinalizeTrigger = scenario do
-  auctionAgent <- getParty "AuctionAgent"
-  issuer <- getParty "Issuer"
-  csd <- getParty "CSD"
-
+testFinalizeTrigger: Script ()
+testFinalizeTrigger = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
   issuance <-
-    MarketSetup.setupIssuance
+    MarketSetup.setupIssuance parties
   progress <-
-    MarketSetup.startAuction issuance
+    MarketSetup.startAuction parties issuance
   (settleRequests, remainedBond) <-
-    MarketSetup.finalizeAuction progress
+    MarketSetup.finalizeAuction parties progress
   assetsForRedemption <-
-    MarketSetup.doSettlement issuance settleRequests progress
+    MarketSetup.doSettlement parties issuance settleRequests progress
   redemptionFinalize <-
     redeem csd issuer issuance settleRequests assetsForRedemption remainedBond
 
@@ -99,20 +98,18 @@ testFinalizeTrigger = scenario do
       cashAssetSettlementCid = issuance.rules.issuerCashSettlementCid
       cashAssetFungibleCid = issuance.rules.issuerCashFungibleCid)
 
-testNoFinalizeTrigger: Scenario ()
-testNoFinalizeTrigger = scenario do
-  auctionAgent <- getParty "AuctionAgent"
-  issuer <- getParty "Issuer"
-  csd <- getParty "CSD"
+testNoFinalizeTrigger: Script ()
+testNoFinalizeTrigger = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
 
   issuance <-
-    MarketSetup.setupIssuance
+    MarketSetup.setupIssuance parties
   progress <-
-    MarketSetup.startAuction issuance
+    MarketSetup.startAuction parties issuance
   (settleRequests, remainedBond) <-
-    MarketSetup.finalizeAuction progress
+    MarketSetup.finalizeAuction parties progress
   assetsForRedemption <-
-    MarketSetup.doSettlement issuance settleRequests progress
+    MarketSetup.doSettlement parties issuance settleRequests progress
   redemptionFinalize <-
     redeem csd issuer issuance settleRequests assetsForRedemption remainedBond
 
@@ -126,18 +123,18 @@ testNoFinalizeTrigger = scenario do
   length flattenedCommands === 0
 
 redeem: Party -> Party -> MarketSetup.TestIssuance -> MarketSetup.SettleRequests -> MarketSetup.AssetsForRedemption -> ContractId AssetDeposit
-            -> Scenario (ContractId RedemptionFinalizeBotTrigger)
+            -> Script (ContractId RedemptionFinalizeBotTrigger)
 redeem csd issuer issuance settleRequests assetsForRedemption remainedBondDeposit = do
-  (request, leftOverSettlementChain) <-
-    submit issuer do
-      redeemRequest <- exercise issuance.roles.issuerRoleCid $ IssuerRole_Redeem issuance.fixedRateBondFactCid
-      otherParticipantReq <- fetch settleRequests.otherSettleReqCid
-      otherSettleReq <- fetch $ head otherParticipantReq.settleRequestCids
-      return (redeemRequest, otherSettleReq.bondSettlementChainCid)
+  redeemRequest <- submit issuer do
+    Script.exerciseCmd issuance.roles.issuerRoleCid $ IssuerRole_Redeem issuance.fixedRateBondFactCid
+  Some otherParticipantReq <- Script.queryContractId issuer settleRequests.otherSettleReqCid
+  Some otherSettleReq <- Script.queryContractId issuer (head otherParticipantReq.settleRequestCids)
+  let request = redeemRequest
+  calc <- submit csd do
+    Script.exerciseCmd request RedemptionRequest_Accept
   submit csd do
-    calc <- exercise request RedemptionRequest_Accept
     fromSomeNote "Redeem: start should have returned a Some value." <$>
-      exercise calc (RedemptionCalculationBotTrigger_Start
+      Script.exerciseCmd calc (RedemptionCalculationBotTrigger_Start
         [assetsForRedemption.bank1RedemptionPayoutInfoCid,
          assetsForRedemption.bank2RedemptionPayoutInfoCid,
          assetsForRedemption.bank3RedemptionPayoutInfoCid]

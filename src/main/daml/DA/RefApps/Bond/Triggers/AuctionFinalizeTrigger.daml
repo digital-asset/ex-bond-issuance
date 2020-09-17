@@ -7,6 +7,8 @@ daml 1.2
 
 module DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger where
 
+import Daml.Script (Script, script)
+import qualified Daml.Script as Script
 import Daml.Trigger
 import DA.Next.Map qualified as Maps
 import DA.Foldable hiding (length)
@@ -58,18 +60,18 @@ finalizeAuction party activeContracts _ _ () = do
 
 -- Tests ---------------------------
 
-testAuctionWithNoBid: Scenario ()
-testAuctionWithNoBid = scenario do
-  auctionAgent <- getParty "AuctionAgent"
+testAuctionWithNoBid: Script ()
+testAuctionWithNoBid = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
 
   issuance <-
-    MarketSetup.setupIssuance
+    MarketSetup.setupIssuance parties
   (auction, [participation1, participation2]) <-
-    startAuction auctionAgent issuance
+    startAuction parties issuance
 
   finalizeTrigger <-
     auctionAgent `submit`
-      exercise auction Auction_Finalize
+      Script.exerciseCmd auction Auction_Finalize
 
   let activeContracts =
           toACS participation1 <> toACS participation2 <>
@@ -83,15 +85,13 @@ testAuctionWithNoBid = scenario do
     assertEq cid finalizeTrigger
     assertEq choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [])
 
-testAuctionWithSingleBid: Scenario ()
-testAuctionWithSingleBid = scenario do
-  auctionAgent <- getParty "AuctionAgent"
-  bank1 <- getParty "Bank1"
-
+testAuctionWithSingleBid: Script ()
+testAuctionWithSingleBid = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
   issuance <-
-    MarketSetup.setupIssuance
+    MarketSetup.setupIssuance parties
   (auction, [participation1, participation2]) <-
-    startAuction auctionAgent issuance
+    startAuction parties issuance
   (bid1, _, _) <-
     placeBid
       bank1 42.0 20000
@@ -101,7 +101,7 @@ testAuctionWithSingleBid = scenario do
 
   finalizeTrigger <-
     auctionAgent `submit`
-      exercise auction Auction_Finalize
+      Script.exerciseCmd auction Auction_Finalize
 
   let activeContracts =
           toACS participation1 <> toACS participation2 <>
@@ -115,16 +115,13 @@ testAuctionWithSingleBid = scenario do
     assertEq cid finalizeTrigger
     assertEq choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [bid1])
 
-testAuctionWithTwoBids: Scenario ()
-testAuctionWithTwoBids = scenario do
-  auctionAgent <- getParty "AuctionAgent"
-  bank1 <- getParty "Bank1"
-  bank2 <- getParty "Bank2"
-
+testAuctionWithTwoBids: Script ()
+testAuctionWithTwoBids = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
   issuance <-
-    MarketSetup.setupIssuance
+    MarketSetup.setupIssuance parties
   (auction, [participation1, participation2]) <-
-    startAuction auctionAgent issuance
+    startAuction parties issuance
   (bid1, _, _) <-
     placeBid
       bank1 42.0 20000
@@ -140,7 +137,7 @@ testAuctionWithTwoBids = scenario do
 
   finalizeTrigger <-
     auctionAgent `submit`
-      exercise auction Auction_Finalize
+      Script.exerciseCmd auction Auction_Finalize
 
   let activeContracts =
           toACS participation1 <> toACS participation2 <>
@@ -156,49 +153,44 @@ testAuctionWithTwoBids = scenario do
 
 -- Helpers -------------------------
 
-startAuction : Party -> MarketSetup.TestIssuance -> Scenario (ContractId Auction, [ContractId BidderParticipation])
-startAuction auctionAgent issuance = scenario do
-  issuer <- getParty "Issuer"
-  centralBank <- getParty "CentralBank"
-  bank1 <- getParty "Bank1"
-  bank2 <- getParty "Bank2"
-  csd <- getParty "CSD"
-
-  (auctionInvitationCid, _remainingAssets) <- submit issuer do
-    commissionedCid <- exercise issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
+startAuction : MarketSetup.Parties -> MarketSetup.TestIssuance -> Script (ContractId Auction, [ContractId BidderParticipation])
+startAuction MarketSetup.Parties{..} issuance = script do
+  commissionedCid <- submit issuer do
+    Script.exerciseCmd issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
       bondAssetDepositCid = issuance.bondBundleData.assetDepositCid
       startDate = MarketSetup.auctionStartDate
       endDate = MarketSetup.auctionEndDate
       minPrice = 40.0
       size = 1000000
-
-    exercise commissionedCid CommissionBotTrigger_InviteAgent with
+  (auctionInvitationCid, _remainingAssets) <- submit issuer do
+    Script.exerciseCmd commissionedCid CommissionBotTrigger_InviteAgent with
       bondAssetFungibleCid = issuance.bondBundleData.assetFungibleCid
       bondAssetSettlementCid = issuance.bondBundleData.bondSettlementCid
       cashAssetSettlementCid = issuance.bondBundleData.cashSettlementCid
       fixedRateBondFactCid = issuance.fixedRateBondFactCid
 
-  submit auctionAgent do
-    auctionCid <- exercise auctionInvitationCid AuctionInvitation_Accept with
+  auctionCid <- submit auctionAgent do
+    Script.exerciseCmd auctionInvitationCid AuctionInvitation_Accept with
       auctionName = "testAuction"
-    exercise auctionCid Auction_InviteBidders with
+  submit auctionAgent do
+    Script.exerciseCmd auctionCid Auction_InviteBidders with
       bidders = [bank1, bank2]
 
 placeBid : Party -> Decimal -> Int -> ContractId BidderParticipation -> ContractId AssetDeposit
             -> ContractId AssetFungible -> ContractId AssetLockRule -> ContractId AssetSettlement
-            -> Scenario (ContractId AuctionBid, [ContractId AssetDeposit], ContractId AuctionLockedCash)
+            -> Script (ContractId AuctionBid, [ContractId AssetDeposit], ContractId AuctionLockedCash)
 placeBid bank price quantity bidderParticipationCid bankCashDepositCid
-    bankCashFungibleCid bankLockRuleCid bankBondSettlementCid =
-  scenario $
-    submit bank do
-      bidLockReq <- exercise bidderParticipationCid BidderParticipation_PlaceBid with
-        price = price
-        quantity = quantity
-      lockCashResult <- exercise bidLockReq PlaceBidBotTrigger_LockCash with
-        cashDepositCids = [bankCashDepositCid]
-        cashAssetFungibleCid = bankCashFungibleCid
-        lockRuleCid = bankLockRuleCid
-        investorBondAssetSettlementCid = bankBondSettlementCid
+    bankCashFungibleCid bankLockRuleCid bankBondSettlementCid = script do
+  bidLockReq <- submit bank do
+    Script.exerciseCmd bidderParticipationCid BidderParticipation_PlaceBid with
+      price = price
+      quantity = quantity
+  lockCashResult <- submit bank do
+    Script.exerciseCmd bidLockReq PlaceBidBotTrigger_LockCash with
+      cashDepositCids = [bankCashDepositCid]
+      cashAssetFungibleCid = bankCashFungibleCid
+      lockRuleCid = bankLockRuleCid
+      investorBondAssetSettlementCid = bankBondSettlementCid
 
-      let (bank1Lock1, bidCid1_1, rest) = fromSome $ eitherToOptional $ lockCashResult
-      return (bidCid1_1, rest, bank1Lock1)
+  let (bank1Lock1, bidCid1_1, rest) = fromSome $ eitherToOptional $ lockCashResult
+  return (bidCid1_1, rest, bank1Lock1)
