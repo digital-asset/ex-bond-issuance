@@ -1066,13 +1066,6 @@
     "@daml/types" "1.5.0"
     "@mojotech/json-type-validation" "^3.1.0"
 
-"@daml.js/62008a1999a9053cca24b90ec956df894e8e420624630060fd887feaae67c36a@file:../daml.js/62008a1999a9053cca24b90ec956df894e8e420624630060fd887feaae67c36a":
-  version "1.5.0"
-  dependencies:
-    "@daml/ledger" "1.5.0"
-    "@daml/types" "1.5.0"
-    "@mojotech/json-type-validation" "^3.1.0"
-
 "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f@file:../daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f":
   version "1.5.0"
   dependencies:
@@ -1083,10 +1076,10 @@
 "@daml.js/bond-issuance-2.0.0@file:../daml.js/bond-issuance-2.0.0":
   version "1.5.0"
   dependencies:
-    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.5.0-f367d8d8-d379-4721-af62-141516f8887b-1600258923885/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
-    "@daml.js/cd314fc519b9e3528f46c92658d77c63f80d1a209f67319f2ece231cf38c79df" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.5.0-f367d8d8-d379-4721-af62-141516f8887b-1600258923885/node_modules/@daml.js/cd314fc519b9e3528f46c92658d77c63f80d1a209f67319f2ece231cf38c79df"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.5.0-f367d8d8-d379-4721-af62-141516f8887b-1600258923885/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
-    "@daml.js/finlib-1.0.0" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.5.0-f367d8d8-d379-4721-af62-141516f8887b-1600258923885/node_modules/@daml.js/finlib-1.0.0"
+    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.5.0-6d2396c1-be11-4c19-8da2-89600c02d479-1600430066332/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
+    "@daml.js/cd314fc519b9e3528f46c92658d77c63f80d1a209f67319f2ece231cf38c79df" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.5.0-6d2396c1-be11-4c19-8da2-89600c02d479-1600430066332/node_modules/@daml.js/cd314fc519b9e3528f46c92658d77c63f80d1a209f67319f2ece231cf38c79df"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.5.0-6d2396c1-be11-4c19-8da2-89600c02d479-1600430066332/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/finlib-1.0.0" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.5.0-6d2396c1-be11-4c19-8da2-89600c02d479-1600430066332/node_modules/@daml.js/finlib-1.0.0"
     "@daml/ledger" "1.5.0"
     "@daml/types" "1.5.0"
     "@mojotech/json-type-validation" "^3.1.0"
@@ -1108,9 +1101,9 @@
 "@daml.js/finlib-1.0.0@file:../daml.js/finlib-1.0.0":
   version "1.5.0"
   dependencies:
-    "@daml.js/62008a1999a9053cca24b90ec956df894e8e420624630060fd887feaae67c36a" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.5.0-7a940856-c528-4ba8-9c9d-65f819e618a8-1600258923935/node_modules/@daml.js/62008a1999a9053cca24b90ec956df894e8e420624630060fd887feaae67c36a"
-    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.5.0-7a940856-c528-4ba8-9c9d-65f819e618a8-1600258923935/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.5.0-7a940856-c528-4ba8-9c9d-65f819e618a8-1600258923935/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.5.0-c9c5f0f9-7ab6-4bb6-94ed-c6dd9803eb54-1600430066355/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
+    "@daml.js/cd314fc519b9e3528f46c92658d77c63f80d1a209f67319f2ece231cf38c79df" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.5.0-c9c5f0f9-7ab6-4bb6-94ed-c6dd9803eb54-1600430066355/node_modules/@daml.js/cd314fc519b9e3528f46c92658d77c63f80d1a209f67319f2ece231cf38c79df"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.5.0-c9c5f0f9-7ab6-4bb6-94ed-c6dd9803eb54-1600430066355/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
     "@daml/ledger" "1.5.0"
     "@daml/types" "1.5.0"
     "@mojotech/json-type-validation" "^3.1.0"
@@ -3288,11 +3281,11 @@ create-hmac@^1.1.0, create-hmac@^1.1.4, create-hmac@^1.1.7:
     sha.js "^2.4.8"
 
 cross-fetch@^3.0.4:
-  version "3.0.5"
-  resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.0.5.tgz#2739d2981892e7ab488a7ad03b92df2816e03f4c"
-  integrity sha512-FFLcLtraisj5eteosnX1gf01qYDCOc4fDy0+euOt8Kn9YBY2NtXL/pCoYPavw24NIQkQqm5ZOLsGD5Zzj0gyew==
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.0.6.tgz#3a4040bc8941e653e0e9cf17f29ebcd177d3365c"
+  integrity sha512-KBPUbqgFjzWlVcURG+Svp9TlhA5uliYtiNx/0r8nv0pdypeQCRJ9IaSIc3q/x3q8t3F75cHuwxVql1HFGHCNJQ==
   dependencies:
-    node-fetch "2.6.0"
+    node-fetch "2.6.1"
 
 cross-spawn@7.0.1:
   version "7.0.1"
@@ -7282,10 +7275,10 @@ no-case@^3.0.3:
     lower-case "^2.0.1"
     tslib "^1.10.0"
 
-node-fetch@2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
-  integrity sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
+node-fetch@2.6.1:
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
+  integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
 
 node-fetch@^1.0.1:
   version "1.7.3"
