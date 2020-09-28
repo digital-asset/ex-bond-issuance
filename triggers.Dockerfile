@@ -7,12 +7,15 @@ ARG sdk_vsn=1.5.0
 
 FROM digitalasset/daml-sdk:${sdk_vsn}
 
+USER root
+RUN apt-get update || apt-get update
+RUN apt-get -y install netcat-openbsd
+USER daml
+
 WORKDIR /home/daml
 
 COPY --chown=daml target/bond-issuance.dar /home/daml/
 COPY --chown=daml scripts/ /home/daml/scripts/
-
-USER daml
 
 ENV JAVA_TOOL_OPTIONS -Xmx128m
 
