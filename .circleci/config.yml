@@ -165,7 +165,7 @@ jobs:
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) \
             ci-build digitalasset_ex-bond-issuance master \
             --logging.level.com.synopsys.integration=DEBUG \
-            --detect.notices.report=true \
+            --detect.notices.report=false \
             --detect.report.timeout=1800
       - run:
           command: cp digitalasset_ex_bond_issuance_master_Black_Duck_Notices_Report.txt NOTICE
