@@ -204,6 +204,7 @@ workflows:
             branches:
               only:
                 - master
+                - /blackduck-.*/
   build_and_release:
     jobs:
       - daml_test:
