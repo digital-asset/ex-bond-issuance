@@ -3,7 +3,6 @@
 -- SPDX-License-Identifier: Apache-2.0
 --
 
-daml 1.2
 module DA.RefApps.Bond.FixedRateBond where
 
 import DA.Finance.Types
