@@ -17,15 +17,15 @@ import Daml.Trigger
 import Daml.Trigger.Assert
 import DA.Assert
 import DA.List
-import DA.Next.Map qualified as Map
 import DA.Foldable hiding (length)
 import DA.Finance.Rule.Asset (AssetSettlementChain)
+import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
 
 
 redemptionCalculationTrigger : Trigger ()
 redemptionCalculationTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = redemptionCalculationRule
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @RedemptionCalculationBotTrigger,
@@ -35,11 +35,11 @@ redemptionCalculationTrigger = Trigger
   , heartbeat = None
   }
 
-redemptionCalculationRule : Party -> ACS -> Time -> Map.Map CommandId [Command] -> () -> TriggerA ()
-redemptionCalculationRule party activeContracts _ _ () = do
-  let redemptionCalcTriggers = getContracts @RedemptionCalculationBotTrigger activeContracts
-      payoutInfos = getContracts @RedemptionPayoutInfo activeContracts
-      assetDeposits = getContracts @AssetDeposit activeContracts
+redemptionCalculationRule : Party -> TriggerA () ()
+redemptionCalculationRule party = do
+  redemptionCalcTriggers <- query @RedemptionCalculationBotTrigger
+  payoutInfos <- query @RedemptionPayoutInfo
+  assetDeposits <- query @AssetDeposit
 
   forA_ redemptionCalcTriggers $ \(triggerCid, trigger) -> do
     let remainingAssetCids =
@@ -75,9 +75,7 @@ testWithSomeRemainedBond = script do
   let activeContracts =
           toACS calcTrigger <>
           toACS remainedBond
-  commands <-
-    testRule redemptionCalculationTrigger csd activeContracts Map.empty ()
-  let flattenedCommands = flattenCommands commands
+  flattenedCommands <- testTrigger redemptionCalculationTrigger csd activeContracts
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid calcTrigger
@@ -103,9 +101,7 @@ testWithNoRemainedBond = script do
     submit csd $ Script.exerciseCmd request RedemptionRequest_Accept
 
   let activeContracts = toACS calcTrigger
-  commands <-
-    testRule redemptionCalculationTrigger csd activeContracts Map.empty ()
-  let flattenedCommands = flattenCommands commands
+  flattenedCommands <- testTrigger redemptionCalculationTrigger csd activeContracts
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid calcTrigger

@@ -7,7 +7,6 @@
 module DA.RefApps.Bond.Triggers.InvestorSettlementTrigger where
 
 import Daml.Trigger
-import DA.Next.Map hiding (filter)
 import DA.Foldable
 
 import DA.RefApps.Bond.Settlement
@@ -17,8 +16,8 @@ import DA.Finance.Rule.Asset
 
 investorSettlementTrigger: Trigger ()
 investorSettlementTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = finalizeSettlements
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @InvestorSettlement,
@@ -29,13 +28,12 @@ investorSettlementTrigger = Trigger
   , heartbeat = None
   }
 
-finalizeSettlements: Party -> ACS -> Time -> Map CommandId [Command] -> () -> TriggerA ()
-finalizeSettlements party activeContracts _ _ () = do
-  let
-    investorSettlements = getContracts @InvestorSettlement activeContracts
-    auctionLockedCashes = getContracts @AuctionLockedCash activeContracts
-    assetSettlements = getContracts @AssetSettlement activeContracts
-    assetFungibles = getContracts @AssetFungible activeContracts
+finalizeSettlements: Party -> TriggerA () ()
+finalizeSettlements party = do
+  investorSettlements <- query @InvestorSettlement
+  auctionLockedCashes <- query @AuctionLockedCash
+  assetSettlements <- query @AssetSettlement
+  assetFungibles <- query @AssetFungible
 
   forA_
     investorSettlements
@@ -46,7 +44,7 @@ finalizeSettlement:
   [Contract AssetSettlement] ->
   [Contract AssetFungible] ->
   Contract InvestorSettlement ->
-  TriggerA ()
+  TriggerA () ()
 finalizeSettlement auctionLockedCashes assetSettlements assetFungibles settlementContract = do
   let
     (id, settlement) = settlementContract

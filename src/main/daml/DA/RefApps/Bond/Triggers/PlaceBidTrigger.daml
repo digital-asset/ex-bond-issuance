@@ -9,7 +9,6 @@ module DA.RefApps.Bond.Triggers.PlaceBidTrigger where
 import Daml.Script (Script, script)
 import qualified Daml.Script as Script
 import Daml.Trigger
-import DA.Next.Map qualified as Map
 import Daml.Trigger.Assert
 import DA.Assert
 import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
@@ -21,11 +20,12 @@ import DA.RefApps.Bond.Lock
 import DA.List.Total
 import DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger qualified as AuctFin
 import DA.RefApps.Bond.ContractUtils
+import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
 
 placeBidTrigger : Trigger ()
 placeBidTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = placeBidRule
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @PlaceBidBotTrigger,
@@ -37,15 +37,15 @@ placeBidTrigger = Trigger
   , heartbeat = None
   }
 
-placeBidRule : Party -> ACS -> Time -> Map.Map CommandId [Command] -> () -> TriggerA ()
-placeBidRule party activeContracts _ _ () = do
-  let mbLockRequest = head $ getContracts @PlaceBidBotTrigger activeContracts
-      assetDeposits = getContracts @AssetDeposit activeContracts
-      assetLockRules = getContracts @AssetLockRule activeContracts
-      assetSettlements = getContracts @AssetSettlement activeContracts
-      assetFungibles = getContracts @AssetFungible activeContracts
+placeBidRule : Party -> TriggerA () ()
+placeBidRule party = do
+  mbLockRequests <- query @PlaceBidBotTrigger
+  assetDeposits <- query @AssetDeposit
+  assetLockRules <- query @AssetLockRule
+  assetSettlements <- query @AssetSettlement
+  assetFungibles <- query @AssetFungible
 
-  whenSome mbLockRequest $ \(triggerCid, trigger) -> do
+  whenSome (head mbLockRequests) $ \(triggerCid, trigger) -> do
     let investorBondAssetSettlementCid =
           findAsset
             trigger.bondProvider
@@ -94,9 +94,7 @@ testPlaceBidTrigger = script do
           toACS issuance.rules.bank1CashFungibleCid <>
           toACS issuance.rules.bank1LockRuleCid <>
           toACS issuance.rules.bank1BondSettlementCid
-  commands <-
-    testRule placeBidTrigger bank1 activeContracts Map.empty ()
-  let flattenedCommands = flattenCommands commands
+  flattenedCommands <- testTrigger placeBidTrigger bank1 activeContracts
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid pbTrigger
@@ -118,9 +116,7 @@ testNothingHappensIfNoTrigger = script do
           toACS issuance.rules.bank1CashFungibleCid <>
           toACS issuance.rules.bank1LockRuleCid <>
           toACS issuance.rules.bank1BondSettlementCid
-  commands <-
-    testRule placeBidTrigger bank1 activeContracts Map.empty ()
-  let flattenedCommands = flattenCommands commands
+  flattenedCommands <- testTrigger  placeBidTrigger bank1 activeContracts
   length flattenedCommands === 0
 
 -- Helpers -------------------------

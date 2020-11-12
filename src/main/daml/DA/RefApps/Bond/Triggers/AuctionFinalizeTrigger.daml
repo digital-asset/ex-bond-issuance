@@ -9,7 +9,6 @@ module DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger where
 import Daml.Script (Script, script)
 import qualified Daml.Script as Script
 import Daml.Trigger
-import DA.Next.Map qualified as Maps
 import DA.Foldable hiding (length)
 import Daml.Trigger.Assert
 import DA.Assert
@@ -23,11 +22,12 @@ import DA.Optional
 import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 import DA.RefApps.Bond.Lock
+import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
 
 auctionFinalizeTrigger : Trigger ()
 auctionFinalizeTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = finalizeAuction
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @AuctionBid,
@@ -37,11 +37,11 @@ auctionFinalizeTrigger = Trigger
   , heartbeat = None
   }
 
-finalizeAuction : Party -> ACS -> Time -> Maps.Map CommandId [Command] -> () -> TriggerA ()
-finalizeAuction party activeContracts _ _ () = do
-  let bidContracts = getContracts @AuctionBid activeContracts
-      triggerContracts = getContracts @AuctionFinalizeBotTrigger activeContracts
-      participationContracts = getContracts @BidderParticipation activeContracts
+finalizeAuction : Party -> TriggerA () ()
+finalizeAuction party = do
+  bidContracts <- query @AuctionBid
+  triggerContracts <- query @AuctionFinalizeBotTrigger
+  participationContracts <- query @BidderParticipation
 
   forA_ triggerContracts $ \(triggerCid, trigger) -> do
     let matchingParticipationCids =
@@ -75,10 +75,8 @@ testAuctionWithNoBid = script do
   let activeContracts =
           toACS participation1 <> toACS participation2 <>
           toACS finalizeTrigger
-  commands <-
-    testRule auctionFinalizeTrigger auctionAgent activeContracts Maps.empty ()
+  flattenedCommands <- testTrigger auctionFinalizeTrigger auctionAgent activeContracts
 
-  let flattenedCommands = flattenCommands commands
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid finalizeTrigger
@@ -105,10 +103,7 @@ testAuctionWithSingleBid = script do
   let activeContracts =
           toACS participation1 <> toACS participation2 <>
           toACS bid1 <> toACS finalizeTrigger
-  commands <-
-    testRule auctionFinalizeTrigger auctionAgent activeContracts Maps.empty ()
-
-  let flattenedCommands = flattenCommands commands
+  flattenedCommands <- testTrigger auctionFinalizeTrigger auctionAgent activeContracts
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid finalizeTrigger
@@ -141,10 +136,7 @@ testAuctionWithTwoBids = script do
   let activeContracts =
           toACS participation1 <> toACS participation2 <>
           toACS bid1 <> toACS bid2 <> toACS finalizeTrigger
-  commands <-
-    testRule auctionFinalizeTrigger auctionAgent activeContracts Maps.empty ()
-
-  let flattenedCommands = flattenCommands commands
+  flattenedCommands <- testTrigger auctionFinalizeTrigger auctionAgent activeContracts
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid finalizeTrigger

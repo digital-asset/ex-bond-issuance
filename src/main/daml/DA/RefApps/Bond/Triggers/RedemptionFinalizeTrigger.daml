@@ -14,19 +14,19 @@ import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.ContractUtils
+import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
 import Daml.Trigger
 import Daml.Trigger.Assert
 import DA.Optional
 import DA.Assert
 import DA.List
-import DA.Next.Map qualified as Map
 import DA.Foldable hiding (length)
 
 
 redemptionFinalizeTrigger : Trigger ()
 redemptionFinalizeTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = redemptionFinalizeRule
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @RedemptionFinalizeBotTrigger,
@@ -37,12 +37,12 @@ redemptionFinalizeTrigger = Trigger
   , heartbeat = None
   }
 
-redemptionFinalizeRule : Party -> ACS -> Time -> Map.Map CommandId [Command] -> () -> TriggerA ()
-redemptionFinalizeRule party activeContracts _ _ () = do
-  let redemptionFinalizeTriggers = getContracts @RedemptionFinalizeBotTrigger activeContracts
-      assetSettlements = getContracts @AssetSettlement activeContracts
-      assetDeposits = getContracts @AssetDeposit activeContracts
-      assetFungibles = getContracts @AssetFungible activeContracts
+redemptionFinalizeRule : Party -> TriggerA () ()
+redemptionFinalizeRule party = do
+  redemptionFinalizeTriggers <- query @RedemptionFinalizeBotTrigger
+  assetSettlements <- query @AssetSettlement
+  assetDeposits <- query @AssetDeposit
+  assetFungibles <- query @AssetFungible
 
   forA_ redemptionFinalizeTriggers $ \(triggerCid, trigger) -> do
     let assetSettlementCid =
@@ -86,9 +86,7 @@ testFinalizeTrigger = script do
           toACS issuance.cashAssets.issuerCashDepositCid <>
           toACS issuance.rules.issuerCashSettlementCid <>
           toACS issuance.rules.issuerCashFungibleCid
-  commands <-
-    testRule redemptionFinalizeTrigger issuer activeContracts Map.empty ()
-  let flattenedCommands = flattenCommands commands
+  flattenedCommands <- testTrigger redemptionFinalizeTrigger issuer activeContracts
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid redemptionFinalize
@@ -116,9 +114,7 @@ testNoFinalizeTrigger = script do
           toACS issuance.cashAssets.issuerCashDepositCid <>
           toACS issuance.rules.issuerCashSettlementCid <>
           toACS issuance.rules.issuerCashFungibleCid
-  commands <-
-    testRule redemptionFinalizeTrigger issuer activeContracts Map.empty ()
-  let flattenedCommands = flattenCommands commands
+  flattenedCommands <- testTrigger redemptionFinalizeTrigger issuer activeContracts
   length flattenedCommands === 0
 
 redeem: Party -> Party -> MarketSetup.TestIssuance -> MarketSetup.SettleRequests -> MarketSetup.AssetsForRedemption -> ContractId AssetDeposit

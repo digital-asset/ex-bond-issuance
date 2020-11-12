@@ -9,7 +9,6 @@ module DA.RefApps.Bond.Triggers.CommissionTrigger where
 import Daml.Script (Script, script)
 import qualified Daml.Script as Script
 import Daml.Trigger
-import DA.Next.Map qualified as Maps
 import DA.Foldable hiding (length)
 import Daml.Trigger.Assert
 import DA.Assert
@@ -18,11 +17,12 @@ import DA.RefApps.Bond.Roles.IssuerRole
 import DA.Finance.Rule.Asset
 import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.ContractUtils
+import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
 
 commissionTrigger : Trigger ()
 commissionTrigger = Trigger
-  { initialize = const ()
-  , updateState = \_ _ _ -> ()
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
   , rule = commissionRule
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @CommissionBotTrigger,
@@ -33,12 +33,12 @@ commissionTrigger = Trigger
   , heartbeat = None
   }
 
-commissionRule : Party -> ACS -> Time -> Maps.Map CommandId [Command] -> () -> TriggerA ()
-commissionRule party activeContracts _ _ () = do
-  let triggerContracts = getContracts @CommissionBotTrigger activeContracts
-      fixedRateBondFacts = getContracts @FixedRateBondFact activeContracts
-      assetSettlements = getContracts @AssetSettlement activeContracts
-      assetFungibles = getContracts @AssetFungible activeContracts
+commissionRule : Party -> TriggerA () ()
+commissionRule party = do
+  triggerContracts <- query @CommissionBotTrigger
+  fixedRateBondFacts <- query @FixedRateBondFact
+  assetSettlements <- query @AssetSettlement
+  assetFungibles <- query @AssetFungible
 
   forA_ triggerContracts $ \(triggerCid, trigger) -> do
     let bondAssetSettlementCid =
@@ -85,10 +85,7 @@ testCommissionHappens = script do
                         toACS issuance.bondBundleData.assetFungibleCid <>
                         toACS issuance.bondBundleData.cashSettlementCid <>
                         toACS issuance.fixedRateBondFactCid
-  commands <-
-    testRule commissionTrigger issuer activeContracts Maps.empty ()
-
-  let flattenedCommands = flattenCommands commands
+  flattenedCommands <- testTrigger commissionTrigger issuer activeContracts
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid commissionBotTrigger
@@ -109,10 +106,7 @@ testNoCommissionIfNoTrigger = script do
                         toACS issuance.bondBundleData.assetFungibleCid <>
                         toACS issuance.bondBundleData.cashSettlementCid <>
                         toACS issuance.fixedRateBondFactCid
-  commands <-
-    testRule commissionTrigger issuer activeContracts Maps.empty ()
-
-  let flattenedCommands = flattenCommands commands
+  flattenedCommands <- testTrigger commissionTrigger issuer activeContracts
   length flattenedCommands === 0
 
 -- Helpers -------------------------
