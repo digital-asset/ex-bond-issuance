@@ -58,8 +58,7 @@ This option starts the application with wall clock time. Note that Navigator's t
     ```shell
     make automation
     ```
-3. Start the React UI
-    The UI will automatically open in a new browser tab at http://localhost:3000.
+3. Start the React UI. The UI will automatically open in a new browser tab at http://localhost:3000.
     ```shell
     make ui
     ```
