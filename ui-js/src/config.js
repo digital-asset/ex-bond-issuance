@@ -4,7 +4,7 @@
  */
 import uuidv4 from "uuid/v4";
 import * as jwt from "jsonwebtoken";
-import participants from 'participants.json';
+import participants from './participants.json';
 
 export const isLocalDev = process.env.NODE_ENV === 'development';
 

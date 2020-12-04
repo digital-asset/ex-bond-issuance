@@ -128,7 +128,7 @@ DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigg
 
 ```
 
-6. Run `make buildui`. In `ui-js`, add a symlink in node_modules for participants.json with `ln -s ../../participants.json node_modules/participants.json`. Run `npm run build` in `ui-js`. Then run `zip -r bondui.zip build/`. Upload `bondui.zip` to DABL to deploy the UI.
+6. Run `make buildui`. Copy `participants.json` into `ui-js/src` with `cp participants.json ui-js/src/`. Run `npm run build` in `ui-js`. Then run `zip -r bondui.zip build/`. Upload `bondui.zip` to DABL to deploy the UI.
 
 
 ## User Guide
