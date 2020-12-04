@@ -7,7 +7,7 @@ import { HashRouter, Route, Switch, Redirect } from "react-router-dom";
 import Layout from "./Layout/Layout";
 import Error from "../pages/error/Error";
 import Login from "../pages/login/Login";
-import { useUserState, useUserDispatch } from "../context/UserContext";
+import { useUserState, useUserDispatch, tryUrlBasedDablLogin } from "../context/UserContext";
 
 export default function App() {
   const userState = useUserState();
@@ -32,22 +32,7 @@ export default function App() {
 
   function RootRoute(props) {
     var userDispatch = useUserDispatch();
-
-    useEffect(() => {
-      const url = new URL(window.location.toString());
-      const token = url.searchParams.get('token');
-      if (token === null) {
-        return;
-      }
-      const party = url.searchParams.get('party');
-      if (party === null) {
-        throw Error("When 'token' is passed via URL, 'party' must be passed too.");
-      }
-      localStorage.setItem("daml.party", party);
-      localStorage.setItem("daml.token", token);
-
-      userDispatch({ type: "LOGIN_SUCCESS", token, party });
-    })
+    useEffect(() => tryUrlBasedDablLogin(userDispatch))
 
     return (
       <Redirect to="/app/report" />

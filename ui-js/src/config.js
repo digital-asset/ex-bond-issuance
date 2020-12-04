@@ -4,6 +4,7 @@
  */
 import uuidv4 from "uuid/v4";
 import * as jwt from "jsonwebtoken";
+import participants from 'participants.json';
 
 export const isLocalDev = process.env.NODE_ENV === 'development';
 
@@ -13,18 +14,37 @@ export const ledgerId = isLocalDev ? "bond-issuance" : host[0];
 let apiUrl = host.slice(1)
 apiUrl.unshift('api')
 
-export const httpBaseUrl = isLocalDev ? undefined : ('https://' + apiUrl.join('.') + (window.location.port ? ':' + window.location.port : '') + '/data/' + ledgerId + '/');
+export const httpBaseUrl =
+  isLocalDev
+  ? undefined
+  : `https://api.projectdabl.com/data/${ledgerId}/`;
 
 // Unfortunately, the development server of `create-react-app` does not proxy
 // websockets properly. Thus, we need to bypass it and talk to the JSON API
 // directly in development mode.
-export const wsBaseUrl = isLocalDev ? 'ws://localhost:7575/' : 'ws://bi-json-api:7575/';
+export const wsBaseUrl =
+    isLocalDev
+    ? 'ws://localhost:7575/'
+    : undefined;
 
 const applicationId = uuidv4();
 
-export const createToken = party => jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret")
+export function createToken(party) {
+    if (isLocalDev) {
+        console.log("Using token generated token.");
+        return jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
+    } else {
+        console.log("Using token from participant file.");
+        const participantInfo = participants.participants[lowerCaseFirst(party)];
+        return participantInfo.access_token;
+    }
+}
 
 let loginUrl = host.slice(1)
 loginUrl.unshift('login')
 
 export const dablLoginUrl = loginUrl.join('.') + (window.location.port ? ':' + window.location.port : '') + '/auth/login?ledgerId=' + ledgerId;
+
+function lowerCaseFirst(s) {
+    return s[0].toLowerCase() + s.slice(1);
+}

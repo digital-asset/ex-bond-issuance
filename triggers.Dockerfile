@@ -15,6 +15,7 @@ USER daml
 WORKDIR /home/daml
 
 COPY --chown=daml target/bond-issuance.dar /home/daml/
+COPY --chown=daml target/bond-issuance-triggers.dar /home/daml/
 COPY --chown=daml scripts/ /home/daml/scripts/
 
 ENV JAVA_TOOL_OPTIONS -Xmx128m

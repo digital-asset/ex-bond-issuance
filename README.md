@@ -78,6 +78,59 @@ Reset the application by following these steps:
 1.  Stop the app by following the steps in [Stopping the App](#stopping-the-app) section.
 2.  Start the app in [Docker](#option-1-start-app-with-docker) or [Standalone](#option-2-start-app-in-standalone-with-wall-clock-time) by following the steps in the relevant section.
 
+## Working with DABL
+
+1. As a first step, build the whole project:
+```
+make clean build
+```
+
+2. Upload the DARs to DABL (Deployments tab / Upload file, two files `target/bond-issuance*.dar`)
+
+3. Add the parties to DABL.
+    - See the example `parties.json` file for a list of parties.
+    - Update `parties.json` file with actual party IDs from DABL (Users tab).
+    - Download `participants.json` (Ledger settings tab).
+
+4. Run the market setup:
+```
+daml script \
+  --participant-config participants.json \
+  --json-api \
+  --dar target/bond-issuance.dar \
+  --script-name DA.RefApps.Bond.Test.MarketSetupScript:setupMarketWithParties \
+  --input-file parties.json
+```
+
+5. Run the triggers from the DABL UI:
+```
+Bank1:
+DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
+DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
+
+Bank2:
+DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
+DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
+
+Bank3:
+DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
+DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
+
+Issuer:
+DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger
+DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger
+
+AuctionAgent:
+DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger
+
+CSD:
+DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger
+
+```
+
+6. Run `make buildui`. In `ui-js`, add a symlink in node_modules for participants.json with `ln -s ../../participants.json node_modules/participants.json`. Run `npm run build` in `ui-js`. Then run `zip -r bondui.zip build/`. Upload `bondui.zip` to DABL to deploy the UI.
+
+
 ## User Guide
 
 This User Guide will take you step-by-step through the whole bond issuance, bond auction, and redemption process. It will lead you through all the major UI screens and data fields that you will need to use.

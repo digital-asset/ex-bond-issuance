@@ -7,7 +7,7 @@ import { Grid, CircularProgress, Typography, Button, TextField, Fade, Select, Me
 import { withRouter } from "react-router-dom";
 import useStyles from "./styles";
 import logo from "./logo.svg";
-import { useUserDispatch, loginUser, loginDablUser } from "../../context/UserContext";
+import { useUserDispatch, loginUser, redirectToDablLoginPage } from "../../context/UserContext";
 import { isLocalDev } from "../../config";
 
 function Login(props) {
@@ -38,7 +38,7 @@ function Login(props) {
               </Fade>
               {!isLocalDev &&
                 <>
-                  <Button className={classes.dablLoginButton} variant="contained" color="primary" size="large" onClick={loginDablUser}>
+                  <Button className={classes.dablLoginButton} variant="contained" color="primary" size="large" onClick={redirectToDablLoginPage}>
                     Log in with DABL
                   </Button>
                   <Typography>

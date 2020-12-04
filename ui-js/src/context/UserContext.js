@@ -80,8 +80,24 @@ function loginUser(dispatch, party, userToken, history, setIsLoading, setError) 
   }
 }
 
-const loginDablUser = () => {
+const redirectToDablLoginPage = () => {
   window.location.assign(`https://${dablLoginUrl}`);
+}
+
+function tryUrlBasedDablLogin(userDispatch) {
+  const url = new URL(window.location.toString());
+  const token = url.searchParams.get('token');
+  if (token === null) {
+    return;
+  }
+  const party = url.searchParams.get('party');
+  if (party === null) {
+    throw Error("When 'token' is passed via URL, 'party' must be passed too.");
+  }
+  localStorage.setItem("daml.party", party);
+  localStorage.setItem("daml.token", token);
+
+  userDispatch({ type: "LOGIN_SUCCESS", token, party });
 }
 
 function signOut(event, dispatch, history) {
@@ -93,4 +109,4 @@ function signOut(event, dispatch, history) {
   history.push("/login");
 }
 
-export { UserProvider, useUserState, useUserDispatch, loginUser, loginDablUser, signOut };
+export { UserProvider, useUserState, useUserDispatch, loginUser, tryUrlBasedDablLogin, redirectToDablLoginPage, signOut };
