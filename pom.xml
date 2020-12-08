@@ -249,11 +249,15 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.10.0</version>
+                <version>3.14.0</version>
                 <configuration>
                     <excludeRoots>
                         ${project.build.directory}/generated-sources/main/java
                     </excludeRoots>
+                    <rulesets>
+                        <ruleset>/rulesets/java/maven-pmd-plugin-default.xml</ruleset>
+                        <ruleset>${project.basedir}/pmd_rules.xml</ruleset>
+                    </rulesets>
                 </configuration>
                 <executions>
                     <execution>
