@@ -252,7 +252,7 @@
                 <version>3.14.0</version>
                 <configuration>
                     <excludeRoots>
-                        ${project.build.directory}/generated-sources/main/java
+                        ${project.build.directory}/generated-sources
                     </excludeRoots>
                     <rulesets>
                         <ruleset>/rulesets/java/maven-pmd-plugin-default.xml</ruleset>
