@@ -20,8 +20,8 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <junit.version>4.13.1</junit.version>
-        <daml-sdk.version>1.7.0</daml-sdk.version>
-        <daml-sdk.damlversion>1.7.0</daml-sdk.damlversion>
+        <daml-sdk.version>1.8.0</daml-sdk.version>
+        <daml-sdk.damlversion>1.8.0</daml-sdk.damlversion>
         <daml-plugin.version>0.1.4</daml-plugin.version>
     </properties>
     <dependencies>
