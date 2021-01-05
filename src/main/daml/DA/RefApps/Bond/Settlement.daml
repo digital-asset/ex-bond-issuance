@@ -77,7 +77,7 @@ template InvestorSettlement
           (_, payoutInfos) <- foldlA (\(remaining, redemptionPayouts) settleRequestCid -> do
 
             -- create DvP
-            settleRequest <- fetch $ head settleRequestCids
+            settleRequest <- fetch settleRequestCid
             let firstCashAssetCid = head remaining
             firstCashAsset <- fetch firstCashAssetCid
             mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail remaining) settleRequest.cashAmountToPay cashAssetFungible
