@@ -34,6 +34,8 @@ import org.junit.rules.TestRule;
 
 public class BondIssuanceIT {
   private static final Path RELATIVE_DAR_PATH = Paths.get("./target/bond-issuance.dar");
+  private static final Path RELATIVE_TRIGGER_DAR_PATH =
+      Paths.get("./target/bond-issuance-triggers.dar");
 
   private static final Party ISSUER_PARTY = new Party("Issuer");
   private static final Party CSD_PARTY = new Party("CSD");
@@ -264,7 +266,7 @@ public class BondIssuanceIT {
   private Trigger trigger(String triggerName, Party party) {
     return Trigger.builder()
         .ledgerPort(sandbox::getSandboxPort)
-        .dar(RELATIVE_DAR_PATH)
+        .dar(RELATIVE_TRIGGER_DAR_PATH)
         .ledgerHost("localhost")
         .triggerName(triggerName)
         .party(party)

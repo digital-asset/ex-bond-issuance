@@ -7,6 +7,7 @@ SDK_VERSION := $(shell grep 'sdk-version' daml.yaml | cut -d ' ' -f 2)
 build:
 	python scripts/getfinlib.py $(SDK_VERSION)
 	daml build -o target/bond-issuance.dar
+	cd triggers && daml build -o ../target/bond-issuance-triggers.dar
 
 .PHONY: clean
 clean:
@@ -34,7 +35,7 @@ start:
 automation:
 	JAVA_TOOL_OPTIONS=-Xmx128m \
 	scripts/waitForSandbox.sh localhost 6865 && \
-  scripts/startTriggers.sh localhost 6865 target/bond-issuance.dar
+  scripts/startTriggers.sh localhost 6865 target/bond-issuance-triggers.dar
 
 .PHONY: docker
 docker: buildui

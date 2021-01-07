@@ -21,7 +21,7 @@ fi
 
 SANDBOX_HOST="${1}"
 SANDBOX_PORT="${2}"
-DAR_FILE="${3:-/home/daml/bond-issuance.dar}"
+DAR_FILE="${3:-/home/daml/bond-issuance-triggers.dar}"
 
 run_trigger() {
   local trigger_name="$1"

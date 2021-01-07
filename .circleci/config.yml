@@ -80,6 +80,13 @@ jobs:
           path: target/surefire-reports
       - store_artifacts:
           path: target/surefire-reports
+      - run:
+          command: |
+            mkdir pmd
+            mv target/pmd.xml pmd
+          when: always
+      - store_artifacts:
+          path: pmd
       - persist_to_workspace:
           root: target
           paths:
@@ -156,6 +163,7 @@ jobs:
             export PATH=${HOME}/.yarn/bin:${PATH}
             make buildui
             yarn install
+            yarn build
             # recurse all directories with a package.json and run yarn install on them to resolve dependencies
             find . -type f \( ! -path '*node_modules*' \) -name package.json | while read hit ; do yarn install --cwd $(dirname "$hit") ; done
       - run:
