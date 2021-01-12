@@ -37,6 +37,3 @@ automation:
 	scripts/waitForSandbox.sh localhost 6865 && \
   scripts/startTriggers.sh localhost 6865 target/bond-issuance-triggers.dar
 
-.PHONY: docker
-docker: buildui
-	docker-compose up --build
