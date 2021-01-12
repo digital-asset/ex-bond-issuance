@@ -35,11 +35,6 @@
             "port": 443,
             "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRhYmwtMjMyZWRlOGItYjEzOC00NDIwLTk0YWUtNjc1YjgwNzcyNmRjIn0.eyJpc3MiOiJwcm9qZWN0ZGFibC5jb20vbG9naW4iLCJzdWIiOiJnb29nbGUtYXBwc3xnYWJvckBkaWdpdGFsYXNzZXQuY29tIiwiZXhwIjoxNjA3MTUyNTc3LCJodHRwczovL2RhbWwuY29tL2xlZGdlci1hcGkiOnsiYWN0QXMiOlsibGVkZ2VyLXBhcnR5LWVhMTA0OTY4LWVlNjQtNDY4MS05NWI4LWFmNzIwZDFlZjRlMCJdLCJhcHBsaWNhdGlvbklkIjoiREFCTCIsImxlZGdlcklkIjoiZ3VuM3NzZXZyYmFkcnVmMyJ9LCJvd25lciI6InVzZXItZ3JhbnQtZjJlYjhlNDQtODBlNC00NzU0LTlhZTAtYWQzOTM0MTRmYjBjIiwicGFydHlOYW1lIjoiQ2VudHJhbEJhbmsiLCJyaWdodHMiOlsicmVhZCIsIndyaXRlOmNyZWF0ZSIsIndyaXRlOmV4ZXJjaXNlIl19.KXzjxOcPmVJgskmLnKJ9R17Etw3pm_hSjsS38zesD2inT5a0ge7PY2y6Lf5YyBNP6VU9pwjdrUs-Km090-dlk8X6oFm2RE_nAKUAfDsV1Uz-0HYTfeOOZwi94AVT8WH_bO0JgOhOmS-MfB8wDPqYjH1HXn6pyk0pPT4r6dP8iF0"
         },
-        "gaborHosszu": {
-            "host": "https://api.projectdabl.com/data/gun3ssevrbadruf3",
-            "port": 443,
-            "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRhYmwtMjMyZWRlOGItYjEzOC00NDIwLTk0YWUtNjc1YjgwNzcyNmRjIn0.eyJpc3MiOiJwcm9qZWN0ZGFibC5jb20vbG9naW4iLCJzdWIiOiJnb29nbGUtYXBwc3xnYWJvckBkaWdpdGFsYXNzZXQuY29tIiwiZXhwIjoxNjA3MTUyNTc3LCJodHRwczovL2RhbWwuY29tL2xlZGdlci1hcGkiOnsiYWN0QXMiOlsibGVkZ2VyLXBhcnR5LTM4YzdhMWUwLTQzMjQtNDQxOS1hMzU0LTI1MGVhN2E1NWE0MSJdLCJhcHBsaWNhdGlvbklkIjoiREFCTCIsImxlZGdlcklkIjoiZ3VuM3NzZXZyYmFkcnVmMyJ9LCJvd25lciI6InVzZXItZ3JhbnQtZjJlYjhlNDQtODBlNC00NzU0LTlhZTAtYWQzOTM0MTRmYjBjIiwicGFydHlOYW1lIjoiR2Fib3IgSG9zc3p1IiwicmlnaHRzIjpbInJlYWQiLCJ3cml0ZTpjcmVhdGUiLCJ3cml0ZTpleGVyY2lzZSJdfQ.AYh2VbcU3yJmHFN06g5NWDUCgKgTQhlHh4BJdnlGzPuX7prO6rn8Ih5E43P0GaqQxCOklUpDyogELBUs1pSMEjNvAK0al0z09p9yY_OKgfKVjbl6qEiChEkragMt5QrXQM_EPlFEL6MlgCncLt-LASou4d4hHKdUSDnwLsxVfOI"
-        },
         "issuer": {
             "host": "https://api.projectdabl.com/data/gun3ssevrbadruf3",
             "port": 443,
@@ -63,7 +58,6 @@
         "ledger-party-8ca03db3-b535-4b02-ba74-4be7d966b87a": "bank3",
         "ledger-party-c22e92c3-256e-4cd2-a415-87365cac1f45": "cSD",
         "ledger-party-ea104968-ee64-4681-95b8-af720d1ef4e0": "centralBank",
-        "ledger-party-38c7a1e0-4324-4419-a354-250ea7a55a41": "gaborHosszu",
         "ledger-party-cb628712-e195-4f92-b7b1-5b5ef2087101": "issuer",
         "ledger-party-3b686784-dd29-45b2-b88c-dae4c06e6400": "operator",
         "ledger-party-9aa51b0c-900c-4db9-943d-e9946199a65d": "regulator"

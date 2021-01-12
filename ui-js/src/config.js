@@ -48,3 +48,10 @@ export const dablLoginUrl = loginUrl.join('.') + (window.location.port ? ':' + w
 function lowerCaseFirst(s) {
     return s[0].toLowerCase() + s.slice(1);
 }
+
+export function capitalize(s) {
+if (typeof s !== 'string') {
+        return "";
+    }
+    return s.charAt(0).toUpperCase() + s.slice(1)
+}

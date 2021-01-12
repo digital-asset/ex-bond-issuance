@@ -78,18 +78,18 @@ Reset the application by following these steps:
 1.  Stop the app by following the steps in [Stopping the App](#stopping-the-app) section.
 2.  Start the app in [Docker](#option-1-start-app-with-docker) or [Standalone](#option-2-start-app-in-standalone-with-wall-clock-time) by following the steps in the relevant section.
 
-## Working with DABL
+## Working with DAML Hub
 
 1. As a first step, build the whole project:
 ```
 make clean build
 ```
 
-2. Upload the DARs to DABL (Deployments tab / Upload file, two files `target/bond-issuance*.dar`)
+2. Upload the DARs to DAML Hub (Deployments tab / Upload file, two files `target/bond-issuance*.dar`)
 
-3. Add the parties to DABL.
+3. Add the parties to DAML Hub.
     - See the example `parties.json` file for a list of parties.
-    - Update `parties.json` file with actual party IDs from DABL (Users tab).
+    - Update `parties.json` file with actual party IDs from DAML Hub (Users tab).
     - Download `participants.json` (Ledger settings tab).
 
 4. Run the market setup:
@@ -102,7 +102,7 @@ daml script \
   --input-file parties.json
 ```
 
-5. Run the triggers from the DABL UI:
+5. Run the triggers from the DAML Hub UI:
 ```
 Bank1:
 DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
@@ -128,7 +128,7 @@ DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigg
 
 ```
 
-6. Run `make buildui`. Copy `participants.json` into `ui-js/src` with `cp participants.json ui-js/src/`. Run `npm run build` in `ui-js`. Then run `zip -r bondui.zip build/`. Upload `bondui.zip` to DABL to deploy the UI.
+6. Run `make buildui`. Copy `participants.json` into `ui-js/src` with `cp participants.json ui-js/src/`. Run `npm run build` in `ui-js`. Then run `zip -r bondui.zip build/`. Upload `bondui.zip` to DAML Hub to deploy the UI.
 
 
 ## User Guide
