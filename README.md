@@ -14,7 +14,6 @@ Issuing a new bond is currently a fragmented process. A Distributed Ledger Techn
 
 Be sure you have the following installed:
 - [DAML SDK](https://docs.daml.com/)
-- Docker
 - Java
 - Yarn
 - Node v12
@@ -33,23 +32,7 @@ make build
 
 **Note:** Make sure you have built the application (see: [Build the App](#build-the-app)).
 
-There are two options:
-
-#### Option 1: Start App with Docker
-
-1. Type:
-    ```shell
-    make docker
-    ```
-2. Open the new React UI with a browser at http://localhost:3000.
-
-We also keep the deprecated Navigator available at http://localhost:7500.
-
-**Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 5 GB).
-
-#### Option 2: Start App in Standalone with Wall Clock Time
-
-This option starts the application with wall clock time. Note that Navigator's time widget won't work in this mode as one cannot modify the time.
+These commands start the application with wall clock time. Note that Navigator's time widget won't work in this mode as one cannot modify the time.
 1. Start the DAML Sandbox. Type:
     ```shell
     make start
@@ -65,18 +48,16 @@ This option starts the application with wall clock time. Note that Navigator's t
 
 ### Stopping the App
 
-#### Stopping Dockerized Run
-1. Stop the Docker containers or bots by pressing **Ctrl+C**. (Alternatively, you can also stop it by typing `docker-compose down`.)
-
-#### Stopping Standalone Run
 1. Stop the bots by pressing **Ctrl+C**.
 2. Stop the Sandbox by pressing **Ctrl+C** in the DAML assistant.
 3. Stop the ui by pressing **Ctrl+C**.
+
+
 ### Resetting the Prototype
 
 Reset the application by following these steps:
 1.  Stop the app by following the steps in [Stopping the App](#stopping-the-app) section.
-2.  Start the app in [Docker](#option-1-start-app-with-docker) or [Standalone](#option-2-start-app-in-standalone-with-wall-clock-time) by following the steps in the relevant section.
+2.  Start the app by following the steps in [Starting the App](#starting-the-app) section.
 
 ## Working with DAML Hub
 

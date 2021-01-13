@@ -66,7 +66,7 @@ function Login(props) {
                 fullWidth
               >
                 { isLocalDev ?
-                      [<MenuItem value={"Operator"}>Operator</MenuItem>,
+                      [<MenuItem id="1" value={"Operator"}>Operator</MenuItem>,
                        <MenuItem value={"Regulator"}>Regulator</MenuItem>,
                        <MenuItem value={"AuctionAgent"}>AuctionAgent</MenuItem>,
                        <MenuItem value={"Bank1"}>Bank1</MenuItem>,
