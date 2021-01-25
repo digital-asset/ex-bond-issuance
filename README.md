@@ -109,7 +109,7 @@ DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigg
 
 ```
 
-6. Run `make buildui`. Copy `participants.json` into `ui-js/src` with `cp participants.json ui-js/src/`. Run `npm run build` in `ui-js`. Then run `zip -r bondui.zip build/`. Upload `bondui.zip` to DAML Hub to deploy the UI.
+6. Run `make buildui`. Copy `participants.json` into `ui/src` with `cp participants.json ui/src/`. Run `npm run build` in `ui`. Then run `zip -r bondui.zip build/`. Upload `bondui.zip` to DAML Hub to deploy the UI.
 
 
 ## User Guide

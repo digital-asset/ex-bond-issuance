@@ -14,18 +14,18 @@ clean:
 	rm -rf target
 	yarn cache clean
 	rm -rf daml.js
-	rm -rf ui-js/build
-	rm -rf ui-js/node_modules/
+	rm -rf ui/build
+	rm -rf ui/node_modules/
 	rm -rf .daml
 
 .PHONY: buildui
 buildui:
 	daml codegen js target/*.dar -o daml.js
-	cd ui-js && yarn install
+	cd ui && yarn install
 
 .PHONY: ui
 ui: buildui
-	cd ui-js && yarn start
+	cd ui && yarn start
 
 .PHONY: start
 start:
