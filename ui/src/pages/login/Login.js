@@ -139,16 +139,16 @@ function Login(props) {
             <label for="avatar">Upload parties.json (tokens):</label>
           </div>
           <div>
-            <input type='file' value='' onChange={e => {
+            <input type='file' value='' onChange={changeEvent => {
                   const reader = new FileReader();
-                  reader.onload = function(event) {
-                      if (event.target && typeof event.target.result === 'string') {
-                        handlePartiesJSONFileUpload(event.target.result);
+                  reader.onload = function(loadEvent) {
+                      if (loadEvent.target && typeof loadEvent.target.result === 'string') {
+                        handlePartiesJSONFileUpload(loadEvent.target.result);
                       }
                     };
 
-                  if (e.target && e.target.files) {
-                    reader.readAsText(e.target.files[0]);
+                  if (changeEvent.target && changeEvent.target.files) {
+                    reader.readAsText(changeEvent.target.files[0]);
                   }
                 }}/>
           </div>

@@ -50,10 +50,6 @@ loginUrl.unshift('login')
 
 export const dablLoginUrl = loginUrl.join('.') + (window.location.port ? ':' + window.location.port : '') + '/auth/login?ledgerId=' + ledgerId;
 
-function lowerCaseFirst(s) {
-    return s[0].toLowerCase() + s.slice(1);
-}
-
 export function capitalize(s) {
 if (typeof s !== 'string') {
         return "";
@@ -61,9 +57,9 @@ if (typeof s !== 'string') {
     return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-export const handlePartiesJSONFileUpload = async (contents) => {
+export const handlePartiesJSONFileUpload = async (fileContent) => {
     try {
-        storeParties(JSON.parse(contents));
+        storeParties(JSON.parse(fileContent));
     } catch (e) {
         alert(`Parties JSON file upload error: ${e}`);
     }
@@ -71,12 +67,12 @@ export const handlePartiesJSONFileUpload = async (contents) => {
 
 const PARTIES_STORAGE_KEY = 'imported_parties';
 
-function storeParties(parties) {
-    if (isParties(parties)) {
+function storeParties(partiesJson) {
+    if (isWellFormedPartiesJson(partiesJson)) {
         // Note: We do not filter parties based on rights.
-        localStorage.setItem(PARTIES_STORAGE_KEY, JSON.stringify(parties));
+        localStorage.setItem(PARTIES_STORAGE_KEY, JSON.stringify(partiesJson));
     } else {
-        console.error("Did not find valid parties file; aborting store:", parties);
+        console.error("Did not find valid parties file; aborting store:", partiesJson);
         throw new Error("Did you select the correct parties.json file?");
     }
 }
@@ -89,16 +85,29 @@ function retrieveParties() {
     }
 
     try {
-        const parties = JSON.parse(partiesRaw);
-        if (isParties(parties)) {
-            // validateParties(parties);
-
-            return parties;
+        const partiesJson = JSON.parse(partiesRaw);
+        if (isWellFormedPartiesJson(partiesJson)) {
+            // Note: we do not validate the JSON (e.g. it is from the same ledger).
+            return partiesJson;
         } else {
-            throw new Error('Not a parties file');
+            console.error(`The entity stored at ${PARTIES_STORAGE_KEY} key is not a parties.json file.`);
+            throw new Error(`The entity stored at ${PARTIES_STORAGE_KEY} key is not a parties.json file.`);
         }
-    } catch(err) {
-        console.error("Could not parse parties: ", err);
+    } catch(error) {
+        console.error("Could not parse parties: ", error);
+    }
+}
+
+function isWellFormedPartiesJson(partiesJson) {
+    if (partiesJson instanceof Array) {
+        // True if any element of the array is not a PartyDetails
+        const invalidPartyDetail = partiesJson.reduce(
+            (invalid, party) => invalid || !isPartyDetails(party),
+            false
+        );
+        return !invalidPartyDetail;
+    } else {
+        return false;
     }
 }
 
@@ -108,18 +117,4 @@ function isPartyDetails(partyDetails) {
             typeof partyDetails.party === 'string' &&
             typeof partyDetails.partyName === 'string' &&
             typeof partyDetails.token === 'string'
-}
-
-
-function isParties(parties) {
-    if (parties instanceof Array) {
-        // True if any element of the array is not a PartyDetails
-        const invalidPartyDetail = parties.reduce(
-            (invalid, party) => invalid || !isPartyDetails(party),
-            false
-        );
-        return !invalidPartyDetail;
-    } else {
-        return false;
-    }
 }
