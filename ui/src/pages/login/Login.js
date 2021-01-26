@@ -8,7 +8,7 @@ import { withRouter } from "react-router-dom";
 import useStyles from "./styles";
 import logo from "./logo.svg";
 import { useUserDispatch, loginUser, redirectToDablLoginPage } from "../../context/UserContext";
-import { isLocalDev, capitalize } from "../../config";
+import { isLocalDev, capitalize, handlePartiesJSONFileUpload } from "../../config";
 import participants from "../../participants.json";
 
 function Login(props) {
@@ -133,6 +133,25 @@ function Login(props) {
                   </Button>}
               </div>
             </React.Fragment>
+        </div>
+        <div style={{marginTop: "30%"}}>
+          <div>
+            <label for="avatar">Upload parties.json (tokens):</label>
+          </div>
+          <div>
+            <input type='file' value='' onChange={e => {
+                  const reader = new FileReader();
+                  reader.onload = function(event) {
+                      if (event.target && typeof event.target.result === 'string') {
+                        handlePartiesJSONFileUpload(event.target.result);
+                      }
+                    };
+
+                  if (e.target && e.target.files) {
+                    reader.readAsText(e.target.files[0]);
+                  }
+                }}/>
+          </div>
         </div>
       </div>
     </Grid>

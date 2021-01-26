@@ -4,7 +4,6 @@
  */
 import uuidv4 from "uuid/v4";
 import * as jwt from "jsonwebtoken";
-import participants from './participants.json';
 
 export const isLocalDev = process.env.NODE_ENV === 'development';
 
@@ -31,12 +30,18 @@ const applicationId = uuidv4();
 
 export function createToken(party) {
     if (isLocalDev) {
-        console.log("Using token generated token.");
-        return jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
+        const token = jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
+        console.log(`Using token generated token: ${token}`);
+        return token;
     } else {
-        console.log("Using token from participant file.");
-        const participantInfo = participants.participants[lowerCaseFirst(party)];
-        return participantInfo.access_token;
+        console.log("Using token from parties.json file.");
+        const parties = retrieveParties();
+        const partyInfo = parties.find(o => o.partyName === party);
+        if (partyInfo && partyInfo.token) {
+            return partyInfo.token;
+        }
+        alert(`Warning: no credentials available for ${party}.`);
+        return undefined;
     }
 }
 
@@ -54,4 +59,67 @@ if (typeof s !== 'string') {
         return "";
     }
     return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+export const handlePartiesJSONFileUpload = async (contents) => {
+    try {
+        storeParties(JSON.parse(contents));
+    } catch (e) {
+        alert(`Parties JSON file upload error: ${e}`);
+    }
+}
+
+const PARTIES_STORAGE_KEY = 'imported_parties';
+
+function storeParties(parties) {
+    if (isParties(parties)) {
+        // Note: We do not filter parties based on rights.
+        localStorage.setItem(PARTIES_STORAGE_KEY, JSON.stringify(parties));
+    } else {
+        console.error("Did not find valid parties file; aborting store:", parties);
+        throw new Error("Did you select the correct parties.json file?");
+    }
+}
+
+function retrieveParties() {
+    const partiesRaw = localStorage.getItem(PARTIES_STORAGE_KEY);
+
+    if (!partiesRaw) {
+        return undefined;
+    }
+
+    try {
+        const parties = JSON.parse(partiesRaw);
+        if (isParties(parties)) {
+            // validateParties(parties);
+
+            return parties;
+        } else {
+            throw new Error('Not a parties file');
+        }
+    } catch(err) {
+        console.error("Could not parse parties: ", err);
+    }
+}
+
+// Note: we do not look for rights / owner fields.
+function isPartyDetails(partyDetails) {
+    return  typeof partyDetails.ledgerId === 'string' &&
+            typeof partyDetails.party === 'string' &&
+            typeof partyDetails.partyName === 'string' &&
+            typeof partyDetails.token === 'string'
+}
+
+
+function isParties(parties) {
+    if (parties instanceof Array) {
+        // True if any element of the array is not a PartyDetails
+        const invalidPartyDetail = parties.reduce(
+            (invalid, party) => invalid || !isPartyDetails(party),
+            false
+        );
+        return !invalidPartyDetail;
+    } else {
+        return false;
+    }
 }
