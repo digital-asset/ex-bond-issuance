@@ -49,11 +49,11 @@ data BondIssuanceParties =
 setupMarketWithDablParties : DablParties -> Script ()
 setupMarketWithDablParties partiesJson = do
   auctionAgent <- getPartyId' "AuctionAgent"
-  csd <- getPartyId' "Bank1"
-  bank1 <- getPartyId' "Bank2"
-  bank2 <- getPartyId' "Bank3"
-  bank3 <- getPartyId' "Issuer"
-  issuer <- getPartyId' "AuctionAgent"
+  csd <- getPartyId' "CSD"
+  bank1 <- getPartyId' "Bank1"
+  bank2 <- getPartyId' "Bank2"
+  bank3 <- getPartyId' "Bank3"
+  issuer <- getPartyId' "Issuer"
   centralBank <- getPartyId' "CentralBank"
   regulator <- getPartyId' "Regulator"
   operator <- getPartyId' "Operator"

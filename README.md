@@ -68,7 +68,7 @@ make clean build
 
 2. Upload the DARs to DAML Hub (Deployments tab / Upload file, two files `target/bond-issuance*.dar`)
 
-3. Add the parties to DAML Hub.
+3. Add the parties to DAML Hub: AuctionAgent, CSD, Bank1, Bank2, Bank3, Issuer, CentralBank, Regulator, Operator.
     - Download `participants.json` (Ledger settings tab).
     - Download `parties.json` (Users tab).
 
