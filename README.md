@@ -108,7 +108,9 @@ DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigg
 
 ```
 
-6. Run `make packui`. Upload `ui/bondui.zip` to DAML Hub to deploy the UI.
+6. Run `make packui`. Upload `ui/bondui.zip` to DAML Hub to deploy the UI. Upload `parties.json` to the UI using the button on the login screen (Upload parties.json (tokens)).
+
+Note: parties.json needs to be re-uploaded to the UI every time the tokens change.
 
 
 ## User Guide
