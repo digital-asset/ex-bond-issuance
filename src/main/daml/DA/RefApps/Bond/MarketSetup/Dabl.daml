@@ -18,7 +18,7 @@ type DablParties = [PartyDetails]
 getPartyId : ActionFail m => DablParties -> Text -> m Party
 getPartyId partyDetailsList name = do
     partyDetails <- fromSomeNote notFoundError $ find withName partyDetailsList
-    fromSomeNote cannotCreatePartyError $ partyFromText partyDetails.partyName
+    fromSomeNote cannotCreatePartyError $ partyFromText partyDetails.party
   where
     withName = \partyDetails -> partyDetails.partyName == name
     notFoundError = "Party with name " <> name <> " not found."

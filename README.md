@@ -66,7 +66,7 @@ Reset the application by following these steps:
 make clean build
 ```
 
-2. Upload the DARs to DAML Hub (Deployments tab / Upload file, two files `target/bond-issuance*.dar`)
+2. Upload the DARs to DAML Hub (Deployments tab / Upload file, two files `target/bond-issuance*.dar`), deploy the model (bond-issuance.dar, Deploy Instance).
 
 3. Add the parties to DAML Hub: AuctionAgent, CSD, Bank1, Bank2, Bank3, Issuer, CentralBank, Regulator, Operator.
     - Download `participants.json` (Ledger settings tab).
@@ -78,7 +78,7 @@ daml script \
   --participant-config participants.json \
   --json-api \
   --dar target/bond-issuance.dar \
-  --script-name DA.RefApps.Bond.Test.MarketSetupScript:setupMarketWithDablParties \
+  --script-name DA.RefApps.Bond.MarketSetup.MarketSetupScript:setupMarketWithDablParties \
   --input-file parties.json
 ```
 
