@@ -4,7 +4,7 @@
 --
 
 {-# LANGUAGE ApplicativeDo #-}
-module DA.RefApps.Bond.Test.MarketSetup where
+module DA.RefApps.Bond.MarketSetup.MarketSetup where
 
 import DA.Date
 import DA.Time

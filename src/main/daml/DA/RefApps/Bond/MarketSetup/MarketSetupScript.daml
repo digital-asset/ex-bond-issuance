@@ -3,7 +3,7 @@
 -- SPDX-License-Identifier: Apache-2.0
 --
 
-module DA.RefApps.Bond.Test.MarketSetupScript where
+module DA.RefApps.Bond.MarketSetup.MarketSetupScript where
 
 import Prelude hiding (getParty)
 import Daml.Script
@@ -15,6 +15,7 @@ import DA.RefApps.Bond.Roles.BankRole
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.Roles.AuctionAgentRole
 import DA.RefApps.Bond.Test.FullScenario
+import DA.RefApps.Bond.MarketSetup.Dabl
 
 getParty : Text -> Script Party
 getParty name = allocatePartyWithHint name (PartyIdHint name)
@@ -44,6 +45,22 @@ data BondIssuanceParties =
     centralBank : Party
     regulator : Party
     operator : Party
+
+setupMarketWithDablParties : DablParties -> Script ()
+setupMarketWithDablParties partiesJson = do
+  auctionAgent <- getPartyId' "AuctionAgent"
+  csd <- getPartyId' "Bank1"
+  bank1 <- getPartyId' "Bank2"
+  bank2 <- getPartyId' "Bank3"
+  bank3 <- getPartyId' "Issuer"
+  issuer <- getPartyId' "AuctionAgent"
+  centralBank <- getPartyId' "CentralBank"
+  regulator <- getPartyId' "Regulator"
+  operator <- getPartyId' "Operator"
+
+  setupMarketWithParties BondIssuanceParties with ..
+ where
+  getPartyId' = getPartyId partiesJson
 
 setupMarketWithParties : BondIssuanceParties -> Script ()
 setupMarketWithParties parties@BondIssuanceParties{..} = do

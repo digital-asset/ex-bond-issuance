@@ -8,8 +8,7 @@ import { withRouter } from "react-router-dom";
 import useStyles from "./styles";
 import logo from "./logo.svg";
 import { useUserDispatch, loginUser, redirectToDablLoginPage } from "../../context/UserContext";
-import { isLocalDev, capitalize, handlePartiesJSONFileUpload } from "../../config";
-import participants from "../../participants.json";
+import { isLocalDev, handlePartiesJSONFileUpload } from "../../config";
 
 function Login(props) {
   var classes = useStyles();
@@ -65,22 +64,16 @@ function Login(props) {
                 }}
                 fullWidth
               >
-                { isLocalDev ?
-                      [<MenuItem id="1" value={"Operator"}>Operator</MenuItem>,
-                       <MenuItem value={"Regulator"}>Regulator</MenuItem>,
-                       <MenuItem value={"AuctionAgent"}>AuctionAgent</MenuItem>,
-                       <MenuItem value={"Bank1"}>Bank1</MenuItem>,
-                       <MenuItem value={"Bank2"}>Bank2</MenuItem>,
-                       <MenuItem value={"Bank3"}>Bank3</MenuItem>,
-                       <MenuItem value={"CSD"}>CSD</MenuItem>,
-                       <MenuItem value={"Issuer"}>Issuer</MenuItem>,
-                       <MenuItem value={"CentralBank"}>CentralBank</MenuItem>]
-                    : Object.entries(participants.party_participants)
-                            .map(p =>
-                              <MenuItem value={capitalize(p[1])}>{capitalize(p[1])}</MenuItem>
-                              )
-                  }
-                </Select>
+                <MenuItem id="1" value={"Operator"}>Operator</MenuItem>,
+                <MenuItem value={"Regulator"}>Regulator</MenuItem>,
+                <MenuItem value={"AuctionAgent"}>AuctionAgent</MenuItem>,
+                <MenuItem value={"Bank1"}>Bank1</MenuItem>,
+                <MenuItem value={"Bank2"}>Bank2</MenuItem>,
+                <MenuItem value={"Bank3"}>Bank3</MenuItem>,
+                <MenuItem value={"CSD"}>CSD</MenuItem>,
+                <MenuItem value={"Issuer"}>Issuer</MenuItem>,
+                <MenuItem value={"CentralBank"}>CentralBank</MenuItem>
+              </Select>
             </FormControl>
               <TextField
                 id="password"

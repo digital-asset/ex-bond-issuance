@@ -1,0 +1,25 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+module DA.RefApps.Bond.MarketSetup.Dabl where
+
+import DA.Optional.Total
+
+data PartyDetails =
+    PartyDetails with
+        party : Text
+        partyName : Text
+  deriving (Eq, Show)
+
+type DablParties = [PartyDetails]
+
+getPartyId : ActionFail m => DablParties -> Text -> m Party
+getPartyId partyDetailsList name = do
+    partyDetails <- fromSomeNote notFoundError $ find withName partyDetailsList
+    fromSomeNote cannotCreatePartyError $ partyFromText partyDetails.partyName
+  where
+    withName = \partyDetails -> partyDetails.partyName == name
+    notFoundError = "Party with name " <> name <> " not found."
+    cannotCreatePartyError = "Party ID cannot be created for " <> name

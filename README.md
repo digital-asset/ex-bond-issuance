@@ -69,9 +69,8 @@ make clean build
 2. Upload the DARs to DAML Hub (Deployments tab / Upload file, two files `target/bond-issuance*.dar`)
 
 3. Add the parties to DAML Hub.
-    - See the example `parties.json` file for a list of parties.
-    - Update `parties.json` file with actual party IDs from DAML Hub (Users tab).
     - Download `participants.json` (Ledger settings tab).
+    - Download `parties.json` (Users tab).
 
 4. Run the market setup:
 ```
@@ -79,7 +78,7 @@ daml script \
   --participant-config participants.json \
   --json-api \
   --dar target/bond-issuance.dar \
-  --script-name DA.RefApps.Bond.Test.MarketSetupScript:setupMarketWithParties \
+  --script-name DA.RefApps.Bond.Test.MarketSetupScript:setupMarketWithDablParties \
   --input-file parties.json
 ```
 
@@ -109,7 +108,7 @@ DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigg
 
 ```
 
-6. Run `make buildui`. Copy `participants.json` into `ui/src` with `cp participants.json ui/src/`. Run `npm run build` in `ui`. Then run `zip -r bondui.zip build/`. Upload `bondui.zip` to DAML Hub to deploy the UI.
+6. Run `make packui`. Upload `ui/bondui.zip` to DAML Hub to deploy the UI.
 
 
 ## User Guide
