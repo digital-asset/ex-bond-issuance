@@ -1,3 +1,8 @@
+///
+/// Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+/// SPDX-License-Identifier: Apache-2.0
+///
+
 import { PropsWithChildren } from 'react';
 import { Party, Template } from '@daml/types';
 import Ledger, { Query, StreamCloseEvent } from '@daml/ledger';
