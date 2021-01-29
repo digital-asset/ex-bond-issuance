@@ -15,6 +15,7 @@ import DA.RefApps.Bond.Roles.BankRole
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.Roles.AuctionAgentRole
 import DA.RefApps.Bond.Test.FullScenario
+import DA.RefApps.Bond.MarketSetup.Parties
 import DA.RefApps.Bond.MarketSetup.Dabl
 
 getParty : Text -> Script Party
@@ -34,33 +35,8 @@ setupMarket = do
   centralBank <- getParty "CentralBank"
   setupMarketWithParties $ BondIssuanceParties with ..
 
-data BondIssuanceParties =
-  BondIssuanceParties with
-    auctionAgent : Party
-    csd : Party
-    bank1 : Party
-    bank2 : Party
-    bank3 : Party
-    issuer : Party
-    centralBank : Party
-    regulator : Party
-    operator : Party
-
-setupMarketWithDablParties : DablParties -> Script ()
-setupMarketWithDablParties partiesJson = do
-  auctionAgent <- getPartyId' "AuctionAgent"
-  csd <- getPartyId' "CSD"
-  bank1 <- getPartyId' "Bank1"
-  bank2 <- getPartyId' "Bank2"
-  bank3 <- getPartyId' "Bank3"
-  issuer <- getPartyId' "Issuer"
-  centralBank <- getPartyId' "CentralBank"
-  regulator <- getPartyId' "Regulator"
-  operator <- getPartyId' "Operator"
-
-  setupMarketWithParties BondIssuanceParties with ..
- where
-  getPartyId' = getPartyId partiesJson
+setupMarketWithDablParties : [DablParty] -> Script ()
+setupMarketWithDablParties = setupMarketWithParties . fromDablParties
 
 setupMarketWithParties : BondIssuanceParties -> Script ()
 setupMarketWithParties parties@BondIssuanceParties{..} = do

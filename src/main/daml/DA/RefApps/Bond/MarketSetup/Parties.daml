@@ -1,0 +1,13 @@
+module DA.RefApps.Bond.MarketSetup.Parties where
+
+data BondIssuanceParties =
+  BondIssuanceParties with
+    auctionAgent : Party
+    csd : Party
+    bank1 : Party
+    bank2 : Party
+    bank3 : Party
+    issuer : Party
+    centralBank : Party
+    regulator : Party
+    operator : Party

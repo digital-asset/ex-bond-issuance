@@ -5,21 +5,29 @@
 
 module DA.RefApps.Bond.MarketSetup.Dabl where
 
-import DA.Optional.Total
+import DA.RefApps.Bond.MarketSetup.Parties
+import qualified DA.TextMap as Map
+import DA.Optional (fromSomeNote)
 
-data PartyDetails =
-    PartyDetails with
-        party : Text
-        partyName : Text
+data DablParty = DablParty with
+    party : Text
+    partyName : Text
   deriving (Eq, Show)
 
-type DablParties = [PartyDetails]
 
-getPartyId : ActionFail m => DablParties -> Text -> m Party
-getPartyId partyDetailsList name = do
-    partyDetails <- fromSomeNote notFoundError $ find withName partyDetailsList
-    fromSomeNote cannotCreatePartyError $ partyFromText partyDetails.party
+fromDablParties : [DablParty] -> BondIssuanceParties
+fromDablParties dablParties =
+  BondIssuanceParties with
+    operator = getParty "Operator"
+    regulator = getParty "Regulator"
+    auctionAgent = getParty "AuctionAgent"
+    bank1 = getParty "Bank1"
+    bank2 = getParty "Bank2"
+    bank3 = getParty "Bank3"
+    csd = getParty "CSD"
+    issuer = getParty "Issuer"
+    centralBank = getParty "CentralBank"
   where
-    withName = \partyDetails -> partyDetails.partyName == name
-    notFoundError = "Party with name " <> name <> " not found."
-    cannotCreatePartyError = "Party ID cannot be created for " <> name
+    getParty name = fromSomeNote ("Party with name " <> name <> " not found.") $ Map.lookup name partyDetails
+    partyDetails = Map.fromList $ map (\x -> (x.partyName, toParty x.party)) dablParties
+    toParty name = fromSomeNote ("Party cannot be created for " <> name) $ partyFromText name
