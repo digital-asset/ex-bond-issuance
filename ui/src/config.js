@@ -4,6 +4,7 @@
  */
 import uuidv4 from "uuid/v4";
 import * as jwt from "jsonwebtoken";
+import { convertPartiesJson } from '@daml/dabl-react';
 
 export const isLocalDev = process.env.NODE_ENV === 'development';
 
@@ -57,64 +58,56 @@ if (typeof s !== 'string') {
     return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-export const handlePartiesJSONFileUpload = async (fileContent) => {
+export const handlePartiesLoad = async (parties) => {
     try {
-        storeParties(JSON.parse(fileContent));
+        storeParties(parties);
     } catch (e) {
-        alert(`Parties JSON file upload error: ${e}`);
+        alert(`Error while trying to store parties: ${e}`);
     }
 }
 
 const PARTIES_STORAGE_KEY = 'imported_parties';
 
 function storeParties(partiesJson) {
-    if (isWellFormedPartiesJson(partiesJson)) {
-        // Note: We do not filter parties based on rights.
-        localStorage.setItem(PARTIES_STORAGE_KEY, JSON.stringify(partiesJson));
-    } else {
-        console.error("Did not find valid parties file; aborting store:", partiesJson);
-        throw new Error("Did you select the correct parties.json file?");
-    }
+    localStorage.setItem(PARTIES_STORAGE_KEY, JSON.stringify(partiesJson));
 }
 
-function retrieveParties() {
-    const partiesRaw = localStorage.getItem(PARTIES_STORAGE_KEY);
+export function retrieveParties(validateParties) {
+    const partiesJson = localStorage.getItem(PARTIES_STORAGE_KEY);
 
-    if (!partiesRaw) {
+    if (!partiesJson) {
         return undefined;
     }
 
-    try {
-        const partiesJson = JSON.parse(partiesRaw);
-        if (isWellFormedPartiesJson(partiesJson)) {
-            // Note: we do not validate the JSON (e.g. it is from the same ledger).
-            return partiesJson;
-        } else {
-            console.error(`The entity stored at ${PARTIES_STORAGE_KEY} key is not a parties.json file.`);
-            throw new Error(`The entity stored at ${PARTIES_STORAGE_KEY} key is not a parties.json file.`);
-        }
-    } catch(error) {
-        console.error("Could not parse parties: ", error);
+    const [ parties, error ] = convertPartiesJson(partiesJson, ledgerId, true);
+
+    if (error) {
+        console.warn("Tried to load an invalid parties file from cache.", error);
+
+        localStorage.removeItem(PARTIES_STORAGE_KEY);
+        return undefined;
     }
+
+    return parties;
 }
 
-function isWellFormedPartiesJson(partiesJson) {
-    if (partiesJson instanceof Array) {
-        // True if any element of the array is not a PartyDetails
-        const invalidPartyDetail = partiesJson.reduce(
-            (invalid, party) => invalid || !isPartyDetails(party),
-            false
-        );
-        return !invalidPartyDetail;
-    } else {
-        return false;
-    }
-}
+// function isWellFormedPartiesJson(partiesJson) {
+//     if (partiesJson instanceof Array) {
+//         // True if any element of the array is not a PartyDetails
+//         const invalidPartyDetail = partiesJson.reduce(
+//             (invalid, party) => invalid || !isPartyDetails(party),
+//             false
+//         );
+//         return !invalidPartyDetail;
+//     } else {
+//         return false;
+//     }
+// }
 
-// Note: we do not look for rights / owner fields.
-function isPartyDetails(partyDetails) {
-    return  typeof partyDetails.ledgerId === 'string' &&
-            typeof partyDetails.party === 'string' &&
-            typeof partyDetails.partyName === 'string' &&
-            typeof partyDetails.token === 'string'
-}
+// // Note: we do not look for rights / owner fields.
+// function isPartyDetails(partyDetails) {
+//     return  typeof partyDetails.ledgerId === 'string' &&
+//             typeof partyDetails.party === 'string' &&
+//             typeof partyDetails.partyName === 'string' &&
+//             typeof partyDetails.token === 'string'
+// }

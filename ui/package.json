@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@babel/helper-regex": "^7.10.5",
+    "@daml/dabl-react": "file:./dabl-react",
     "@daml.js/bond-issuance-2.0.0": "file:../daml.js/bond-issuance-2.0.0",
     "@daml.js/finlib-1.0.0": "file:../daml.js/finlib-1.0.0",
     "@daml/ledger": "1.8.0",

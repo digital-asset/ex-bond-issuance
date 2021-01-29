@@ -8,7 +8,8 @@ import { withRouter } from "react-router-dom";
 import useStyles from "./styles";
 import logo from "./logo.svg";
 import { useUserDispatch, loginUser, redirectToDablLoginPage } from "../../context/UserContext";
-import { isLocalDev, handlePartiesJSONFileUpload } from "../../config";
+import { isLocalDev, handlePartiesLoad, ledgerId } from "../../config";
+import { DablPartiesInput } from '@daml/dabl-react'
 
 function Login(props) {
   var classes = useStyles();
@@ -132,18 +133,10 @@ function Login(props) {
             <label for="avatar">Upload parties.json (tokens):</label>
           </div>
           <div>
-            <input type='file' value='' onChange={changeEvent => {
-                  const reader = new FileReader();
-                  reader.onload = function(loadEvent) {
-                      if (loadEvent.target && typeof loadEvent.target.result === 'string') {
-                        handlePartiesJSONFileUpload(loadEvent.target.result);
-                      }
-                    };
-
-                  if (changeEvent.target && changeEvent.target.files) {
-                    reader.readAsText(changeEvent.target.files[0]);
-                  }
-                }}/>
+            <DablPartiesInput
+              ledgerId={ledgerId}
+              onError={error => alert(error)}
+              onLoad={handlePartiesLoad}/>
           </div>
         </div>
       </div>
