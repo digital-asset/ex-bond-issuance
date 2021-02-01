@@ -16,3 +16,4 @@ data BondIssuanceParties =
     centralBank : Party
     regulator : Party
     operator : Party
+  deriving (Eq, Show)

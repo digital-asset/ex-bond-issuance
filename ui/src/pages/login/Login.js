@@ -65,15 +65,15 @@ function Login(props) {
                 }}
                 fullWidth
               >
-                <MenuItem id="1" value={"Operator"}>Operator</MenuItem>,
-                <MenuItem value={"Regulator"}>Regulator</MenuItem>,
-                <MenuItem value={"AuctionAgent"}>AuctionAgent</MenuItem>,
-                <MenuItem value={"Bank1"}>Bank1</MenuItem>,
-                <MenuItem value={"Bank2"}>Bank2</MenuItem>,
-                <MenuItem value={"Bank3"}>Bank3</MenuItem>,
-                <MenuItem value={"CSD"}>CSD</MenuItem>,
-                <MenuItem value={"Issuer"}>Issuer</MenuItem>,
-                <MenuItem value={"CentralBank"}>CentralBank</MenuItem>
+                <MenuItem id="parties1" value={"Operator"}>Operator</MenuItem>,
+                <MenuItem id="parties2" value={"Regulator"}>Regulator</MenuItem>,
+                <MenuItem id="parties3" value={"AuctionAgent"}>AuctionAgent</MenuItem>,
+                <MenuItem id="parties4" value={"Bank1"}>Bank1</MenuItem>,
+                <MenuItem id="parties5" value={"Bank2"}>Bank2</MenuItem>,
+                <MenuItem id="parties6" value={"Bank3"}>Bank3</MenuItem>,
+                <MenuItem id="parties7" value={"CSD"}>CSD</MenuItem>,
+                <MenuItem id="parties8" value={"Issuer"}>Issuer</MenuItem>,
+                <MenuItem id="parties9" value={"CentralBank"}>CentralBank</MenuItem>
               </Select>
             </FormControl>
               <TextField

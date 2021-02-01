@@ -32,7 +32,7 @@ const applicationId = uuidv4();
 export function createToken(party) {
     if (isLocalDev) {
         const token = jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
-        console.log(`Using token generated token: ${token}`);
+        console.log(`Using generated token: ${token}`);
         return token;
     } else {
         console.log("Using token from parties.json file.");
@@ -90,24 +90,3 @@ export function retrieveParties(validateParties) {
 
     return parties;
 }
-
-// function isWellFormedPartiesJson(partiesJson) {
-//     if (partiesJson instanceof Array) {
-//         // True if any element of the array is not a PartyDetails
-//         const invalidPartyDetail = partiesJson.reduce(
-//             (invalid, party) => invalid || !isPartyDetails(party),
-//             false
-//         );
-//         return !invalidPartyDetail;
-//     } else {
-//         return false;
-//     }
-// }
-
-// // Note: we do not look for rights / owner fields.
-// function isPartyDetails(partyDetails) {
-//     return  typeof partyDetails.ledgerId === 'string' &&
-//             typeof partyDetails.party === 'string' &&
-//             typeof partyDetails.partyName === 'string' &&
-//             typeof partyDetails.token === 'string'
-// }
