@@ -18,14 +18,18 @@ clean:
 	rm -rf ui/node_modules/
 	rm -rf .daml
 
-.PHONY: buildui
-buildui:
+.PHONY: installui
+installui:
 	daml codegen js target/*.dar -o daml.js
 	cd ui && yarn install
 
 .PHONY: ui
-ui: buildui
+ui: installui
 	cd ui && yarn start
+
+.PHONY: packui
+packui: installui
+	cd ui && yarn build && mkdir -p ../target && zip -r ../target/bondui.zip build/
 
 .PHONY: start
 start:

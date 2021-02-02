@@ -57,7 +57,7 @@ public class BondIssuanceIT {
               ISSUER_PARTY.getValue(),
               CSD_PARTY.getValue())
           .useWallclockTime()
-          .module("DA.RefApps.Bond.Test.MarketSetupScript")
+          .module("DA.RefApps.Bond.MarketSetup.MarketSetupScript")
           .startScript("setupMarket")
           .build();
 

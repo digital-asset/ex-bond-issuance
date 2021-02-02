@@ -1,0 +1,19 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+module DA.RefApps.Bond.MarketSetup.Parties where
+
+data BondIssuanceParties =
+  BondIssuanceParties with
+    auctionAgent : Party
+    csd : Party
+    bank1 : Party
+    bank2 : Party
+    bank3 : Party
+    issuer : Party
+    centralBank : Party
+    regulator : Party
+    operator : Party
+  deriving (Eq, Show)

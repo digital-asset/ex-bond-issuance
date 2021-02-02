@@ -66,12 +66,11 @@ Reset the application by following these steps:
 make clean build
 ```
 
-2. Upload the DARs to DAML Hub (Deployments tab / Upload file, two files `target/bond-issuance*.dar`)
+2. Start a new project at DAML Hub. Upload the DARs to DAML Hub (in your new project, Deployments tab / Upload file, two files `target/bond-issuance*.dar`), deploy the model (bond-issuance.dar, Deploy Instance).
 
-3. Add the parties to DAML Hub.
-    - See the example `parties.json` file for a list of parties.
-    - Update `parties.json` file with actual party IDs from DAML Hub (Users tab).
+3. Add the parties to the DAML Hub project: AuctionAgent, CSD, Bank1, Bank2, Bank3, Issuer, CentralBank, Regulator, Operator.
     - Download `participants.json` (Ledger settings tab).
+    - Download `parties.json` (Users tab).
 
 4. Run the market setup:
 ```
@@ -79,7 +78,7 @@ daml script \
   --participant-config participants.json \
   --json-api \
   --dar target/bond-issuance.dar \
-  --script-name DA.RefApps.Bond.Test.MarketSetupScript:setupMarketWithParties \
+  --script-name DA.RefApps.Bond.MarketSetup.MarketSetupScript:setupMarketWithDablParties \
   --input-file parties.json
 ```
 
@@ -109,7 +108,9 @@ DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigg
 
 ```
 
-6. Run `make buildui`. Copy `participants.json` into `ui/src` with `cp participants.json ui/src/`. Run `npm run build` in `ui`. Then run `zip -r bondui.zip build/`. Upload `bondui.zip` to DAML Hub to deploy the UI.
+6. Run `make packui`. Upload `target/bondui.zip` to DAML Hub and deploy the UI. Follow "View site". Upload `parties.json` to the UI using the button on the login screen (Upload parties.json (tokens)). Receiving no error means you have succeeded.
+
+Note: parties.json needs to be re-uploaded to the UI every time the tokens change.
 
 
 ## User Guide

@@ -4,7 +4,7 @@
  */
 import uuidv4 from "uuid/v4";
 import * as jwt from "jsonwebtoken";
-import participants from './participants.json';
+import { convertPartiesJson } from '@daml/dabl-react';
 
 export const isLocalDev = process.env.NODE_ENV === 'development';
 
@@ -31,12 +31,18 @@ const applicationId = uuidv4();
 
 export function createToken(party) {
     if (isLocalDev) {
-        console.log("Using token generated token.");
-        return jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
+        const token = jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
+        console.log(`Using generated token: ${token}`);
+        return token;
     } else {
-        console.log("Using token from participant file.");
-        const participantInfo = participants.participants[lowerCaseFirst(party)];
-        return participantInfo.access_token;
+        console.log("Using token from parties.json file.");
+        const parties = retrieveParties();
+        const partyInfo = parties.find(o => o.partyName === party);
+        if (partyInfo && partyInfo.token) {
+            return partyInfo.token;
+        }
+        alert(`Warning: no credentials available for ${party}.`);
+        return undefined;
     }
 }
 
@@ -45,13 +51,42 @@ loginUrl.unshift('login')
 
 export const dablLoginUrl = loginUrl.join('.') + (window.location.port ? ':' + window.location.port : '') + '/auth/login?ledgerId=' + ledgerId;
 
-function lowerCaseFirst(s) {
-    return s[0].toLowerCase() + s.slice(1);
-}
-
 export function capitalize(s) {
 if (typeof s !== 'string') {
         return "";
     }
     return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+export const handlePartiesLoad = async (parties) => {
+    try {
+        storeParties(parties);
+    } catch (e) {
+        alert(`Error while trying to store parties: ${e}`);
+    }
+}
+
+const PARTIES_STORAGE_KEY = 'imported_parties';
+
+function storeParties(partiesJson) {
+    localStorage.setItem(PARTIES_STORAGE_KEY, JSON.stringify(partiesJson));
+}
+
+export function retrieveParties(validateParties) {
+    const partiesJson = localStorage.getItem(PARTIES_STORAGE_KEY);
+
+    if (!partiesJson) {
+        return undefined;
+    }
+
+    const [ parties, error ] = convertPartiesJson(partiesJson, ledgerId, true);
+
+    if (error) {
+        console.warn("Tried to load an invalid parties file from cache.", error);
+
+        localStorage.removeItem(PARTIES_STORAGE_KEY);
+        return undefined;
+    }
+
+    return parties;
 }
