@@ -68,7 +68,7 @@ make clean build
 
 2. Start a new project at DAML Hub. Upload the DARs to DAML Hub (in your new project, Deployments tab / Upload file, two files `target/bond-issuance*.dar`), deploy the model (bond-issuance.dar, Deploy Instance).
 
-3. Add the parties to DAML Hub: AuctionAgent, CSD, Bank1, Bank2, Bank3, Issuer, CentralBank, Regulator, Operator.
+3. Add the parties to the DAML Hub project: AuctionAgent, CSD, Bank1, Bank2, Bank3, Issuer, CentralBank, Regulator, Operator.
     - Download `participants.json` (Ledger settings tab).
     - Download `parties.json` (Users tab).
 
@@ -108,7 +108,7 @@ DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigg
 
 ```
 
-6. Run `make packui`. Upload `ui/bondui.zip` to DAML Hub to deploy the UI. Upload `parties.json` to the UI using the button on the login screen (Upload parties.json (tokens)).
+6. Run `make packui`. Upload `target/bondui.zip` to DAML Hub and deploy the UI. Follow "View site". Upload `parties.json` to the UI using the button on the login screen (Upload parties.json (tokens)). Receiving no error means you have succeeded.
 
 Note: parties.json needs to be re-uploaded to the UI every time the tokens change.
 

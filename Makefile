@@ -29,7 +29,7 @@ ui: installui
 
 .PHONY: packui
 packui: installui
-	cd ui && yarn build && zip -r bondui.zip build/
+	cd ui && yarn build && mkdir -p ../target && zip -r ../target/bondui.zip build/
 
 .PHONY: start
 start:
