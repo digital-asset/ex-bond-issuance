@@ -10,7 +10,7 @@ build: build-dars build-ui
 .PHONY: clean
 clean:
 	rm -rf .daml triggers/.daml
-	rm -rf ui/node_modules $(JS_CODEGEN_DIR)
+	rm -rf ui/node_modules ui/build $(JS_CODEGEN_DIR)
 	rm -rf target
 
 ### DARS ###
