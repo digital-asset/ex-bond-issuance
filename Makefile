@@ -25,19 +25,7 @@ installui:
 
 .PHONY: ui
 ui: installui
-	cd ui && yarn start
 
 .PHONY: packui
 packui: installui
 	cd ui && yarn build && mkdir -p ../target && zip -r ../target/bondui.zip build/
-
-.PHONY: start
-start:
-	daml start --sandbox-option --address=localhost --sandbox-option -w --open-browser no
-
-.PHONY: automation
-automation:
-	JAVA_TOOL_OPTIONS=-Xmx128m \
-	scripts/waitForSandbox.sh localhost 6865 && \
-  scripts/startTriggers.sh localhost 6865 target/bond-issuance-triggers.dar
-
