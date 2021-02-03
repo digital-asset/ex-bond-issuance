@@ -18,3 +18,4 @@ deploy/*
 .env
 .DS_Store
 *.dot
+ui/bondui.zip

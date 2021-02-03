@@ -8,8 +8,8 @@ import { withRouter } from "react-router-dom";
 import useStyles from "./styles";
 import logo from "./logo.svg";
 import { useUserDispatch, loginUser, redirectToDablLoginPage } from "../../context/UserContext";
-import { isLocalDev, capitalize } from "../../config";
-import participants from "../../participants.json";
+import { isLocalDev, handlePartiesLoad, ledgerId } from "../../config";
+import { DablPartiesInput } from '@daml/dabl-react'
 
 function Login(props) {
   var classes = useStyles();
@@ -65,22 +65,16 @@ function Login(props) {
                 }}
                 fullWidth
               >
-                { isLocalDev ?
-                      [<MenuItem id="1" value={"Operator"}>Operator</MenuItem>,
-                       <MenuItem value={"Regulator"}>Regulator</MenuItem>,
-                       <MenuItem value={"AuctionAgent"}>AuctionAgent</MenuItem>,
-                       <MenuItem value={"Bank1"}>Bank1</MenuItem>,
-                       <MenuItem value={"Bank2"}>Bank2</MenuItem>,
-                       <MenuItem value={"Bank3"}>Bank3</MenuItem>,
-                       <MenuItem value={"CSD"}>CSD</MenuItem>,
-                       <MenuItem value={"Issuer"}>Issuer</MenuItem>,
-                       <MenuItem value={"CentralBank"}>CentralBank</MenuItem>]
-                    : Object.entries(participants.party_participants)
-                            .map(p =>
-                              <MenuItem value={capitalize(p[1])}>{capitalize(p[1])}</MenuItem>
-                              )
-                  }
-                </Select>
+                <MenuItem id="parties1" value={"Operator"}>Operator</MenuItem>,
+                <MenuItem id="parties2" value={"Regulator"}>Regulator</MenuItem>,
+                <MenuItem id="parties3" value={"AuctionAgent"}>AuctionAgent</MenuItem>,
+                <MenuItem id="parties4" value={"Bank1"}>Bank1</MenuItem>,
+                <MenuItem id="parties5" value={"Bank2"}>Bank2</MenuItem>,
+                <MenuItem id="parties6" value={"Bank3"}>Bank3</MenuItem>,
+                <MenuItem id="parties7" value={"CSD"}>CSD</MenuItem>,
+                <MenuItem id="parties8" value={"Issuer"}>Issuer</MenuItem>,
+                <MenuItem id="parties9" value={"CentralBank"}>CentralBank</MenuItem>
+              </Select>
             </FormControl>
               <TextField
                 id="password"
@@ -133,6 +127,17 @@ function Login(props) {
                   </Button>}
               </div>
             </React.Fragment>
+        </div>
+        <div style={{marginTop: "30%"}}>
+          <div>
+            <label for="avatar">Upload parties.json (tokens):</label>
+          </div>
+          <div>
+            <DablPartiesInput
+              ledgerId={ledgerId}
+              onError={error => alert(error)}
+              onLoad={handlePartiesLoad}/>
+          </div>
         </div>
       </div>
     </Grid>

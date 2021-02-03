@@ -1,0 +1,67 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+module DA.RefApps.Bond.MarketSetup.Dabl where
+
+import DA.RefApps.Bond.MarketSetup.Parties
+import qualified DA.TextMap as Map
+import DA.Optional (fromSome, fromSomeNote)
+import Daml.Script (Script)
+import DA.Assert
+
+data DablParty = DablParty with
+    party : Text
+    partyName : Text
+  deriving (Eq, Show)
+
+fromDablParties : [DablParty] -> BondIssuanceParties
+fromDablParties dablParties =
+  BondIssuanceParties with
+    operator = getParty "Operator"
+    regulator = getParty "Regulator"
+    auctionAgent = getParty "AuctionAgent"
+    bank1 = getParty "Bank1"
+    bank2 = getParty "Bank2"
+    bank3 = getParty "Bank3"
+    csd = getParty "CSD"
+    issuer = getParty "Issuer"
+    centralBank = getParty "CentralBank"
+  where
+    getParty name = fromSomeNote ("Party with name " <> name <> " not found.") $ Map.lookup name partyDetails
+    partyDetails = Map.fromList $ map (\x -> (x.partyName, toParty x.party)) dablParties
+    toParty name = fromSomeNote ("Party cannot be created for " <> name) $ partyFromText name
+
+getSandboxParty : Text -> DablParty
+getSandboxParty name = DablParty name name
+
+fromDablPartiesCanConvert : Script ()
+fromDablPartiesCanConvert = do
+  let operator = "Operator"
+      regulator = "Regulator"
+      auctionAgent = "AuctionAgent"
+      bank1 = "Bank1"
+      bank2 = "Bank2"
+      bank3 = "Bank3"
+      csd = "CSD"
+      issuer = "Issuer"
+      centralBank = "CentralBank"
+      expected =
+        BondIssuanceParties with
+          operator = party operator
+          regulator = party regulator
+          auctionAgent = party auctionAgent
+          bank1 = party bank1
+          bank2 = party bank2
+          bank3 = party bank3
+          csd = party csd
+          issuer = party issuer
+          centralBank = party centralBank
+      actual =
+        fromDablParties $ getSandboxParty <$>
+          [ operator, regulator, auctionAgent, bank1,
+           bank2, bank3, csd, issuer, centralBank ]
+  expected === actual
+ where
+  party name = fromSome $ partyFromText name

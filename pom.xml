@@ -171,10 +171,10 @@
                         <exclude>src/license/*</exclude>
                         <exclude>telegram.properties</exclude>
                         <exclude>ui-backend.conf</exclude>
-                        <exclude>ui-js/node_modules/**</exclude>
+                        <exclude>ui/node_modules/**</exclude>
                         <exclude>Makefile</exclude>
                         <exclude>.gitattributes</exclude>
-                        <exclude>ui-js/yarn.lock</exclude>
+                        <exclude>ui/yarn.lock</exclude>
                     </excludes>
                     <mapping>
                         <daml>DOUBLEDASHES_STYLE</daml>
