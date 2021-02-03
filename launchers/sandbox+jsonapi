@@ -4,4 +4,4 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-daml start --sandbox-option --address=localhost --sandbox-option -w --open-browser no
+daml start --sandbox-option --address=localhost --sandbox-option --wall-clock-time --open-browser no
