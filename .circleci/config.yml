@@ -183,7 +183,7 @@ workflows:
               only:
                 - master
                 - /blackduck-.*/
-                - /circleci/
+                - /.*circleci.*/
   scheduled_test:
     triggers:
       - schedule:
