@@ -38,6 +38,36 @@ commands:
           only_for_branches: master
           webhook: '${SLACK_WEBHOOK}'
 jobs:
+  daml_test:
+    parameters:
+      daml_sdk_version:
+        type: string
+    executor: daml-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - daml-{{ checksum "daml.yaml" }}
+      - install_sdk:
+          version: << parameters.daml_sdk_version >>
+      - run:
+          name: Build DAML
+          command: |
+            make build-dars
+      - run:
+          name: DAML tests
+          command: |
+            make test-dars
+      - save_cache:
+          paths:
+            - ~/.daml
+          key: daml-{{ checksum "daml.yaml" }}
+      - store_test_results:
+          path: target/daml-test-reports
+      - store_artifacts:
+          path: target/daml-test-reports
+      - slack_notification
+
   integration_test:
     parameters:
       daml_sdk_version:
@@ -86,36 +116,6 @@ jobs:
             - "*.dar"
             - "lib"
             - "NOTICE"
-      - slack_notification
-
-  daml_test:
-    parameters:
-      daml_sdk_version:
-        type: string
-    executor: daml-executor
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - daml-{{ checksum "daml.yaml" }}
-      - install_sdk:
-          version: << parameters.daml_sdk_version >>
-      - run:
-          name: Build DAML
-          command: |
-            make build-dars
-      - run:
-          name: DAML tests
-          command: |
-            make test-dars
-      - save_cache:
-          paths:
-            - ~/.daml
-          key: daml-{{ checksum "daml.yaml" }}
-      - store_test_results:
-          path: target/daml-test-reports
-      - store_artifacts:
-          path: target/daml-test-reports
       - slack_notification
 
   ui_test:
