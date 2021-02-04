@@ -6,7 +6,7 @@
 sdk-version: 1.8.1
 name: bond-issuance
 source: src/main/daml
-init-script: DA.RefApps.Bond.Test.MarketSetupScript:setupMarket
+init-script: DA.RefApps.Bond.MarketSetup.MarketSetupScript:setupMarket
 sandbox-options:
   - --ledgerid=bond-issuance
 parties:

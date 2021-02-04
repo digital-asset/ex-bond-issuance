@@ -35,15 +35,15 @@ make build
 These commands start the application with wall clock time. Note that Navigator's time widget won't work in this mode as one cannot modify the time.
 1. Start the DAML Sandbox. Type:
     ```shell
-    make start
+    launchers/sandbox+jsonapi
     ```
 2. Start the automation logic by starting bots. Type:
     ```shell
-    make automation
+    launchers/automation
     ```
 3. Start the React UI. The UI will automatically open in a new browser tab at http://localhost:3000.
     ```shell
-    make ui
+    launchers/ui
     ```
 
 ### Stopping the App

@@ -1,43 +1,55 @@
-version := 0.1
-colon   := :
-
 SDK_VERSION := $(shell grep 'sdk-version' daml.yaml | cut -d ' ' -f 2)
+MODELS_DAR=target/bond-issuance.dar
+TRIGGERS_DAR=target/bond-issuance-triggers.dar
+FINLIB_DAR=target/finlib-master-sdk-$(SDK_VERSION).dar
+JS_CODEGEN_DIR=ui/daml.js
 
 .PHONY: build
-build:
-	python scripts/getfinlib.py $(SDK_VERSION)
-	daml build -o target/bond-issuance.dar
-	cd triggers && daml build -o ../target/bond-issuance-triggers.dar
+build: build-dars build-ui
 
 .PHONY: clean
 clean:
+	rm -rf .daml triggers/.daml
+	rm -rf ui/node_modules ui/build $(JS_CODEGEN_DIR)
 	rm -rf target
-	yarn cache clean
-	rm -rf daml.js
-	rm -rf ui/build
-	rm -rf ui/node_modules/
-	rm -rf .daml
 
-.PHONY: installui
-installui:
-	daml codegen js target/*.dar -o daml.js
-	cd ui && yarn install
+### DARS ###
 
-.PHONY: ui
-ui: installui
-	cd ui && yarn start
+.PHONY: build-dars
+build-dars: $(MODELS_DAR) $(TRIGGERS_DAR)
+
+DAML_SRC=$(shell find src/ -name '*.daml')
+
+$(FINLIB_DAR):
+	python scripts/getfinlib.py $(SDK_VERSION)
+
+$(MODELS_DAR): $(DAML_SRC) daml.yaml $(FINLIB_DAR)
+	daml build --output $@
+
+TRIGGERS_DAML_SRC=$(shell find triggers/src/ -name '*.daml')
+
+$(TRIGGERS_DAR): $(TRIGGERS_DAML_SRC) triggers/daml.yaml $(MODELS_DAR)
+	cd triggers && daml build --output ../$@
+
+
+### JS Codegen ###
+
+JS_CODEGEN_ARTIFACT=$(JS_CODEGEN_DIR)/bond-issuance-2.0.0/package.json
+
+$(JS_CODEGEN_ARTIFACT): $(MODELS_DAR) $(FINLIB_DAR)
+	daml codegen js -o $(JS_CODEGEN_DIR) $^
+
+
+### UI Install ###
+
+UI_INSTALL_ARTIFACT=ui/node_modules
+
+$(UI_INSTALL_ARTIFACT): ui/package.json ui/yarn.lock $(JS_CODEGEN_ARTIFACT)
+	cd ui && yarn install --force --frozen-lockfile
+
+.PHONY: build-ui
+build-ui: $(UI_INSTALL_ARTIFACT)
 
 .PHONY: packui
-packui: installui
+packui: build-ui
 	cd ui && yarn build && mkdir -p ../target && zip -r ../target/bondui.zip build/
-
-.PHONY: start
-start:
-	daml start --sandbox-option --address=localhost --sandbox-option -w --open-browser no
-
-.PHONY: automation
-automation:
-	JAVA_TOOL_OPTIONS=-Xmx128m \
-	scripts/waitForSandbox.sh localhost 6865 && \
-  scripts/startTriggers.sh localhost 6865 target/bond-issuance-triggers.dar
-
