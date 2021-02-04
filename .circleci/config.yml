@@ -38,7 +38,7 @@ commands:
           only_for_branches: master
           webhook: '${SLACK_WEBHOOK}'
 jobs:
-  mvn_test:
+  integration_test:
     parameters:
       daml_sdk_version:
         type: string
@@ -52,6 +52,7 @@ jobs:
       - install_sdk:
           version: << parameters.daml_sdk_version >>
       - run:
+          name: Integration tests
           command: |
             mvn verify
       - run:
@@ -87,7 +88,7 @@ jobs:
             - "NOTICE"
       - slack_notification
 
-  daml_test:
+  daml_test_and_ui_build:
     parameters:
       daml_sdk_version:
         type: string
@@ -163,10 +164,10 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - daml_test:
+      - daml_test_and_ui_build:
           daml_sdk_version: "1.8.0"
           context: refapps
-      - mvn_test:
+      - integration_test:
           daml_sdk_version: "1.8.0"
           context: refapps
   long_blackduck_only_on_master:
@@ -189,9 +190,9 @@ workflows:
               only:
                 - master
     jobs:
-      - daml_test:
+      - daml_test_and_ui_build:
           daml_sdk_version: "1.8.0"
           context: refapps
-      - mvn_test:
+      - integration_test:
           daml_sdk_version: "1.8.0"
           context: refapps
