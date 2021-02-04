@@ -101,9 +101,22 @@ jobs:
       - install_sdk:
           version: << parameters.daml_sdk_version >>
       - run:
+          name: Build DAML
+          command: |
+            make build-dars
+      - run:
+          name: DAML tests
+          command: |
+            make test-dars -j2
+      - run:
+          name: UI Install Dependencies
           command: |
             make build
-            daml test --junit target/daml-test-reports/daml-test.xml --files src/main/daml/DA/RefApps/Bond/Test/FullScenario.daml
+      - run:
+          name: UI Build
+          command: |
+            make package CI=
+            # TODO remove "CI=" to treat warnings as errors
       - save_cache:
           paths:
             - ~/.daml
@@ -137,11 +150,12 @@ jobs:
           command: |
             mvn clean package
       - run:
-          name: Yarn Build
-          # TODO: Investigate why we DAML is not on the path.
+          name: UI Install Dependencies
           command: |
             make build
-            yarn build
+      - run:
+          name: Yarn Recursive Install
+          command: |
             # recurse all directories with a package.json and run yarn install on them to resolve dependencies
             find . -type f \( ! -path '*node_modules*' \) -name package.json | while read hit ; do yarn install --cwd $(dirname "$hit") ; done
       - run:
