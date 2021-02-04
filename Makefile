@@ -21,7 +21,7 @@ build-dars: $(MODELS_DAR) $(TRIGGERS_DAR)
 DAML_SRC=$(shell find src/ -name '*.daml')
 
 $(FINLIB_DAR):
-	python scripts/getfinlib.py $(SDK_VERSION)
+	scripts/getfinlib.py $(SDK_VERSION)
 
 $(MODELS_DAR): $(DAML_SRC) daml.yaml $(FINLIB_DAR)
 	daml build --output $@
