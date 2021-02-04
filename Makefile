@@ -5,7 +5,7 @@ FINLIB_DAR=target/finlib-master-sdk-$(SDK_VERSION).dar
 JS_CODEGEN_DIR=ui/daml.js
 
 .PHONY: build
-build: build-dars build-ui
+build: build-dars yarn-install-deps
 
 .PHONY: clean
 clean:
