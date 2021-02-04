@@ -19,25 +19,25 @@ data DablParty = DablParty with
 fromDablParties : [DablParty] -> BondIssuanceParties
 fromDablParties dablParties =
   BondIssuanceParties with
-    operator = getParty "Operator"
-    regulator = getParty "Regulator"
-    auctionAgent = getParty "AuctionAgent"
-    bank1 = getParty "Bank1"
-    bank2 = getParty "Bank2"
-    bank3 = getParty "Bank3"
-    csd = getParty "CSD"
-    issuer = getParty "Issuer"
-    centralBank = getParty "CentralBank"
+    operator = party "Operator"
+    regulator = party "Regulator"
+    auctionAgent = party "AuctionAgent"
+    bank1 = party "Bank1"
+    bank2 = party "Bank2"
+    bank3 = party "Bank3"
+    csd = party "CSD"
+    issuer = party "Issuer"
+    centralBank = party "CentralBank"
   where
-    getParty name = fromSomeNote ("Party with name " <> name <> " not found.") $ Map.lookup name partyDetails
+    party name = fromSomeNote ("Party with name " <> name <> " not found.") $ Map.lookup name partyDetails
     partyDetails = Map.fromList $ map (\x -> (x.partyName, toParty x.party)) dablParties
     toParty name = fromSomeNote ("Party cannot be created for " <> name) $ partyFromText name
 
-getSandboxParty : Text -> DablParty
-getSandboxParty name = DablParty name name
+dablPartyFromText : Text -> DablParty
+dablPartyFromText name = DablParty name name
 
-fromDablPartiesCanConvert : Script ()
-fromDablPartiesCanConvert = do
+testFromDablPartiesCanConvert : Script ()
+testFromDablPartiesCanConvert = do
   let operator = "Operator"
       regulator = "Regulator"
       auctionAgent = "AuctionAgent"
@@ -59,7 +59,7 @@ fromDablPartiesCanConvert = do
           issuer = party issuer
           centralBank = party centralBank
       actual =
-        fromDablParties $ getSandboxParty <$>
+        fromDablParties $ map dablPartyFromText
           [ operator, regulator, auctionAgent, bank1,
            bank2, bank3, csd, issuer, centralBank ]
   expected === actual
