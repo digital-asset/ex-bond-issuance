@@ -71,50 +71,15 @@
                 <version>3.0.0</version>
                 <executions>
                     <execution>
-                        <id>get-finlib-dar</id>
+                        <id>daml-build</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <executable>python</executable>
+                            <executable>make</executable>
                             <arguments>
-                                <argument>scripts/getfinlib.py</argument>
-                                <argument>${daml-sdk.damlversion}</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>daml-model-build</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>daml</executable>
-                            <arguments>
-                                <argument>build</argument>
-                                <argument>--project-root</argument>
-                                <argument>${daml.model.projectDir}</argument>
-                                <argument>-o</argument>
-                                <argument>${daml.model.dar}</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>daml-triggers-build</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>daml</executable>
-                            <arguments>
-                                <argument>build</argument>
-                                <argument>--project-root</argument>
-                                <argument>${daml.triggers.projectDir}</argument>
-                                <argument>-o</argument>
-                                <argument>${daml.triggers.dar}</argument>
+                                <argument>build-dars</argument>
                             </arguments>
                         </configuration>
                     </execution>
