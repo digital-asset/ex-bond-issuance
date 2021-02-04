@@ -16,17 +16,6 @@ executors:
     docker:
       - image: circleci/openjdk:11.0-jdk
     resource_class: large
-  docker_buildpack:
-    docker:
-      - image: circleci/buildpack-deps:xenial
-
-only-release-tags: &only-release-tags
-  filters:
-    tags:
-      only: /^v.*/
-    branches:
-      ignore: /.*/
-
 
 commands:
   install_sdk:
@@ -183,17 +172,6 @@ jobs:
 #          paths:
 #            - "NOTICE"
 
-  github_release:
-    executor: docker_buildpack
-    steps:
-      - checkout
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Push a new github release
-          command: |
-            ./scripts/release.sh ex-bond-issuance
-
 workflows:
   version: 2
   build_and_test:
@@ -214,26 +192,6 @@ workflows:
               only:
                 - master
                 - /blackduck-.*/
-  build_and_release:
-    jobs:
-      - daml_test:
-          <<: *only-release-tags
-          daml_sdk_version: "1.8.0"
-          context: refapps
-      - mvn_test:
-          <<: *only-release-tags
-          daml_sdk_version: "1.8.0"
-          context: refapps
-      - blackduck_check:
-          <<: *only-release-tags
-          daml_sdk_version: "1.8.0"
-          context: blackduck
-      - github_release:
-          context: github-refapp-repo-context
-          requires:
-            - daml_test
-            - mvn_test
-          <<: *only-release-tags
   scheduled_test:
     triggers:
       - schedule:
