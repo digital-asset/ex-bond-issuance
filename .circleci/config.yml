@@ -140,8 +140,7 @@ jobs:
           # TODO: Investigate why we DAML is not on the path.
           command: |
             export PATH=${HOME}/.daml/bin:${PATH}
-            make buildui
-            yarn install
+            make build
             yarn build
             # recurse all directories with a package.json and run yarn install on them to resolve dependencies
             find . -type f \( ! -path '*node_modules*' \) -name package.json | while read hit ; do yarn install --cwd $(dirname "$hit") ; done
