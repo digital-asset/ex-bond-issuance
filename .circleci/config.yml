@@ -19,13 +19,13 @@ executors:
 
 commands:
   install_sdk:
-    description: "Install the DAML SDK"
+    description: "Install Daml SDK"
     parameters:
       version:
         type: string
     steps:
       - run:
-          name: Install the DAML SDK
+          name: Install Daml SDK
           command: |
             curl -sSL https://get.daml.com/ | sh /dev/stdin << parameters.version >>
             # idea from https://circleci.com/docs/2.0/env-vars/
@@ -51,11 +51,11 @@ jobs:
       - install_sdk:
           version: << parameters.daml_sdk_version >>
       - run:
-          name: Build DAML
+          name: Build Daml
           command: |
             make build-dars
       - run:
-          name: DAML tests
+          name: Daml tests
           command: |
             make test-dars
       - save_cache:
@@ -131,11 +131,11 @@ jobs:
       - install_sdk:
           version: << parameters.daml_sdk_version >>
       - run:
-          name: UI Install Dependencies
+          name: UI install dependencies
           command: |
             make build
       - run:
-          name: UI Build
+          name: UI build
           command: |
             make package CI=
             # TODO remove "CI=" to treat warnings as errors
@@ -164,20 +164,20 @@ jobs:
             - ~/.daml
           key: m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
       - run:
-          name: Maven Build
+          name: Maven build
           command: |
             mvn clean package
       - run:
-          name: UI Install Dependencies
+          name: UI install dependencies
           command: |
             make build
       - run:
-          name: Yarn Recursive Install
+          name: Yarn recursive install
           command: |
             # recurse all directories with a package.json and run yarn install on them to resolve dependencies
             find . -type f \( ! -path '*node_modules*' \) -name package.json | while read hit ; do yarn install --cwd $(dirname "$hit") ; done
       - run:
-          name: Run Blackduck Detect
+          name: Blackduck detect
           command: |
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) \
             ci-build digitalasset_ex-bond-issuance master \
