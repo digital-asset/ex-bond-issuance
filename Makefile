@@ -47,9 +47,9 @@ UI_INSTALL_ARTIFACT=ui/node_modules
 $(UI_INSTALL_ARTIFACT): ui/package.json ui/yarn.lock $(JS_CODEGEN_ARTIFACT)
 	cd ui && yarn install --force --frozen-lockfile
 
-.PHONY: build-ui
-build-ui: $(UI_INSTALL_ARTIFACT)
+.PHONY: yarn-install-deps
+yarn-install-deps: $(UI_INSTALL_ARTIFACT)
 
-.PHONY: packui
-packui: build-ui
+.PHONY: package
+package: yarn-install-deps
 	cd ui && yarn build && mkdir -p ../target && zip -r ../target/bondui.zip build/
