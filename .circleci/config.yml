@@ -14,7 +14,7 @@ executors:
       - image: cimg/openjdk:11.0-node
   mvn-executor:
     docker:
-      - image: cimg/openjdk:11.0-node
+      - image: cimg/openjdk:11.0
     resource_class: large
 
 commands:
@@ -25,8 +25,11 @@ commands:
         type: string
     steps:
       - run:
+          name: Install the DAML SDK
           command: |
-            ./scripts/install-daml.sh << parameters.version >>
+            curl -sSL https://get.daml.com/ | sh /dev/stdin << parameters.version >>
+            # idea from https://circleci.com/docs/2.0/env-vars/
+            >> $BASH_ENV echo 'export PATH="$HOME/.daml/bin:$PATH"'
   slack_notification:
     description: "Notify about failure on Slack"
     steps:
@@ -50,7 +53,6 @@ jobs:
           version: << parameters.daml_sdk_version >>
       - run:
           command: |
-            export PATH=${HOME}/.daml/bin:${PATH}
             mvn verify
       - run:
           command: |
@@ -99,7 +101,6 @@ jobs:
           version: << parameters.daml_sdk_version >>
       - run:
           command: |
-            export PATH=${HOME}/.daml/bin:${PATH}
             make build
             daml test --junit target/daml-test-reports/daml-test.xml --files src/main/daml/DA/RefApps/Bond/Test/FullScenario.daml
       - save_cache:
@@ -133,13 +134,11 @@ jobs:
       - run:
           name: Maven Build
           command: |
-            export PATH=${HOME}/.daml/bin:${PATH}
             mvn clean package
       - run:
           name: Yarn Build
           # TODO: Investigate why we DAML is not on the path.
           command: |
-            export PATH=${HOME}/.daml/bin:${PATH}
             make build
             yarn build
             # recurse all directories with a package.json and run yarn install on them to resolve dependencies
@@ -147,7 +146,6 @@ jobs:
       - run:
           name: Run Blackduck Detect
           command: |
-            export PATH=${HOME}/node-v12.16.3-linux-x64/bin:${PATH}
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) \
             ci-build digitalasset_ex-bond-issuance master \
             --logging.level.com.synopsys.integration=DEBUG \
