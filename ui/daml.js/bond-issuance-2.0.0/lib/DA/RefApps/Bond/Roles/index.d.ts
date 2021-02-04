@@ -1,0 +1,12 @@
+import * as AuctionAgentRole from './AuctionAgentRole';
+export { AuctionAgentRole } ;
+import * as BankRole from './BankRole';
+export { BankRole } ;
+import * as CentralBankRole from './CentralBankRole';
+export { CentralBankRole } ;
+import * as CsdRole from './CsdRole';
+export { CsdRole } ;
+import * as IssuerRole from './IssuerRole';
+export { IssuerRole } ;
+import * as OperatorRole from './OperatorRole';
+export { OperatorRole } ;

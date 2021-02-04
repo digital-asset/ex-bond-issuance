@@ -1,0 +1,21 @@
+{
+    "include": [
+        "src/**/*.ts"
+    ],
+    "compilerOptions": {
+        "noFallthroughCasesInSwitch": true,
+        "declaration": true,
+        "strict": true,
+        "outDir": "lib",
+        "noImplicitReturns": true,
+        "lib": [
+            "dom",
+            "es2015"
+        ],
+        "module": "commonjs",
+        "skipLibCheck": true,
+        "noUnusedLocals": false,
+        "target": "es5",
+        "sourceMap": true
+    }
+}
