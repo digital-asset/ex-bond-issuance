@@ -161,8 +161,7 @@ jobs:
             export PATH=${HOME}/node-v12.16.3-linux-x64/bin:${PATH}
             export PATH=${HOME}/.daml/bin:${PATH}
             export PATH=${HOME}/.yarn/bin:${PATH}
-            make buildui
-            yarn install
+            make build
             yarn build
             # recurse all directories with a package.json and run yarn install on them to resolve dependencies
             find . -type f \( ! -path '*node_modules*' \) -name package.json | while read hit ; do yarn install --cwd $(dirname "$hit") ; done
