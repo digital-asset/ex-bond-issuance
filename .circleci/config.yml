@@ -88,7 +88,7 @@ jobs:
             - "NOTICE"
       - slack_notification
 
-  daml_test_and_ui_build:
+  daml_test:
     parameters:
       daml_sdk_version:
         type: string
@@ -107,7 +107,29 @@ jobs:
       - run:
           name: DAML tests
           command: |
-            make test-dars -j2
+            make test-dars
+      - save_cache:
+          paths:
+            - ~/.daml
+          key: daml-{{ checksum "daml.yaml" }}
+      - store_test_results:
+          path: target/daml-test-reports
+      - store_artifacts:
+          path: target/daml-test-reports
+      - slack_notification
+
+  ui_test:
+    parameters:
+      daml_sdk_version:
+        type: string
+    executor: daml-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - daml-{{ checksum "daml.yaml" }}
+      - install_sdk:
+          version: << parameters.daml_sdk_version >>
       - run:
           name: UI Install Dependencies
           command: |
@@ -121,10 +143,6 @@ jobs:
           paths:
             - ~/.daml
           key: daml-{{ checksum "daml.yaml" }}
-      - store_test_results:
-          path: target/daml-test-reports
-      - store_artifacts:
-          path: target/daml-test-reports
       - slack_notification
 
   blackduck_check:
@@ -178,10 +196,13 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - daml_test_and_ui_build:
+      - daml_test:
           daml_sdk_version: "1.8.0"
           context: refapps
       - integration_test:
+          daml_sdk_version: "1.8.0"
+          context: refapps
+      - ui_test:
           daml_sdk_version: "1.8.0"
           context: refapps
   long_blackduck_only_on_master:
@@ -204,9 +225,15 @@ workflows:
               only:
                 - master
     jobs:
-      - daml_test_and_ui_build:
+      - daml_test:
           daml_sdk_version: "1.8.0"
           context: refapps
       - integration_test:
           daml_sdk_version: "1.8.0"
           context: refapps
+      - ui_test:
+          daml_sdk_version: "1.8.0"
+          context: refapps
+      - blackduck_check:
+          daml_sdk_version: "1.8.0"
+          context: blackduck
