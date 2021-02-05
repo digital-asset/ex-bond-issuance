@@ -172,6 +172,7 @@
                         <exclude>telegram.properties</exclude>
                         <exclude>ui-backend.conf</exclude>
                         <exclude>ui/node_modules/**</exclude>
+                        <exclude>ui/daml.js/**</exclude>
                         <exclude>Makefile</exclude>
                         <exclude>.gitattributes</exclude>
                         <exclude>ui/yarn.lock</exclude>
