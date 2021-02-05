@@ -77,6 +77,10 @@ jobs:
             - ~/.daml
           key: m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
       - store_test_results:
+          path: target/failsafe-reports
+      - store_artifacts:
+          path: target/failsafe-reports
+      - store_test_results:
           path: target/surefire-reports
       - store_artifacts:
           path: target/surefire-reports
