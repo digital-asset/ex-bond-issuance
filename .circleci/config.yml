@@ -197,18 +197,18 @@ workflows:
   test:
     jobs:
       - daml_test:
-          daml_sdk_version: "1.8.0"
+          daml_sdk_version: "1.9.0"
           context: refapps
       - integration_test:
-          daml_sdk_version: "1.8.0"
+          daml_sdk_version: "1.9.0"
           context: refapps
       - ui_test:
-          daml_sdk_version: "1.8.0"
+          daml_sdk_version: "1.9.0"
           context: refapps
   long_blackduck_only_on_master:
     jobs:
        - blackduck_check:
-          daml_sdk_version: "1.8.0"
+          daml_sdk_version: "1.9.0"
           context: blackduck
           filters:
             branches:
@@ -226,14 +226,14 @@ workflows:
                 - master
     jobs:
       - daml_test:
-          daml_sdk_version: "1.8.0"
+          daml_sdk_version: "1.9.0"
           context: refapps
       - integration_test:
-          daml_sdk_version: "1.8.0"
+          daml_sdk_version: "1.9.0"
           context: refapps
       - ui_test:
-          daml_sdk_version: "1.8.0"
+          daml_sdk_version: "1.9.0"
           context: refapps
       - blackduck_check:
-          daml_sdk_version: "1.8.0"
+          daml_sdk_version: "1.9.0"
           context: blackduck
