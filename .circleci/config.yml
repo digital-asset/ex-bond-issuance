@@ -88,7 +88,7 @@ jobs:
       - run:
           command: |
             echo "Moving log files so they can be stored."
-            mkdir logs
+            mkdir -p logs
             mv *.log logs
           when: always
       - store_artifacts:
@@ -108,11 +108,9 @@ jobs:
           path: target/surefire-reports
       - run:
           command: |
-            mkdir pmd
-            mv target/pmd.xml pmd
+            mkdir -p logs
+            mv target/pmd.xml logs
           when: always
-      - store_artifacts:
-          path: pmd
       - persist_to_workspace:
           root: target
           paths:
@@ -209,17 +207,6 @@ workflows:
       - ui_test:
           daml_sdk_version: "1.9.0"
           context: refapps
-  long_blackduck_only_on_master:
-    jobs:
-       - blackduck_check:
-          daml_sdk_version: "1.9.0"
-          context: blackduck
-          filters:
-            branches:
-              only:
-                - master
-                - /blackduck-.*/
-                - /.*circleci.*/
   scheduled_test:
     triggers:
       - schedule:
