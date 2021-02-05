@@ -57,8 +57,7 @@ public class BondIssuanceIT {
               ISSUER_PARTY.getValue(),
               CSD_PARTY.getValue())
           .useWallclockTime()
-          .module("DA.RefApps.Bond.MarketSetup.MarketSetupScript")
-          .startScript("setupMarket")
+          .moduleAndScript("DA.RefApps.Bond.MarketSetup.MarketSetupScript", "setupMarket")
           .build();
 
   @ClassRule public static ExternalResource sandboxClassRule = sandbox.getClassRule();
