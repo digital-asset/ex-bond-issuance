@@ -48,7 +48,7 @@ These commands start the application with wall clock time. Note that Navigator's
 
 ### Stopping the App
 
-1. Stop the bots by pressing **Ctrl+C**.
+1. Stop the triggers by pressing **Ctrl+C**.
 2. Stop the Sandbox by pressing **Ctrl+C** in the DAML assistant.
 3. Stop the ui by pressing **Ctrl+C**.
 
