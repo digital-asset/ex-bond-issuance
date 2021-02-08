@@ -22,12 +22,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>4.13.1</junit.version>
         <daml-sdk.version>1.9.0</daml-sdk.version>
-        <daml-sdk.damlversion>1.9.0</daml-sdk.damlversion>
         <daml-plugin.version>0.1.4</daml-plugin.version>
-        <daml.model.projectDir>${project.basedir}</daml.model.projectDir>
         <daml.model.dar>${project.build.directory}/${project.artifactId}.dar</daml.model.dar>
-        <daml.triggers.projectDir>${project.basedir}/triggers</daml.triggers.projectDir>
-        <daml.triggers.dar>${project.build.directory}/${project.artifactId}-triggers.dar</daml.triggers.dar>
     </properties>
     <dependencies>
         <dependency>
