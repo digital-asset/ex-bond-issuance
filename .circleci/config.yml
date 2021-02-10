@@ -229,4 +229,6 @@ workflows:
           context: refapps
       - blackduck_check:
           daml_sdk_version: "1.9.0"
-          context: blackduck
+          context:
+            - blackduck
+            - refapps
