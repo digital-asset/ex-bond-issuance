@@ -186,7 +186,7 @@ jobs:
             ci-build digitalasset_ex-bond-issuance master \
             --logging.level.com.synopsys.integration=DEBUG \
             --detect.notices.report=false \
-            --detect.report.timeout=1800
+            --detect.timeout=3600
 ### Temporarily disabled due to Blackduck issue (see https://github.com/digital-asset/ex-bond-issuance/pull/156)
 #      - run:
 #          command: cp digitalasset_ex_bond_issuance_master_Black_Duck_Notices_Report.txt NOTICE
