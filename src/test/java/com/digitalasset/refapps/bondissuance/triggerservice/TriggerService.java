@@ -74,9 +74,11 @@ public class TriggerService extends ExternalResource {
     HttpClient httpClient = new HttpClient();
     int timeout = defaultTimeout;
     while (!httpClient.isAvailable(getStartUrl(this.ledgerHost)) && timeout > 0) {
+      logger.debug("Waiting for trigger service...");
       Thread.sleep(1000);
       timeout--;
     }
+    if (timeout == 0) throw new RuntimeException("Timeout for trigger service");
   }
 
   private void stop() {
