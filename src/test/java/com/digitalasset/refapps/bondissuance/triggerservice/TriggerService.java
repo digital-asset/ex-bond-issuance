@@ -66,8 +66,7 @@ public class TriggerService extends ExternalResource {
             "--ledger-host",
             ledgerHost,
             "--ledger-port",
-            ledgerPort.get(),
-            "--no-secret-key");
+            ledgerPort.get());
   }
 
   private void waitForTriggerServiceToStart() throws MalformedURLException, InterruptedException {

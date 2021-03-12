@@ -53,7 +53,8 @@ echo "Starting trigger service."
 daml trigger-service \
     --ledger-host "${SANDBOX_HOST}" \
     --ledger-port "${SANDBOX_PORT}" \
-    --wall-clock-time --no-secret-key --dar ${DAR_FILE} &
+    --wall-clock-time \
+    --dar ${DAR_FILE} &
 
 wait_for_service ${SANDBOX_HOST} ${DEFAULT_SERVICE_PORT}
 
