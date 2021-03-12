@@ -1,0 +1,122 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+
+module DA.RefApps.Bond.Triggers.CommissionTrigger where
+
+import Daml.Script (Script, script)
+import qualified Daml.Script as Script
+import Daml.Trigger
+import DA.Foldable hiding (length)
+import Daml.Trigger.Assert
+import DA.Assert
+import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
+import DA.RefApps.Bond.Roles.IssuerRole
+import DA.Finance.Rule.Asset
+import DA.RefApps.Bond.FixedRateBond
+import DA.RefApps.Bond.ContractUtils
+import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
+
+commissionTrigger : Trigger ()
+commissionTrigger = Trigger
+  { initialize = pure ()
+  , updateState = \_ -> pure ()
+  , rule = commissionRule
+  , registeredTemplates = RegisteredTemplates [
+      registeredTemplate @CommissionBotTrigger,
+      registeredTemplate @FixedRateBondFact,
+      registeredTemplate @AssetSettlement,
+      registeredTemplate @AssetFungible
+    ]
+  , heartbeat = None
+  }
+
+commissionRule : Party -> TriggerA () ()
+commissionRule party = do
+  triggerContracts <- query @CommissionBotTrigger
+  fixedRateBondFacts <- query @FixedRateBondFact
+  assetSettlements <- query @AssetSettlement
+  assetFungibles <- query @AssetFungible
+
+  forA_ triggerContracts $ \(triggerCid, trigger) -> do
+    let bondAssetSettlementCid =
+          findAsset
+            trigger.issuerBondAccount.provider
+            trigger.issuerBondAccount.owner
+            assetSettlements
+        cashAssetSettlementCid =
+          findAsset
+            trigger.cashAccountProvider
+            party
+            assetSettlements
+        bondAssetFungibleCid =
+          findAsset
+            trigger.issuerBondAccount.provider
+            trigger.issuerBondAccount.owner
+            assetFungibles
+        fixedRateBondFactCid =
+          getBondRefData trigger.bondAssetId fixedRateBondFacts
+    dedupExercise triggerCid CommissionBotTrigger_InviteAgent with
+        bondAssetFungibleCid
+        bondAssetSettlementCid
+        cashAssetSettlementCid
+        fixedRateBondFactCid
+  where
+    getBondRefData assetId bondFacts =
+      headNote "Can't find any BondFact contract" $
+        filterContractIds (\p -> p.instrumentId == assetId) bondFacts
+
+
+-- Tests ---------------------------
+
+testCommissionHappens: Script ()
+testCommissionHappens = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
+  issuance <-
+    MarketSetup.setupIssuance parties
+  commissionBotTrigger <-
+    commissionAuction issuer issuance
+
+  let activeContracts = toACS commissionBotTrigger <>
+                        toACS issuance.bondBundleData.assetDepositCid <>
+                        toACS issuance.bondBundleData.bondSettlementCid <>
+                        toACS issuance.bondBundleData.assetFungibleCid <>
+                        toACS issuance.bondBundleData.cashSettlementCid <>
+                        toACS issuance.fixedRateBondFactCid
+  flattenedCommands <- testTrigger commissionTrigger issuer activeContracts
+  length flattenedCommands === 1
+  assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
+    assertEq cid commissionBotTrigger
+    assertEq choiceArg $ CommissionBotTrigger_InviteAgent
+      issuance.bondBundleData.assetFungibleCid
+      issuance.bondBundleData.bondSettlementCid
+      issuance.bondBundleData.cashSettlementCid
+      issuance.fixedRateBondFactCid
+
+testNoCommissionIfNoTrigger: Script ()
+testNoCommissionIfNoTrigger = script do
+  parties@MarketSetup.Parties{..} <- MarketSetup.allocateParties
+  issuance <-
+    MarketSetup.setupIssuance parties
+
+  let activeContracts = toACS issuance.bondBundleData.assetDepositCid <>
+                        toACS issuance.bondBundleData.bondSettlementCid <>
+                        toACS issuance.bondBundleData.assetFungibleCid <>
+                        toACS issuance.bondBundleData.cashSettlementCid <>
+                        toACS issuance.fixedRateBondFactCid
+  flattenedCommands <- testTrigger commissionTrigger issuer activeContracts
+  length flattenedCommands === 0
+
+-- Helpers -------------------------
+
+commissionAuction : Party -> MarketSetup.TestIssuance -> Script (ContractId CommissionBotTrigger)
+commissionAuction issuer issuance =
+  submit issuer do
+    Script.exerciseCmd issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
+      bondAssetDepositCid = issuance.bondBundleData.assetDepositCid
+      startDate = MarketSetup.auctionStartDate
+      endDate = MarketSetup.auctionEndDate
+      minPrice = 40.0
+      size = 1000000

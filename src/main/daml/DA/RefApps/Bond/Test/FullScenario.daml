@@ -3,7 +3,7 @@
 -- SPDX-License-Identifier: Apache-2.0
 --
 
-daml 1.2
+{-# LANGUAGE ApplicativeDo #-}
 module DA.RefApps.Bond.Test.FullScenario where
 
 import DA.Next.Set
@@ -13,6 +13,8 @@ import DA.List
 import DA.Time
 import DA.Optional
 import DA.Assert
+
+import Daml.Script
 
 import DA.Finance.Types
 import DA.Finance.Fact.Asset
@@ -124,77 +126,95 @@ auctionEndDate = date 2020 Jan 20
 maturity: Date
 maturity = date 2022 Jan 20
 
-setupRoles: Scenario TestRoles
-setupRoles = scenario do
-  operator <- getParty "Operator"
-  regulator <- getParty "Regulator"
-  auctionAgent <- getParty "AuctionAgent"
-  bank1 <- getParty "Bank1"
-  bank2 <- getParty "Bank2"
-  bank3 <- getParty "Bank3"
-  bank4 <- getParty "Bank4"
-  csd <- getParty "CSD"
-  issuer <- getParty "Issuer"
-  centralBank <- getParty "CentralBank"
+data Parties = Parties with
+  operator : Party
+  regulator : Party
+  auctionAgent : Party
+  bank1 : Party
+  bank2 : Party
+  bank3 : Party
+  bank4 : Party
+  csd : Party
+  issuer : Party
+  centralBank : Party
 
+allocateParties : Script Parties
+allocateParties = do
+  operator <- allocateParty "Operator"
+  regulator <- allocateParty "Regulator"
+  auctionAgent <- allocateParty "AuctionAgent"
+  bank1 <- allocateParty "Bank1"
+  bank2 <- allocateParty "Bank2"
+  bank3 <- allocateParty "Bank3"
+  bank4 <- allocateParty "Bank4"
+  csd <- allocateParty "CSD"
+  issuer <- allocateParty "Issuer"
+  centralBank <- allocateParty "CentralBank"
+  pure Parties with ..
+
+setupRoles: Parties -> Script TestRoles
+setupRoles Parties{..} = script do
+
+
+  operatorCid <- submit operator do
+    createCmd OperatorRole with
+      operator = operator
+      regulators = [regulator]
   (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, bankInvitationCid4, csdInvitationCid, issuerCid, centralBankCid)
     <- submit operator do
-      operatorCid <- create OperatorRole with
-          operator = operator
-          regulators = [regulator]
       auctionAgentInvitationCid
-        <- exercise operatorCid OperatorRole_InviteAuctionAgent with
+        <- exerciseCmd operatorCid OperatorRole_InviteAuctionAgent with
               auctionAgent = auctionAgent
       bankInvitationCid1
-        <- exercise operatorCid OperatorRole_InviteBank with
+        <- exerciseCmd operatorCid OperatorRole_InviteBank with
               bank = bank1
       bankInvitationCid2
-        <- exercise operatorCid OperatorRole_InviteBank with
+        <- exerciseCmd operatorCid OperatorRole_InviteBank with
               bank = bank2
       bankInvitationCid3
-        <- exercise operatorCid OperatorRole_InviteBank with
+        <- exerciseCmd operatorCid OperatorRole_InviteBank with
               bank = bank3
       bankInvitationCid4
-        <- exercise operatorCid OperatorRole_InviteBank with
+        <- exerciseCmd operatorCid OperatorRole_InviteBank with
               bank = bank4
       csdInvitationCid
-        <- exercise operatorCid OperatorRole_InviteCsd with
+        <- exerciseCmd operatorCid OperatorRole_InviteCsd with
               csd = csd
       issuerCid
-        <- exercise operatorCid OperatorRole_InviteIssuer with
+        <- exerciseCmd operatorCid OperatorRole_InviteIssuer with
               issuer = issuer
               bondProvider = csd
               cashProvider = centralBank
               auctionAgent = auctionAgent
       centralBankCid
-        <- exercise operatorCid OperatorRole_InviteCentralBank with
+        <- exerciseCmd operatorCid OperatorRole_InviteCentralBank with
               centralBank = centralBank
-      return (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, bankInvitationCid4, csdInvitationCid, issuerCid, centralBankCid)
+      pure (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, bankInvitationCid4, csdInvitationCid, issuerCid, centralBankCid)
 
   auctionAgentRole <- submit auctionAgent do
-    exercise auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
+    exerciseCmd auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
 
   bankRole1Cid <- submit bank1 do
-    exercise bankInvitationCid1 BankRoleInvitation_Accept
+    exerciseCmd bankInvitationCid1 BankRoleInvitation_Accept
 
   bankRole2Cid <- submit bank2 do
-    exercise bankInvitationCid2 BankRoleInvitation_Accept
+    exerciseCmd bankInvitationCid2 BankRoleInvitation_Accept
 
   bankRole3Cid <- submit bank3 do
-    exercise bankInvitationCid3 BankRoleInvitation_Accept
+    exerciseCmd bankInvitationCid3 BankRoleInvitation_Accept
 
   bankRole4Cid <- submit bank4 do
-    exercise bankInvitationCid4 BankRoleInvitation_Reject
+    exerciseCmd bankInvitationCid4 BankRoleInvitation_Reject
 
   csdRole <- submit csd do
-    exercise csdInvitationCid CsdRoleInvitation_Accept
+    exerciseCmd csdInvitationCid CsdRoleInvitation_Accept
 
   issuerRole <- submit issuer do
-    exercise issuerCid IssuerRoleInvitation_Accept
+    exerciseCmd issuerCid IssuerRoleInvitation_Accept
 
   centralBankRoleCid <- submit centralBank do
-    exercise centralBankCid CentralBankRoleInvitation_Accept
-  return TestRoles {
+    exerciseCmd centralBankCid CentralBankRoleInvitation_Accept
+  pure TestRoles {
     issuerRoleCid = issuerRole
   , csdRoleCid = csdRole
   , centralBankRoleCid = centralBankRoleCid
@@ -211,18 +231,9 @@ createAccount owner provider label =
     owner = owner
 
 
-setupIssuance: Scenario TestIssuance
-setupIssuance = scenario do
-  testRoles <- setupRoles
-
-  centralBank <- getParty "CentralBank"
-  bank1 <- getParty "Bank1"
-  bank2 <- getParty "Bank2"
-  bank3 <- getParty "Bank3"
-  issuer <- getParty "Issuer"
-  auctionAgent <- getParty "AuctionAgent"
-  csd <- getParty "CSD"
-
+setupIssuance: Parties -> Script TestIssuance
+setupIssuance parties@Parties{..} = script do
+  testRoles <- setupRoles parties
   let issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
       bank1CashAccount = createAccount bank1 centralBank "Bank1CashAccount"
       bank2CashAccount = createAccount bank2 centralBank "Bank2CashAccount"
@@ -234,51 +245,50 @@ setupIssuance = scenario do
 
   -- Rules and cash
   (bank1CashSettlement, bank1Fungible, bank1Lock, bank1CashAsset) <- submit centralBank do
-    bank1CashAsset <- exercise testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0
-    bank1Settlement <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
-    bank1Fungible <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1CashAccount
-    bank1Lock <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
-    return (bank1Settlement, bank1Fungible, bank1Lock, bank1CashAsset)
+    bank1CashAsset <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0
+    bank1Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
+    bank1Fungible <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1CashAccount
+    bank1Lock <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
+    pure (bank1Settlement, bank1Fungible, bank1Lock, bank1CashAsset)
   (bank2CashSettlement, bank2Fungible, bank2Lock, bank2CashAsset) <- submit centralBank do
-    bank2CashAsset <- exercise testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank2CashAccount "USD" 600000000.0
-    bank2Settlement <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount []
-    bank2Fungible <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank2CashAccount
-    bank2Lock <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank2CashAccount
-    return (bank2Settlement, bank2Fungible, bank2Lock, bank2CashAsset)
+    bank2CashAsset <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank2CashAccount "USD" 600000000.0
+    bank2Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount []
+    bank2Fungible <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank2CashAccount
+    bank2Lock <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank2CashAccount
+    pure (bank2Settlement, bank2Fungible, bank2Lock, bank2CashAsset)
   (bank3CashSettlement, bank3Fungible, bank3Lock, bank3CashAsset) <- submit centralBank do
-    bank3CashAsset <- exercise testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank3CashAccount "USD" 30000000.0
-    bank3Settlement <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount []
-    bank3Fungible <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank3CashAccount
-    bank3Lock <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank3CashAccount
-    return (bank3Settlement, bank3Fungible, bank3Lock, bank3CashAsset)
+    bank3CashAsset <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank3CashAccount "USD" 30000000.0
+    bank3Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount []
+    bank3Fungible <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank3CashAccount
+    bank3Lock <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank3CashAccount
+    pure (bank3Settlement, bank3Fungible, bank3Lock, bank3CashAsset)
 
   (issuerCashAsset, issuerCashSettlement, issuerCashFungibleCid) <- submit centralBank do
-    issuerCashAsset <- exercise testRoles.centralBankRoleCid $ CentralBankRole_IssueCash issuerCashAccount "USD" 100000000.0
-    issuerCashSettlement <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount [auctionAgent, bank1, bank2, bank3]
-    issuerCashFungibleCid <- exercise testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule issuerCashAccount
-    return (issuerCashAsset, issuerCashSettlement, issuerCashFungibleCid)
+    issuerCashAsset <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_IssueCash issuerCashAccount "USD" 100000000.0
+    issuerCashSettlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount [auctionAgent, bank1, bank2, bank3]
+    issuerCashFungibleCid <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateFungibleRule issuerCashAccount
+    pure (issuerCashAsset, issuerCashSettlement, issuerCashFungibleCid)
 
   (issuerFungibleRule, issuerBondSettlement) <- submit csd do
-    issuerFungibleRule <- exercise testRoles.csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
-    issuerSettlementRule <- exercise testRoles.csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
-    return (issuerFungibleRule, issuerSettlementRule)
+    issuerFungibleRule <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
+    issuerSettlementRule <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
+    pure (issuerFungibleRule, issuerSettlementRule)
 
   (bank1BondSettlement, bank2BondSettlement, bank3BondSettlement) <- submit csd do
-    bank1Settlement <- exercise testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount []
-    bank2Settlement <- exercise testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank2BondAccount []
-    bank3Settlement <- exercise testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
-    return (bank1Settlement, bank2Settlement, bank3Settlement)
+    bank1Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount []
+    bank2Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank2BondAccount []
+    bank3Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
+    pure (bank1Settlement, bank2Settlement, bank3Settlement)
 
   -- Bond Issuance ------------------------
-
+  now <- toDateUTC <$> getTime
+  let (year, month, day) = toGregorian auctionEndDate
+      cashAssetId = Id with
+        signatories = fromList [centralBank]
+        label = "USD"
+        version = 0
   accProviderApprovalReqCid <- submit issuer do
-    now <- toDateUTC <$> getTime
-    let (year, month, day) = toGregorian auctionEndDate
-        cashAssetId = Id with
-          signatories = fromList [centralBank]
-          label = "USD"
-          version = 0
-    exercise testRoles.issuerRoleCid IssuerRole_Issuance with
+    exerciseCmd testRoles.issuerRoleCid IssuerRole_Issuance with
       issueSize = 3000000
       issueDate = now
       currency = cashAssetId.label
@@ -288,7 +298,7 @@ setupIssuance = scenario do
       couponDates = [date (year + 1) month day] -- plus maturity
 
   (fixedRateBondFactCid, assetDepositCid) <- submit csd do
-    exercise accProviderApprovalReqCid IssuanceRequest_Accept with isin = bondIsin
+    exerciseCmd accProviderApprovalReqCid IssuanceRequest_Accept with isin = bondIsin
 
   let cashAccounts = Accounts issuerCashAccount bank1CashAccount bank2CashAccount bank3CashAccount
   let bondAccounts = Accounts issuerBondAccount bank1BondAccount bank2BondAccount bank3BondAccount
@@ -316,7 +326,7 @@ setupIssuance = scenario do
                       cashSettlementCid = issuerCashSettlement
                       assetLabel = bondIsin, ..
       cashAssetId = Id (DA.Next.Set.singleton centralBank) "USD" 0
-  return TestIssuance {
+  pure TestIssuance {
     roles = testRoles
   , fixedRateBondFactCid = fixedRateBondFactCid
   , bondBundleData = bondBundleData
@@ -355,156 +365,146 @@ setupIssuance = scenario do
 
 There is a parallely going auction of the same
 -}
-startAuction: TestIssuance -> Scenario AuctionProgress
-startAuction issuance = scenario do
-  auctionAgent <- getParty "AuctionAgent"
-  issuer <- getParty "Issuer"
-  centralBank <- getParty "CentralBank"
-  bank1 <- getParty "Bank1"
-  bank2 <- getParty "Bank2"
-  bank3 <- getParty "Bank3"
-  csd <- getParty "CSD"
-
-  passToDate $ auctionStartDate
+startAuction: Parties -> TestIssuance -> Script AuctionProgress
+startAuction Parties{..} issuance = script do
+  setTime (time auctionStartDate 0 0 0)
 
   -- Auction ----------------------------
-  (auctionInvitationCid, remainingAssets) <- submit issuer do
-    commissionedCid <- exercise issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
+  commissionedCid <- submit issuer do
+    exerciseCmd issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
       bondAssetDepositCid = issuance.bondBundleData.assetDepositCid
       startDate = auctionStartDate
       endDate = auctionEndDate
       minPrice = 40.0
       size = 1000000
-
-    exercise commissionedCid CommissionBotTrigger_InviteAgent with
+  (auctionInvitationCid, remainingAssets) <- submit issuer do
+    exerciseCmd commissionedCid CommissionBotTrigger_InviteAgent with
       bondAssetFungibleCid = issuance.bondBundleData.assetFungibleCid
       bondAssetSettlementCid = issuance.bondBundleData.bondSettlementCid
       cashAssetSettlementCid = issuance.bondBundleData.cashSettlementCid
       fixedRateBondFactCid = issuance.fixedRateBondFactCid
 
-  (auction', [bidderParticipationCid1, bidderParticipationCid2, bidderParticipationCid3]) <- submit auctionAgent do
-    auctionCid <- exercise auctionInvitationCid AuctionInvitation_Accept with
+  auctionCid <- submit auctionAgent do
+    exerciseCmd auctionInvitationCid AuctionInvitation_Accept with
       auctionName = "testAuction"
-    exercise auctionCid Auction_InviteBidders with
+  (auction', [bidderParticipationCid1, bidderParticipationCid2, bidderParticipationCid3]) <- submit auctionAgent do
+    exerciseCmd auctionCid Auction_InviteBidders with
       bidders = [bank1, bank2, bank3]
 
-  pass $ seconds 1
+  passTime $ seconds 1
 
   -- Another parallel auction ----------------------------
-  (otherAuctionInvitation, _) <- submit issuer do
-    otherCommissionedCid <- exercise issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
+  otherCommissionedCid <- submit issuer do
+    exerciseCmd issuance.roles.issuerRoleCid IssuerRole_CommissionAuction with
       bondAssetDepositCid = head remainingAssets
       startDate = auctionStartDate
       endDate = auctionEndDate
       minPrice = 50.0
       size = 2000000
+  (otherAuctionInvitation, _) <- submit issuer do
 
-    exercise otherCommissionedCid CommissionBotTrigger_InviteAgent with
+    exerciseCmd otherCommissionedCid CommissionBotTrigger_InviteAgent with
       bondAssetFungibleCid = issuance.bondBundleData.assetFungibleCid
       bondAssetSettlementCid = issuance.bondBundleData.bondSettlementCid
       cashAssetSettlementCid = issuance.bondBundleData.cashSettlementCid
       fixedRateBondFactCid = issuance.fixedRateBondFactCid
 
-  (otherAuction', [otherBidderParticipationCid1, otherBidderParticipationCid2, otherBidderParticipationCid3]) <- submit auctionAgent do
-    otherAuctionCid <- exercise otherAuctionInvitation AuctionInvitation_Accept with
+  otherAuctionCid <- submit auctionAgent do
+    exerciseCmd otherAuctionInvitation AuctionInvitation_Accept with
       auctionName = "otherTestAuction"
-    exercise otherAuctionCid Auction_InviteBidders with
+  (otherAuction', [otherBidderParticipationCid1, otherBidderParticipationCid2, otherBidderParticipationCid3]) <- submit auctionAgent do
+
+    exerciseCmd otherAuctionCid Auction_InviteBidders with
       bidders = [bank1, bank2, bank3]
 
-  pass $ seconds 1
+  passTime $ seconds 1
 
   -- Bidding -------------------
 
-  (bidCid1_1, bank1RemainingCash, bank1Lock1)
-    <- submit bank1 do
-      bidLockReq <- exercise bidderParticipationCid1 BidderParticipation_PlaceBid with
-        price = 42.0
-        quantity = 200000
-      lockCashResult <- exercise bidLockReq PlaceBidBotTrigger_LockCash with
-        cashDepositCids = [issuance.cashAssets.bank1CashDepositCid]
-        cashAssetFungibleCid = issuance.rules.bank1CashFungibleCid
-        lockRuleCid = issuance.rules.bank1LockRuleCid
-        investorBondAssetSettlementCid = issuance.rules.bank1BondSettlementCid
+  bidLockReq <- submit bank1 do
+    exerciseCmd bidderParticipationCid1 BidderParticipation_PlaceBid with
+      price = 42.0
+      quantity = 200000
+  lockCashResult <- submit bank1 do
+    exerciseCmd bidLockReq PlaceBidBotTrigger_LockCash with
+      cashDepositCids = [issuance.cashAssets.bank1CashDepositCid]
+      cashAssetFungibleCid = issuance.rules.bank1CashFungibleCid
+      lockRuleCid = issuance.rules.bank1LockRuleCid
+      investorBondAssetSettlementCid = issuance.rules.bank1BondSettlementCid
+  let (bank1Lock1, bidCid1_1, bank1RemainingCash) = fromSome $ eitherToOptional $ lockCashResult
 
-      let (bank1Lock1, bidCid1_1, rest) = fromSome $ eitherToOptional $ lockCashResult
-      return (bidCid1_1, rest, bank1Lock1)
 
-  pass $ seconds 1
+  passTime $ seconds 1
 
-  (bidCid2_1, bidCid2_2, bidCid2_3, bank2Lock1, bank2Lock2, bank2Lock3)
-    <- submit bank2 do
-      bidLockReq1 <- exercise bidderParticipationCid2 BidderParticipation_PlaceBid with
-        price = 25.0
-        quantity = 800000
-      lockCashResult1 <- exercise bidLockReq1 PlaceBidBotTrigger_LockCash with
-        cashDepositCids = [issuance.cashAssets.bank2CashDepositCid]
-        cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
-        lockRuleCid = issuance.rules.bank2LockRuleCid
-        investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
+  bidLockReq1 <- submit bank2 do
+    exerciseCmd bidderParticipationCid2 BidderParticipation_PlaceBid with
+      price = 25.0
+      quantity = 800000
+  lockCashResult1 <- submit bank2 do
+    exerciseCmd bidLockReq1 PlaceBidBotTrigger_LockCash with
+      cashDepositCids = [issuance.cashAssets.bank2CashDepositCid]
+      cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
+      lockRuleCid = issuance.rules.bank2LockRuleCid
+      investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
+  let (bank2Lock1, bidCid2_1, rest) = fromSome $ eitherToOptional $ lockCashResult1
+  bidLockReq2 <- submit bank2 do
+    exerciseCmd bidderParticipationCid2 BidderParticipation_PlaceBid with
+      price = 42.0
+      quantity = 500000
+  lockCashResult2 <- submit bank2 do
+    exerciseCmd bidLockReq2 PlaceBidBotTrigger_LockCash with
+      cashDepositCids = rest
+      cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
+      lockRuleCid = issuance.rules.bank2LockRuleCid
+      investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
+  let (bank2Lock2, bidCid2_2, rest') = fromSome $ eitherToOptional $ lockCashResult2
+  bidLockReq3 <- submit bank2 do
+    exerciseCmd bidderParticipationCid2 BidderParticipation_PlaceBid with
+      price = 422.0 -- fat finger error
+      quantity = 500000
+  lockCashResult3 <- submit bank2 do
+    exerciseCmd bidLockReq3 PlaceBidBotTrigger_LockCash with
+      cashDepositCids = rest'
+      cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
+      lockRuleCid = issuance.rules.bank2LockRuleCid
+      investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
+  let (bank2Lock3, bidCid2_3, _) = fromSome $ eitherToOptional $ lockCashResult3
 
-      let (bank2Lock1, bidCid2_1, rest) = fromSome $ eitherToOptional $ lockCashResult1
-      bidLockReq2 <- exercise bidderParticipationCid2 BidderParticipation_PlaceBid with
-        price = 42.0
-        quantity = 500000
-      lockCashResult2 <- exercise bidLockReq2 PlaceBidBotTrigger_LockCash with
-        cashDepositCids = rest
-        cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
-        lockRuleCid = issuance.rules.bank2LockRuleCid
-        investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
+  passTime $ seconds 1
 
-      let (bank2Lock2, bidCid2_2, rest') = fromSome $ eitherToOptional $ lockCashResult2
-      bidLockReq3 <- exercise bidderParticipationCid2 BidderParticipation_PlaceBid with
-        price = 422.0 -- fat finger error
-        quantity = 500000
-      lockCashResult3 <- exercise bidLockReq3 PlaceBidBotTrigger_LockCash with
-        cashDepositCids = rest'
-        cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
-        lockRuleCid = issuance.rules.bank2LockRuleCid
-        investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
-
-      let (bank2Lock3, bidCid2_3, _) = fromSome $ eitherToOptional $ lockCashResult3
-      return (bidCid2_1, bidCid2_2, bidCid2_3, bank2Lock1, bank2Lock2, bank2Lock3)
-
-  pass $ seconds 1
-
-  (bidCid3_1, bank3Lock)
-    <- submit bank3 do
-      bidLockReq <- exercise bidderParticipationCid3 BidderParticipation_PlaceBid with
-        price = 43.0
-        quantity = 400000
-      lockCashResult <- exercise bidLockReq PlaceBidBotTrigger_LockCash with
-        cashDepositCids = [issuance.cashAssets.bank3CashDepositCid]
-        cashAssetFungibleCid = issuance.rules.bank3CashFungibleCid
-        lockRuleCid = issuance.rules.bank3LockRuleCid
-        investorBondAssetSettlementCid = issuance.rules.bank3BondSettlementCid
-
-      let (bank3Lock, bidCid3_1, _) = fromSome $ eitherToOptional $ lockCashResult
-      return (bidCid3_1, bank3Lock)
-
-  pass $ seconds 1
+  bidLockReq <- submit bank3 do
+    exerciseCmd bidderParticipationCid3 BidderParticipation_PlaceBid with
+      price = 43.0
+      quantity = 400000
+  lockCashResult <- submit bank3 do
+    exerciseCmd bidLockReq PlaceBidBotTrigger_LockCash with
+      cashDepositCids = [issuance.cashAssets.bank3CashDepositCid]
+      cashAssetFungibleCid = issuance.rules.bank3CashFungibleCid
+      lockRuleCid = issuance.rules.bank3LockRuleCid
+      investorBondAssetSettlementCid = issuance.rules.bank3BondSettlementCid
+  let (bank3Lock, bidCid3_1, _) = fromSome $ eitherToOptional $ lockCashResult
+  passTime $ seconds 1
 
   -- Bank2 notices the fat finger error and revokes its bid
   submit bank2 do
-    exercise bidderParticipationCid2 $ AuctionBidderParticipantion_RevokeLockedBid bidCid2_3 bank2Lock3
+    exerciseCmd bidderParticipationCid2 $ AuctionBidderParticipantion_RevokeLockedBid bidCid2_3 bank2Lock3
 
   -- Bidding to the other auction -------------------
-  (otherBidCid1_1, bank1Lock2)
-    <- submit bank1 do
-      bidLockReq <- exercise otherBidderParticipationCid1 BidderParticipation_PlaceBid with
-        price = 50.0
-        quantity = 500000
-      lockCashResult <- exercise bidLockReq PlaceBidBotTrigger_LockCash with
-        cashDepositCids = bank1RemainingCash
-        cashAssetFungibleCid = issuance.rules.bank1CashFungibleCid
-        lockRuleCid = issuance.rules.bank1LockRuleCid
-        investorBondAssetSettlementCid = issuance.rules.bank1BondSettlementCid
+  bidLockReq <- submit bank1 do
+    exerciseCmd otherBidderParticipationCid1 BidderParticipation_PlaceBid with
+      price = 50.0
+      quantity = 500000
+  lockCashResult <- submit bank1 do
+    exerciseCmd bidLockReq PlaceBidBotTrigger_LockCash with
+      cashDepositCids = bank1RemainingCash
+      cashAssetFungibleCid = issuance.rules.bank1CashFungibleCid
+      lockRuleCid = issuance.rules.bank1LockRuleCid
+      investorBondAssetSettlementCid = issuance.rules.bank1BondSettlementCid
+  let (bank1Lock2, otherBidCid1_1, _) = fromSome $ eitherToOptional $ lockCashResult
 
-      let (bank1Lock2, otherBidCid1_1, _) = fromSome $ eitherToOptional $ lockCashResult
-      return (otherBidCid1_1, bank1Lock2)
+  passTime $ seconds 1
 
-  pass $ seconds 1
-
-  return $ AuctionProgress
+  pure $ AuctionProgress
     auction'
     bidderParticipationCid1
     bidderParticipationCid2
@@ -524,144 +524,127 @@ startAuction issuance = scenario do
     [bank1Lock2]
 
 
-finalizeAuction: AuctionProgress -> Scenario (SettleRequests, ContractId AssetDeposit)
-finalizeAuction auctionProgress = scenario do
-  auctionAgent <- getParty "AuctionAgent"
-  issuer <- getParty "Issuer"
-  bank1 <- getParty "Bank1"
-  bank2 <- getParty "Bank2"
-  bank3 <- getParty "Bank3"
-
+finalizeAuction: Parties -> AuctionProgress -> Script (SettleRequests, ContractId AssetDeposit)
+finalizeAuction Parties{..} auctionProgress = script do
   -- Finalization ------------------------
 
-  passToDate $ auctionEndDate
+  setTime (time auctionEndDate 0 0 0)
 
+  auctionFinalizeBotTrigger <- submit auctionAgent do
+    exerciseCmd auctionProgress.auction Auction_Finalize
   ([bank1SettleReq, bank2SettleReq, bank3SettleReq], _)  <- submit auctionAgent do
-    auctionFinalizeBotTrigger <- exercise auctionProgress.auction Auction_Finalize
-    exercise auctionFinalizeBotTrigger AuctionFinalizeBotTrigger_AllocateBond with
+    exerciseCmd auctionFinalizeBotTrigger AuctionFinalizeBotTrigger_AllocateBond with
       participationCids = [auctionProgress.bidderParticipationCid1, auctionProgress.bidderParticipationCid2, auctionProgress.bidderParticipationCid3]
       bidCids = [auctionProgress.bidCid1_1, auctionProgress.bidCid2_1, auctionProgress.bidCid2_2, auctionProgress.bidCid3_1]
 
   -- Finalization of the other auction ------------------------
 
+  otherAuctionFinalizeBotTrigger <- submit auctionAgent do
+    exerciseCmd auctionProgress.otherAuction Auction_Finalize
   ([otherSettleReq], Some remainedAssetFact)  <- submit auctionAgent do
-    otherAuctionFinalizeBotTrigger <- exercise auctionProgress.otherAuction Auction_Finalize
-    exercise otherAuctionFinalizeBotTrigger AuctionFinalizeBotTrigger_AllocateBond with
+    exerciseCmd otherAuctionFinalizeBotTrigger AuctionFinalizeBotTrigger_AllocateBond with
       participationCids = [auctionProgress.otherBidderParticipationCid1]
       bidCids = [auctionProgress.otherBidCid1_1]
 
   -- Checking result ----------------------
 
-  submit bank1 do
-    participantReq <- fetch bank1SettleReq
-    settleReq <- fetch $ head participantReq.settleRequestCids
-    settleReq.investor === bank1
-    settleReq.cashAmountToPay === 42.0 * 200000.0
+  Some participantReq <- queryContractId bank1 bank1SettleReq
+  Some settleReq <- queryContractId bank1 $ head participantReq.settleRequestCids
+  settleReq.investor === bank1
+  settleReq.cashAmountToPay === 42.0 * 200000.0
 
-  submit bank2 do
-    participantReq <- fetch bank2SettleReq
-    settleReq <- fetch $ head participantReq.settleRequestCids
-    settleReq.investor === bank2
-    settleReq.cashAmountToPay === 42.0 * 400000.0
-    tooLow <- fetch $ head participantReq.invalidBidNotificationCids
-    tooLow.bid.bidder === bank2
-    tooLow.bid.bidData.price === 25.0
-    tooLow.reason === "The offered amount didn't reach the limit price"
+  Some participantReq <- queryContractId bank2 bank2SettleReq
+  Some settleReq <- queryContractId bank2 $ head participantReq.settleRequestCids
+  settleReq.investor === bank2
+  settleReq.cashAmountToPay === 42.0 * 400000.0
+  Some tooLow <- queryContractId bank2 $ head participantReq.invalidBidNotificationCids
+  tooLow.bid.bidder === bank2
+  tooLow.bid.bidData.price === 25.0
+  tooLow.reason === "The offered amount didn't reach the limit price"
 
-  submit bank3 do
-    participantReq <- fetch bank3SettleReq
-    settleReq <- fetch $ head participantReq.settleRequestCids
-    settleReq.investor === bank3
-    settleReq.cashAmountToPay === 42.0 * 400000.0
+  Some participantReq <- queryContractId bank3 bank3SettleReq
+  Some settleReq <- queryContractId bank3 $ head participantReq.settleRequestCids
+  settleReq.investor === bank3
+  settleReq.cashAmountToPay === 42.0 * 400000.0
 
 
   -- Checking result for the other auction ----------------------
 
-  submit bank1 do
-    participantReq <- fetch otherSettleReq
-    settleReq <- fetch $ head participantReq.settleRequestCids
-    settleReq.investor === bank1
-    settleReq.cashAmountToPay === 50.0 * 500000.0
+  Some participantReq <- queryContractId bank1 otherSettleReq
+  Some settleReq <- queryContractId bank1 $ head participantReq.settleRequestCids
+  settleReq.investor === bank1
+  settleReq.cashAmountToPay === 50.0 * 500000.0
 
-  return (SettleRequests with
+  pure (SettleRequests with
       bank1SettleReqCid = bank1SettleReq
       bank2SettleReqCid = bank2SettleReq
       bank3SettleReqCid = bank3SettleReq
       otherSettleReqCid = otherSettleReq
     , remainedAssetFact)
 
-doSettlement: TestIssuance -> SettleRequests -> AuctionProgress -> Scenario AssetsForRedemption
-doSettlement issuance settleRequests auctionProgress = scenario do
-  centralBank <- getParty "CentralBank"
-  bank1 <- getParty "Bank1"
-  bank2 <- getParty "Bank2"
-  bank3 <- getParty "Bank3"
-  issuer <- getParty "Issuer"
-  csd <- getParty "CSD"
-
+doSettlement: Parties -> TestIssuance -> SettleRequests -> AuctionProgress -> Script AssetsForRedemption
+doSettlement Parties{..} issuance settleRequests auctionProgress = script do
   -- settle and verify the bonds are transferred to the investors' accounts
 
-  (assetCid1, paymentCid1, rdmpPI1) <- submit bank1 do
-    settlementStarted <- exercise settleRequests.bank1SettleReqCid AuctionParticipantSettleRequest_Settle
-    [rdmpPayoutInfoCid] <- exercise settlementStarted InvestorSettlement_Finalize with
+  settlementStarted <- submit bank1 do
+    exerciseCmd settleRequests.bank1SettleReqCid AuctionParticipantSettleRequest_Settle
+  [rdmpPI1] <- submit bank1 do
+    exerciseCmd settlementStarted InvestorSettlement_Finalize with
       cashAssetFungible = issuance.rules.bank1CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank1Locks
       investorCashSettlementCid = issuance.rules.bank1CashSettlementCid
-    rdmpPayoutInfo <- fetch rdmpPayoutInfoCid
-    let deliveryDepositCid = head $ head rdmpPayoutInfo.settlementResult.deliveryDepositCids
-        paymentDepositCid = head $ head rdmpPayoutInfo.settlementResult.paymentDepositCids
-    deposit <- fetch deliveryDepositCid
-    deposit.asset.quantity === 200000.0
-    deposit.asset.id.label === "BOND-007"
-    deposit.account.owner === bank1
-    return (deliveryDepositCid, paymentDepositCid, rdmpPayoutInfoCid)
+  Some rdmpPayoutInfo <- queryContractId bank1 rdmpPI1
+  let assetCid1 = head $ head rdmpPayoutInfo.settlementResult.deliveryDepositCids
+      paymentCid1 = head $ head rdmpPayoutInfo.settlementResult.paymentDepositCids
+  Some deposit <- queryContractId bank1 assetCid1
+  deposit.asset.quantity === 200000.0
+  deposit.asset.id.label === "BOND-007"
+  deposit.account.owner === bank1
 
-  (assetCid2, paymentCid2, rdmpPI2) <- submit bank2 do
-    settlementStarted <- exercise settleRequests.bank2SettleReqCid AuctionParticipantSettleRequest_Settle
-    [rdmpPayoutInfoCid] <- exercise  settlementStarted InvestorSettlement_Finalize with
+  settlementStarted <- submit bank2 do
+    exerciseCmd settleRequests.bank2SettleReqCid AuctionParticipantSettleRequest_Settle
+  [rdmpPI2] <- submit bank2 do
+    exerciseCmd  settlementStarted InvestorSettlement_Finalize with
       cashAssetFungible = issuance.rules.bank2CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank2Locks
       investorCashSettlementCid = issuance.rules.bank2CashSettlementCid
-    rdmpPayoutInfo <- fetch rdmpPayoutInfoCid
-    let deliveryDepositCid = head $ head rdmpPayoutInfo.settlementResult.deliveryDepositCids
-        paymentDepositCid = head $ head rdmpPayoutInfo.settlementResult.paymentDepositCids
-    deposit <- fetch deliveryDepositCid
-    deposit.asset.quantity === 400000.0
-    deposit.asset.id.label === "BOND-007"
-    deposit.account.owner === bank2
-    return (deliveryDepositCid, paymentDepositCid, rdmpPayoutInfoCid)
+  Some rdmpPayoutInfo <- queryContractId bank2 rdmpPI2
+  let assetCid2 = head $ head rdmpPayoutInfo.settlementResult.deliveryDepositCids
+      paymentCid2 = head $ head rdmpPayoutInfo.settlementResult.paymentDepositCids
+  Some deposit <- queryContractId bank2 assetCid2
+  deposit.asset.quantity === 400000.0
+  deposit.asset.id.label === "BOND-007"
+  deposit.account.owner === bank2
 
-
-  (assetCid3, paymentCid3, rdmpPI3) <- submit bank3 do
-    settlementStarted <- exercise settleRequests.bank3SettleReqCid AuctionParticipantSettleRequest_Settle
-    [rdmpPayoutInfoCid] <- exercise  settlementStarted InvestorSettlement_Finalize with
+  settlementStarted <- submit bank3 do
+    exerciseCmd settleRequests.bank3SettleReqCid AuctionParticipantSettleRequest_Settle
+  [rdmpPI3] <- submit bank3 do
+    exerciseCmd settlementStarted InvestorSettlement_Finalize with
       cashAssetFungible = issuance.rules.bank3CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank3Locks
       investorCashSettlementCid = issuance.rules.bank3CashSettlementCid
-    rdmpPayoutInfo <- fetch rdmpPayoutInfoCid
-    let deliveryDepositCid = head $ head rdmpPayoutInfo.settlementResult.deliveryDepositCids
-        paymentDepositCid = head $ head rdmpPayoutInfo.settlementResult.paymentDepositCids
-    deposit <- fetch deliveryDepositCid
-    deposit.asset.quantity === 400000.0
-    deposit.asset.id.label === "BOND-007"
-    deposit.account.owner === bank3
-    return (deliveryDepositCid, paymentDepositCid, rdmpPayoutInfoCid)
+  Some rdmpPayoutInfo <- queryContractId bank3 rdmpPI3
+  let assetCid3 = head $ head rdmpPayoutInfo.settlementResult.deliveryDepositCids
+      paymentCid3 = head $ head rdmpPayoutInfo.settlementResult.paymentDepositCids
+  Some deposit <- queryContractId bank3 assetCid3
+  deposit.asset.quantity === 400000.0
+  deposit.asset.id.label === "BOND-007"
+  deposit.account.owner === bank3
 
   -- verify that the Issuer received the money
-  submit issuer do
-    payment1 <- fetch paymentCid1
-    payment1.asset.quantity === 8400000.0
-    payment1.asset.id.label === "USD"
+  Some payment1 <- queryContractId issuer paymentCid1
+  payment1.asset.quantity === 8400000.0
+  payment1.asset.id.label === "USD"
 
-    payment2 <- fetch paymentCid2
-    payment2.asset.quantity === 16800000.0
-    payment2.asset.id.label === "USD"
+  Some payment2 <- queryContractId issuer paymentCid2
+  payment2.asset.quantity === 16800000.0
+  payment2.asset.id.label === "USD"
 
-    payment3 <- fetch paymentCid3
-    payment3.asset.quantity === 16800000.0
-    payment3.asset.id.label === "USD"
+  Some payment3 <- queryContractId issuer paymentCid3
+  payment3.asset.quantity === 16800000.0
+  payment3.asset.id.label === "USD"
 
-  return AssetsForRedemption with
+  pure AssetsForRedemption with
     bank1BondDepositCid = assetCid1
     bank2BondDepositCid = assetCid2
     bank3BondDepositCid = assetCid3
@@ -669,65 +652,56 @@ doSettlement issuance settleRequests auctionProgress = scenario do
     bank2RedemptionPayoutInfoCid = rdmpPI2
     bank3RedemptionPayoutInfoCid = rdmpPI3
 
-redemption: TestIssuance -> AssetsForRedemption -> ContractId AssetDeposit -> SettleRequests -> Scenario ()
-redemption issuance assetsForRedemption remainedBondDeposit settleRequests = scenario do
-  centralBank <- getParty "CentralBank"
-  issuer <- getParty "Issuer"
-  bank1 <- getParty "Bank1"
-  bank2 <- getParty "Bank2"
-  bank3 <- getParty "Bank3"
-  csd <- getParty "CSD"
-
+redemption: Parties -> TestIssuance -> AssetsForRedemption -> ContractId AssetDeposit -> SettleRequests -> Script ()
+redemption Parties{..} issuance assetsForRedemption remainedBondDeposit settleRequests = script do
   -- request redemption at CSD
-  passToDate maturity
+  setTime (time maturity 0 0 0)
 
-  (request, leftOverSettlementChain) <- submit issuer do
-    redeemRequest <- exercise issuance.roles.issuerRoleCid $ IssuerRole_Redeem issuance.fixedRateBondFactCid
-    otherParticipantReq <- fetch settleRequests.otherSettleReqCid
-    otherSettleReq <- fetch $ head otherParticipantReq.settleRequestCids
-    return (redeemRequest, otherSettleReq.bondSettlementChainCid)
+  request <- submit issuer do
+    exerciseCmd issuance.roles.issuerRoleCid $ IssuerRole_Redeem issuance.fixedRateBondFactCid
+  Some otherParticipantReq <- queryContractId issuer settleRequests.otherSettleReqCid
+  Some otherSettleReq <- queryContractId issuer $ head otherParticipantReq.settleRequestCids
 
+  calc <- submit csd do
+    exerciseCmd request RedemptionRequest_Accept
   Some redemptionFinalizer <- submit csd do
-    calc <- exercise request RedemptionRequest_Accept
-    exercise calc $ RedemptionCalculationBotTrigger_Start
+    exerciseCmd calc $ RedemptionCalculationBotTrigger_Start
       [assetsForRedemption.bank1RedemptionPayoutInfoCid, assetsForRedemption.bank2RedemptionPayoutInfoCid, assetsForRedemption.bank3RedemptionPayoutInfoCid]
       [remainedBondDeposit]
 
   -- complete instructions
 
   payments <- submit issuer do
-    exercise redemptionFinalizer $ RedemptionFinalizeBotTrigger_Finalize with
+    exerciseCmd redemptionFinalizer $ RedemptionFinalizeBotTrigger_Finalize with
       cashAssetDepositCids = [issuance.cashAssets.issuerCashDepositCid] --transferRule splitAndMergeRule
       cashAssetSettlementCid = issuance.rules.issuerCashSettlementCid
       cashAssetFungibleCid = issuance.rules.issuerCashFungibleCid
 
   -- check payments
 
-  submit bank1 do
-    payment <- fetch $ head $ tail $ tail payments
-    payment.asset.quantity === 8822000.0
-    payment.asset.id.label === "USD"
-    payment.account.owner === bank1
+  Some payment <- queryContractId bank1 $ head $ tail $ tail payments
+  payment.asset.quantity === 8822000.0
+  payment.asset.id.label === "USD"
+  payment.account.owner === bank1
 
-  submit bank2 do
-    payment <- fetch $ head $ tail payments
-    payment.asset.quantity === 17644000.0
-    payment.asset.id.label === "USD"
-    payment.account.owner === bank2
+  Some payment <- queryContractId bank2 $ head $ tail payments
+  payment.asset.quantity === 17644000.0
+  payment.asset.id.label === "USD"
+  payment.account.owner === bank2
 
-  submit bank3 do
-    payment <- fetch $ head payments
-    payment.asset.quantity === 17644000.0
-    payment.asset.id.label === "USD"
-    payment.account.owner === bank3
+  Some payment <- queryContractId bank3 $ head payments
+  payment.asset.quantity === 17644000.0
+  payment.asset.id.label === "USD"
+  payment.account.owner === bank3
 
 -- Test with walking through all the supported steps of the workflow
-testFullScenario: Scenario ()
-testFullScenario = scenario do
-  passToDate $ date 2020 Jan 01
-  issuance <- setupIssuance
-  progress <- startAuction issuance
-  (settleRequests, remainedBond) <- finalizeAuction progress
-  assetsForRedemption <- doSettlement issuance settleRequests progress
-  redemption issuance assetsForRedemption remainedBond settleRequests
-  return ()
+testFullScenario: Script ()
+testFullScenario = script do
+  parties <- allocateParties
+  setTime (time (date 2020 Jan 01) 0 0 0)
+  issuance <- setupIssuance parties
+  progress <- startAuction parties issuance
+  (settleRequests, remainedBond) <- finalizeAuction parties progress
+  assetsForRedemption <- doSettlement parties issuance settleRequests progress
+  redemption parties issuance assetsForRedemption remainedBond settleRequests
+  pure ()

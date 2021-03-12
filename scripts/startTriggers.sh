@@ -21,7 +21,7 @@ fi
 
 SANDBOX_HOST="${1}"
 SANDBOX_PORT="${2}"
-DAR_FILE="${3:-/home/daml/bond-issuance.dar}"
+DAR_FILE="${3:-/home/daml/bond-issuance-triggers.dar}"
 DEFAULT_SERVICE_PORT="8088"
 
 start_trigger() {

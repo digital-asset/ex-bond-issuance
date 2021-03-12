@@ -1,39 +1,61 @@
-version := 0.1
-colon   := :
-
 SDK_VERSION := $(shell grep 'sdk-version' daml.yaml | cut -d ' ' -f 2)
+MODELS_DAR=target/bond-issuance.dar
+TRIGGERS_DAR=target/bond-issuance-triggers.dar
+FINLIB_DAR=target/finlib-master-sdk-$(SDK_VERSION).dar
+JS_CODEGEN_DIR=ui/daml.js
 
 .PHONY: build
-build:
-	python scripts/getfinlib.py $(SDK_VERSION)
-	daml build -o target/bond-issuance.dar
+build: build-dars yarn-install-deps
 
 .PHONY: clean
 clean:
+	rm -rf .daml triggers/.daml
+	rm -rf ui/node_modules ui/build $(JS_CODEGEN_DIR)
 	rm -rf target
-	yarn cache clean
-	rm -rf daml.js
-	rm -rf ui-js/build
-	rm -rf .daml
 
-buildui:
-	daml codegen js target/*.dar -o daml.js
-	cd ui-js && yarn install
+### DARS ###
 
-.PHONY: ui
-ui: buildui
-	cd ui-js && yarn start
+.PHONY: build-dars
+build-dars: $(MODELS_DAR) $(TRIGGERS_DAR)
 
-.PHONY: start
-start:
-	daml start --sandbox-option --address=localhost --sandbox-option -w --open-browser no
+DAML_SRC=$(shell find src/ -name '*.daml')
 
-.PHONY: automation
-automation:
-	JAVA_TOOL_OPTIONS=-Xmx128m \
-	scripts/waitForSandbox.sh localhost 6865 && \
-  scripts/startTriggers.sh localhost 6865 target/bond-issuance.dar
+$(FINLIB_DAR):
+	scripts/getfinlib.py $(SDK_VERSION)
 
-.PHONY: docker
-docker: buildui
-	docker-compose up --build
+$(MODELS_DAR): $(DAML_SRC) daml.yaml $(FINLIB_DAR)
+	daml build --output $@
+
+TRIGGERS_DAML_SRC=$(shell find triggers/src/ -name '*.daml')
+
+$(TRIGGERS_DAR): $(TRIGGERS_DAML_SRC) triggers/daml.yaml $(MODELS_DAR)
+	cd triggers && daml build --output ../$@
+
+
+.PHONY: test-dars
+test-dars: build-dars
+	daml test --junit target/daml-test-reports/model.xml
+	cd triggers && daml test --junit ../target/daml-test-reports/triggers.xml
+
+
+### JS Codegen ###
+
+JS_CODEGEN_ARTIFACT=$(JS_CODEGEN_DIR)/bond-issuance-2.0.0/package.json
+
+$(JS_CODEGEN_ARTIFACT): $(MODELS_DAR) $(FINLIB_DAR)
+	daml codegen js -o $(JS_CODEGEN_DIR) $^
+
+
+### UI Install ###
+
+UI_INSTALL_ARTIFACT=ui/node_modules
+
+$(UI_INSTALL_ARTIFACT): ui/package.json ui/yarn.lock $(JS_CODEGEN_ARTIFACT)
+	cd ui && yarn install --force --frozen-lockfile
+
+.PHONY: yarn-install-deps
+yarn-install-deps: $(UI_INSTALL_ARTIFACT)
+
+.PHONY: package
+package: yarn-install-deps
+	cd ui && yarn build && mkdir -p ../target && zip -r ../target/bondui.zip build/

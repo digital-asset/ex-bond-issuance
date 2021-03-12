@@ -1,0 +1,51 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+
+module DA.RefApps.Bond.Test.Triggers.InvestorSettlementTriggerTest where
+
+import Daml.Script
+import Daml.Trigger.Assert (assertExerciseCmd, toACS)
+import DA.Foldable hiding (length, null)
+import DA.Assert
+import DA.RefApps.Bond.Settlement
+
+import DA.RefApps.Bond.Auction
+import DA.RefApps.Bond.Triggers.InvestorSettlementTrigger
+import DA.RefApps.Bond.Test.FullScenario qualified as LedgerSetup
+import DA.RefApps.Bond.Test.FullScenario (Parties(..), allocateParties)
+import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
+
+investorSettlementTrigger_finalizes_settlement: Script ()
+investorSettlementTrigger_finalizes_settlement = script do
+  parties@Parties{..} <- allocateParties
+  issuance <- LedgerSetup.setupIssuance parties
+  progress <- LedgerSetup.startAuction parties issuance
+  (settleRequests, _) <- LedgerSetup.finalizeAuction parties progress
+
+  settlement <- bank1 `submit`
+    exerciseCmd settleRequests.bank1SettleReqCid AuctionParticipantSettleRequest_Settle
+
+  let activeContracts =
+           toACS issuance.rules.bank1CashFungibleCid -- assetFungibles
+        <> toACS issuance.rules.bank1CashSettlementCid -- assetSettlements
+        <> foldMap toACS progress.bank1Locks -- auctionLockedCashes
+
+  commands <- testTrigger investorSettlementTrigger bank1 (activeContracts <> toACS settlement)
+
+  1 === length commands
+  assertExerciseCmd commands $ \(contract, actualChoice) -> do
+    settlement === contract
+    let expectedChoice =
+          InvestorSettlement_Finalize
+            with
+              auctionLockedCashCids = progress.bank1Locks
+              cashAssetFungible = issuance.rules.bank1CashFungibleCid
+              investorCashSettlementCid = issuance.rules.bank1CashSettlementCid
+    expectedChoice === actualChoice
+
+  commands <- testTrigger investorSettlementTrigger bank1 activeContracts
+
+  assertMsg "Expected no commands." $ null commands

@@ -11,32 +11,25 @@ orbs:
 executors:
   daml-executor:
     docker:
-      - image: circleci/openjdk:11.0-jdk
+      - image: cimg/openjdk:11.0-node
   mvn-executor:
     docker:
-      - image: circleci/openjdk:11.0-jdk
-  docker_buildpack:
-    docker:
-      - image: circleci/buildpack-deps:xenial
-
-only-release-tags: &only-release-tags
-  filters:
-    tags:
-      only: /^v.*/
-    branches:
-      ignore: /.*/
-
+      - image: cimg/openjdk:11.0
+    resource_class: large
 
 commands:
   install_sdk:
-    description: "Install the DAML SDK"
+    description: "Install Daml SDK"
     parameters:
       version:
         type: string
     steps:
       - run:
+          name: Install Daml SDK
           command: |
-            ./scripts/install-daml.sh << parameters.version >>
+            curl -sSL https://get.daml.com/ | sh /dev/stdin << parameters.version >>
+            # idea from https://circleci.com/docs/2.0/env-vars/
+            >> $BASH_ENV echo 'export PATH="$HOME/.daml/bin:$PATH"'
   slack_notification:
     description: "Notify about failure on Slack"
     steps:
@@ -44,50 +37,8 @@ commands:
           fail_only: true
           only_for_branches: master
           webhook: '${SLACK_WEBHOOK}'
-jobs:
-  mvn_test:
-    parameters:
-      daml_sdk_version:
-        type: string
-    executor: mvn-executor
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
-            - m2
-      - install_sdk:
-          version: << parameters.daml_sdk_version >>
-      - run:
-          command: |
-            export PATH=${HOME}/.daml/bin:${PATH}
-            mvn verify
-      - run:
-          command: |
-            echo "Moving log files so they can be stored."
-            mkdir logs
-            mv *.log logs
-          when: always
-      - store_artifacts:
-          path: logs
-      - save_cache:
-          paths:
-            - ~/.m2
-            - ~/.daml
-          key: m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
-      - store_test_results:
-          path: target/surefire-reports
-      - store_artifacts:
-          path: target/surefire-reports
-      - persist_to_workspace:
-          root: target
-          paths:
-            - "*.jar"
-            - "*.dar"
-            - "lib"
-            - "NOTICE"
-      - slack_notification
 
+jobs:
   daml_test:
     parameters:
       daml_sdk_version:
@@ -101,11 +52,13 @@ jobs:
       - install_sdk:
           version: << parameters.daml_sdk_version >>
       - run:
+          name: Build Daml
           command: |
-            export PATH=${HOME}/.daml/bin:${PATH}
-            python scripts/getfinlib.py << parameters.daml_sdk_version >>
-            daml build -o target/bond-issuance.dar
-            daml test --junit target/daml-test-reports/daml-test.xml --files src/main/daml/DA/RefApps/Bond/Test/FullScenario.daml
+            make build-dars
+      - run:
+          name: Daml tests
+          command: |
+            make test-dars
       - save_cache:
           paths:
             - ~/.daml
@@ -114,6 +67,85 @@ jobs:
           path: target/daml-test-reports
       - store_artifacts:
           path: target/daml-test-reports
+      - slack_notification
+
+  integration_test:
+    parameters:
+      daml_sdk_version:
+        type: string
+    executor: mvn-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
+            - m2
+      - install_sdk:
+          version: << parameters.daml_sdk_version >>
+      - run:
+          name: Integration tests
+          command: |
+            mvn verify
+      - run:
+          command: |
+            echo "Moving log files so they can be stored."
+            mkdir -p logs
+            mv *.log logs
+          when: always
+      - store_artifacts:
+          path: logs
+      - save_cache:
+          paths:
+            - ~/.m2
+            - ~/.daml
+          key: m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
+      - store_test_results:
+          path: target/failsafe-reports
+      - store_artifacts:
+          path: target/failsafe-reports
+      - store_test_results:
+          path: target/surefire-reports
+      - store_artifacts:
+          path: target/surefire-reports
+      - run:
+          command: |
+            mkdir -p logs
+            mv target/pmd.xml logs
+          when: always
+      - persist_to_workspace:
+          root: target
+          paths:
+            - "*.jar"
+            - "*.dar"
+            - "lib"
+            - "NOTICE"
+      - slack_notification
+
+  ui_test:
+    parameters:
+      daml_sdk_version:
+        type: string
+    executor: daml-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - daml-{{ checksum "daml.yaml" }}
+      - install_sdk:
+          version: << parameters.daml_sdk_version >>
+      - run:
+          name: UI install dependencies
+          command: |
+            make build
+      - run:
+          name: UI build
+          command: |
+            make package CI=
+            # TODO remove "CI=" to treat warnings as errors
+      - save_cache:
+          paths:
+            - ~/.daml
+          key: daml-{{ checksum "daml.yaml" }}
       - slack_notification
 
   blackduck_check:
@@ -135,97 +167,53 @@ jobs:
             - ~/.daml
           key: m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
       - run:
-          name: Maven Build
+          name: Maven build
           command: |
-            export PATH=${HOME}/.daml/bin:${PATH}
             mvn clean package
       - run:
-          name: Install Yarn
+          name: UI install dependencies
           command: |
-            curl -sL https://nodejs.org/dist/v12.16.3/node-v12.16.3-linux-x64.tar.xz -o ${HOME}/nodejs.tar.gz
-            tar -xf ${HOME}/nodejs.tar.gz -C ${HOME}
-            export PATH=${HOME}/node-v12.16.3-linux-x64/bin:${PATH}
-            curl -o- -L https://yarnpkg.com/install.sh | bash
+            make build
       - run:
-          name: Yarn Build
-          # TODO: Investigate why we DAML is not on the path.
+          name: Yarn recursive install
           command: |
-            export PATH=${HOME}/node-v12.16.3-linux-x64/bin:${PATH}
-            export PATH=${HOME}/.daml/bin:${PATH}
-            export PATH=${HOME}/.yarn/bin:${PATH}
-            make buildui
-            yarn install
             # recurse all directories with a package.json and run yarn install on them to resolve dependencies
             find . -type f \( ! -path '*node_modules*' \) -name package.json | while read hit ; do yarn install --cwd $(dirname "$hit") ; done
       - run:
-          name: Run Blackduck Detect
+          name: Blackduck detect
           command: |
-            export PATH=${HOME}/node-v12.16.3-linux-x64/bin:${PATH}
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) \
             ci-build digitalasset_ex-bond-issuance master \
             --logging.level.com.synopsys.integration=DEBUG \
-            --detect.notices.report=true \
-            --detect.report.timeout=1800
-      - run:
-          command: cp digitalasset_ex_bond_issuance_master_Black_Duck_Notices_Report.txt NOTICE
-      - persist_to_workspace:
-          root: .
-          paths:
-            - "NOTICE"
-
-  github_release:
-    executor: docker_buildpack
-    steps:
-      - checkout
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Push a new github release
-          command: |
-            ./scripts/release.sh ex-bond-issuance
+            --detect.notices.report=false \
+            --detect.timeout=3600
+### Temporarily disabled due to Blackduck issue (see https://github.com/digital-asset/ex-bond-issuance/pull/156)
+#      - run:
+#          command: cp digitalasset_ex_bond_issuance_master_Black_Duck_Notices_Report.txt NOTICE
+#      - persist_to_workspace:
+#          root: .
+#          paths:
+#            - "NOTICE"
+      - slack_notification
 
 workflows:
   version: 2
-  build_and_test:
+  test:
     jobs:
       - daml_test:
-          daml_sdk_version: "1.3.0-snapshot.20200701.4616.0.bdbefd11"
+          daml_sdk_version: "1.10.0"
           context: refapps
-      - mvn_test:
-          daml_sdk_version: "1.3.0-snapshot.20200701.4616.0.bdbefd11"
+      - integration_test:
+          daml_sdk_version: "1.10.0"
           context: refapps
-  long_blackduck_only_on_master:
-    jobs:
-       - blackduck_check:
-          daml_sdk_version: "1.3.0-snapshot.20200701.4616.0.bdbefd11"
-          context: blackduck
-          filters:
-            branches:
-              only:
-                - master
-  build_and_release:
-    jobs:
-      - daml_test:
-          <<: *only-release-tags
-          daml_sdk_version: "1.3.0-snapshot.20200701.4616.0.bdbefd11"
+      - ui_test:
+          daml_sdk_version: "1.10.0"
           context: refapps
-      - mvn_test:
-          <<: *only-release-tags
-          daml_sdk_version: "1.3.0-snapshot.20200701.4616.0.bdbefd11"
-          context: refapps
-      - blackduck_check:
-          <<: *only-release-tags
-          daml_sdk_version: "1.3.0-snapshot.20200701.4616.0.bdbefd11"
-          context: blackduck
-      - github_release:
-          context: github-refapp-repo-context
-          requires:
-            - daml_test
-            - mvn_test
-          <<: *only-release-tags
   scheduled_test:
     triggers:
       - schedule:
+          # need to scatter jobs to reduce Blackduck load
+          # see also https://digitalasset.atlassian.net/browse/ERA-913
           cron: "0 1 * * *"
           filters:
             branches:
@@ -233,8 +221,16 @@ workflows:
                 - master
     jobs:
       - daml_test:
-          daml_sdk_version: "1.3.0-snapshot.20200701.4616.0.bdbefd11"
+          daml_sdk_version: "1.10.0"
           context: refapps
-      - mvn_test:
-          daml_sdk_version: "1.3.0-snapshot.20200701.4616.0.bdbefd11"
+      - integration_test:
+          daml_sdk_version: "1.10.0"
           context: refapps
+      - ui_test:
+          daml_sdk_version: "1.10.0"
+          context: refapps
+      - blackduck_check:
+          daml_sdk_version: "1.10.0"
+          context:
+            - blackduck
+            - refapps

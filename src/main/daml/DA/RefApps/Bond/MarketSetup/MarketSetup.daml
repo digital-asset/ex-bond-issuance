@@ -1,0 +1,450 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+{-# LANGUAGE ApplicativeDo #-}
+module DA.RefApps.Bond.MarketSetup.MarketSetup where
+
+import DA.Date
+import DA.Time
+import DA.Action
+
+import Daml.Script
+
+import DA.RefApps.Bond.Roles.CentralBankRole
+import DA.RefApps.Bond.Roles.CsdRole
+import DA.RefApps.Bond.Roles.OperatorRole
+import DA.RefApps.Bond.Roles.BankRole
+import DA.RefApps.Bond.Roles.IssuerRole
+import DA.RefApps.Bond.Roles.AuctionAgentRole
+import DA.RefApps.Bond.Test.FullScenario
+import DA.RefApps.Bond.Auction
+import DA.RefApps.Bond.Settlement
+import DA.Finance.Fact.Asset
+import DA.Finance.Rule.Asset
+import DA.RefApps.Bond.Lock
+import DA.RefApps.Bond.Redemption
+
+data MarketSetupData =
+  MarketSetupData
+  { issuer: Party
+  , issuerRole: ContractId IssuerRole
+  , csd: Party
+  , auctionAgent: Party
+  , bank1: Party
+  , funIss: ContractId AssetFungible
+  , settIss: ContractId AssetSettlement
+  , settIssCash: ContractId AssetSettlement
+  , cashBank1: ContractId AssetDeposit
+  , funBank1Cash: ContractId AssetFungible
+  , settBank1: ContractId AssetSettlement
+  , settBank1Cash: ContractId AssetSettlement
+  , lockBank1: ContractId AssetLockRule
+  }
+
+-- | A contract with the operator's and a party's signature. This can
+-- be used then to setup the market.
+template MarketSetupSignature
+  with
+    operator : Party
+    marketParticipant : Party
+  where
+    signatory operator, marketParticipant
+    controller operator can
+      MarketSetupSignature_UseSignature : ContractId MarketSetup
+        with
+          targetContractId: ContractId MarketSetup
+        do
+          exercise targetContractId MarketSetup_Sign with signer = marketParticipant
+
+-- | A contract that can create signature contracts for the parties. Given all of these,
+-- the operator can setup the market.
+template MarketSetupSignatureCreator
+  with
+    operator : Party
+    regulator: Party
+    auctionAgent: Party
+    bank1: Party
+    bank2: Party
+    bank3: Party
+    csd: Party
+    issuer: Party
+    centralBank: Party
+    signatories: [Party]
+  where
+    -- TODO: 'everyone' cannot be used here with "unused bindings" turned on.
+    -- See: https://github.com/digital-asset/daml/issues/5878
+    observer [operator, regulator, auctionAgent, bank1, bank2, bank3,
+                    csd, issuer, centralBank]
+    signatory operator
+    nonconsuming choice MarketSetupSignatureCreator_CreateSignature : ContractId MarketSetupSignature with
+        marketParticipant : Party
+      controller marketParticipant
+        do
+          let everyone = [operator, regulator, auctionAgent, bank1, bank2, bank3,
+                          csd, issuer, centralBank]
+          assertMsg "Only market participants can exercise this choice."
+                            $ marketParticipant `elem` everyone
+          create MarketSetupSignature with ..
+    controller operator can
+      MarketSetupSignatureCreator_SetupMarket : MarketSetupData
+        with
+          signatures : [ContractId MarketSetupSignature]
+        do
+          marketSetupCid <- create MarketSetup with ..
+          signedMarketSetupCid
+            <- foldlA
+                  (\signed marketSetupCid' ->
+                    exercise marketSetupCid' MarketSetupSignature_UseSignature
+                          with targetContractId = signed)
+                  marketSetupCid
+                  signatures
+          exercise signedMarketSetupCid MarketSetup_SetupMarket
+
+-- | A contract that can perform market setup via its "Setup Market" choice
+-- if every market participant has signed it. Signing is done by the market
+-- participants via the "Sign" choice.
+-- One needs to use this pattern to avoid having to write a market setup
+-- scenario which can only by used in Sandbox (no production ledger supports this).
+template MarketSetup
+  with
+    operator : Party
+    regulator: Party
+    auctionAgent: Party
+    bank1: Party
+    bank2: Party
+    bank3: Party
+    csd: Party
+    issuer: Party
+    centralBank: Party
+    signatories: [Party]
+  where
+    signatory signatories
+    observer operator, regulator, auctionAgent, bank1, bank2, bank3, csd, issuer, centralBank
+    choice MarketSetup_Sign : ContractId MarketSetup with
+        signer : Party
+      controller operator, signer
+        do
+          create this with signatories = signer :: signatories
+    controller operator can
+      MarketSetup_SetupMarket : MarketSetupData
+        do
+          operatorCid <- create OperatorRole with
+                            operator = operator
+                            regulators = [regulator]
+          auctionAgentInvitationCid
+            <- exercise operatorCid OperatorRole_InviteAuctionAgent with
+                  auctionAgent = auctionAgent
+          bankInvitationCid1
+            <- exercise operatorCid OperatorRole_InviteBank with
+                  bank = bank1
+          bankInvitationCid2
+            <- exercise operatorCid OperatorRole_InviteBank with
+                  bank = bank2
+          bankInvitationCid3
+            <- exercise operatorCid OperatorRole_InviteBank with
+                  bank = bank3
+          csdInvitationCid
+            <- exercise operatorCid OperatorRole_InviteCsd with
+                  csd = csd
+          issuerCid
+            <- exercise operatorCid OperatorRole_InviteIssuer with
+                  issuer = issuer
+                  bondProvider = csd
+                  cashProvider = centralBank
+                  auctionAgent = auctionAgent
+          centralBankCid
+            <- exercise operatorCid OperatorRole_InviteCentralBank with
+                  centralBank = centralBank
+          exercise auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
+          exercise bankInvitationCid1 BankRoleInvitation_Accept
+          exercise bankInvitationCid2 BankRoleInvitation_Accept
+          exercise bankInvitationCid3 BankRoleInvitation_Accept
+          csdRoleCid <- exercise csdInvitationCid CsdRoleInvitation_Accept
+          issuerRole <- exercise issuerCid IssuerRoleInvitation_Accept
+          centralBankRoleCid <- exercise centralBankCid CentralBankRoleInvitation_Accept
+
+          let issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
+              bank1CashAccount = createAccount bank1 centralBank "Bank1CashAccount"
+              bank2CashAccount = createAccount bank2 centralBank "Bank2CashAccount"
+              bank3CashAccount = createAccount bank3 centralBank "Bank3CashAccount"
+              issuerBondAccount = createAccount issuer csd "IssuerBondAccount"
+              bank1BondAccount = createAccount bank1 csd "Bank1BondAccount"
+              bank2BondAccount = createAccount bank2 csd "Bank2BondAccount"
+              bank3BondAccount = createAccount bank3 csd "Bank3BondAccount"
+
+          cashBank1 <-
+              exercise centralBankRoleCid $
+                CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0
+          exercise centralBankRoleCid $
+              CentralBankRole_IssueCash bank2CashAccount "USD" 600000000.0
+          exercise centralBankRoleCid $
+              CentralBankRole_IssueCash bank3CashAccount "USD" 50000000.0
+          exercise centralBankRoleCid $
+              CentralBankRole_IssueCash issuerCashAccount "USD" 100000000.0
+
+          settBank1Cash <-
+              exercise centralBankRoleCid $
+                CentralBankRole_CreateSettlementRule bank1CashAccount []
+          exercise centralBankRoleCid $
+              CentralBankRole_CreateSettlementRule bank2CashAccount []
+          exercise centralBankRoleCid $
+              CentralBankRole_CreateSettlementRule bank3CashAccount []
+          settIssCash <-
+              exercise centralBankRoleCid $
+                CentralBankRole_CreateSettlementRule issuerCashAccount [bank1, bank2, bank3]
+
+          funBank1Cash <-
+              exercise centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1CashAccount
+          exercise centralBankRoleCid $
+              CentralBankRole_CreateFungibleRule bank2CashAccount
+          exercise centralBankRoleCid $
+              CentralBankRole_CreateFungibleRule bank3CashAccount
+          exercise centralBankRoleCid $
+              CentralBankRole_CreateFungibleRule issuerCashAccount
+
+          lockBank1 <-
+              exercise centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
+          exercise centralBankRoleCid $
+              CentralBankRole_CreateLockRule bank2CashAccount
+          exercise centralBankRoleCid $
+              CentralBankRole_CreateLockRule bank3CashAccount
+
+          exercise csdRoleCid $ CsdRole_CreateFungibleRule bank1BondAccount []
+          exercise csdRoleCid $ CsdRole_CreateFungibleRule bank2BondAccount []
+          exercise csdRoleCid $ CsdRole_CreateFungibleRule bank3BondAccount []
+          funIss <-
+              exercise csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
+
+          settBank1 <- exercise csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount []
+          exercise csdRoleCid $ CsdRole_CreateSettlementRule bank2BondAccount []
+          exercise csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
+          settIss <-
+              exercise csdRoleCid $
+                CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
+          return $ MarketSetupData issuer issuerRole csd auctionAgent bank1 funIss
+                                   settIss settIssCash cashBank1 funBank1Cash
+                                   settBank1 settBank1Cash lockBank1
+
+testMarketSetupContract: Script ()
+testMarketSetupContract = script do
+  operator <- allocateParty "Operator"
+  regulator <- allocateParty "Regulator"
+  auctionAgent <- allocateParty "AuctionAgent"
+  bank1 <- allocateParty "Bank1"
+  bank2 <- allocateParty "Bank2"
+  bank3 <- allocateParty "Bank3"
+  csd <- allocateParty "CSD"
+  issuer <- allocateParty "Issuer"
+  centralBank <- allocateParty "CentralBank"
+  signatureCreatorCid <- submit operator do
+                      createCmd MarketSetupSignatureCreator with
+                        operator = operator
+                        regulator = regulator
+                        auctionAgent = auctionAgent
+                        bank1 = bank1
+                        bank2 = bank2
+                        bank3 = bank3
+                        csd = csd
+                        issuer = issuer
+                        centralBank = centralBank
+                        signatories = [operator]
+  signature1 <- submit auctionAgent $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature auctionAgent
+  signature2 <- submit bank1 $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature bank1
+  signature3 <- submit bank2 $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature bank2
+  signature4 <- submit bank3 $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature bank3
+  signature5 <- submit csd $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature csd
+  signature6 <- submit issuer $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature issuer
+  signature7 <- submit centralBank $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature centralBank
+
+  submit operator do
+    exerciseCmd signatureCreatorCid MarketSetupSignatureCreator_SetupMarket with
+      signatures = [signature1, signature2, signature3, signature4, signature5, signature6, signature7]
+  return ()
+
+-- | Initial setup of the market participants and some cash
+testMarketSetup: Script MarketSetupData
+testMarketSetup = script do
+  operator <- allocateParty "Operator"
+  regulator <- allocateParty "Regulator"
+  auctionAgent <- allocateParty "AuctionAgent"
+  bank1 <- allocateParty "Bank1"
+  bank2 <- allocateParty "Bank2"
+  bank3 <- allocateParty "Bank3"
+  csd <- allocateParty "CSD"
+  issuer <- allocateParty "Issuer"
+  centralBank <- allocateParty "CentralBank"
+
+  operatorCid <- submit operator do
+    createCmd OperatorRole with
+      operator = operator
+      regulators = [regulator]
+  (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, csdInvitationCid, issuerCid, centralBankCid)
+    <- submit operator do
+      auctionAgentInvitationCid
+        <- exerciseCmd operatorCid OperatorRole_InviteAuctionAgent with
+              auctionAgent = auctionAgent
+      bankInvitationCid1
+        <- exerciseCmd operatorCid OperatorRole_InviteBank with
+              bank = bank1
+      bankInvitationCid2
+        <- exerciseCmd operatorCid OperatorRole_InviteBank with
+              bank = bank2
+      bankInvitationCid3
+        <- exerciseCmd operatorCid OperatorRole_InviteBank with
+              bank = bank3
+      csdInvitationCid
+        <- exerciseCmd operatorCid OperatorRole_InviteCsd with
+              csd = csd
+      issuerCid
+        <- exerciseCmd operatorCid OperatorRole_InviteIssuer with
+              issuer = issuer
+              bondProvider = csd
+              cashProvider = centralBank
+              auctionAgent = auctionAgent
+      centralBankCid
+        <- exerciseCmd operatorCid OperatorRole_InviteCentralBank with
+              centralBank = centralBank
+      return (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, csdInvitationCid, issuerCid, centralBankCid)
+  submit auctionAgent do
+    exerciseCmd auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
+
+  submit bank1 do
+    exerciseCmd bankInvitationCid1 BankRoleInvitation_Accept
+
+  submit bank2 do
+    exerciseCmd bankInvitationCid2 BankRoleInvitation_Accept
+
+  submit bank3 do
+    exerciseCmd bankInvitationCid3 BankRoleInvitation_Accept
+
+  csdRoleCid <- submit csd do
+    exerciseCmd csdInvitationCid CsdRoleInvitation_Accept
+
+  issuerRole <- submit issuer do
+    exerciseCmd issuerCid IssuerRoleInvitation_Accept
+
+  centralBankRoleCid <- submit centralBank do
+    exerciseCmd centralBankCid CentralBankRoleInvitation_Accept
+
+  let issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
+      bank1CashAccount = createAccount bank1 centralBank "Bank1CashAccount"
+      bank2CashAccount = createAccount bank2 centralBank "Bank2CashAccount"
+      bank3CashAccount = createAccount bank3 centralBank "Bank3CashAccount"
+      issuerBondAccount = createAccount issuer csd "IssuerBondAccount"
+      bank1BondAccount = createAccount bank1 csd "Bank1BondAccount"
+      bank2BondAccount = createAccount bank2 csd "Bank2BondAccount"
+      bank3BondAccount = createAccount bank3 csd "Bank3BondAccount"
+
+  (cashBank1, settIssCash, funBank1Cash, lockBank1, settBank1Cash) <- submit centralBank do
+    cashBank1 <- exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0
+    exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash bank2CashAccount "USD" 600000000.0
+    exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash bank3CashAccount "USD" 50000000.0
+    exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash issuerCashAccount "USD" 100000000.0
+
+    settBank1Cash <- exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
+    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount []
+    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount []
+    settIssCash <- exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount [bank1, bank2, bank3]
+
+    funBank1Cash <- exerciseCmd centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1CashAccount
+    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank2CashAccount
+    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank3CashAccount
+    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateFungibleRule issuerCashAccount
+
+    lockBank1 <- exerciseCmd centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
+    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateLockRule bank2CashAccount
+    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateLockRule bank3CashAccount
+
+    return (cashBank1, settIssCash, funBank1Cash, lockBank1, settBank1Cash)
+
+  (funIss, settBank1, settIss) <- submit csd do
+    exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule bank1BondAccount []
+    exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule bank2BondAccount []
+    exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule bank3BondAccount []
+    funIss <- exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
+
+    settBank1 <- exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount []
+    exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule bank2BondAccount []
+    exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
+    settIss <- exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
+    return (funIss, settBank1, settIss)
+
+  -- setup time
+  now <- getTime
+  setTime (time (date 2019 Apr 1) 0 0 0)
+  return $ MarketSetupData issuer issuerRole csd auctionAgent bank1 funIss
+                           settIss settIssCash cashBank1 funBank1Cash
+                           settBank1 settBank1Cash lockBank1
+
+testMarketSetupFull: Script [ContractId RedemptionPayoutInfo]
+testMarketSetupFull = script $ do
+  MarketSetupData issuer issuerRole csd auctionAgent bank1
+                  funIss settIss settIssCash cashBank1
+                  funBank1Cash settBank1 settBank1Cash lockBank1 <- testMarketSetup
+  issuanceReq <- submit issuer do
+    exerciseCmd issuerRole $ IssuerRole_Issuance with
+                            issueSize = 100
+                            issueDate = date 2019 Jul 1
+                            currency = "USD"
+                            denomination = 1.0
+                            maturityDate = date 2019 Jul 31
+                            couponRate = 0.01
+                            couponDates = []
+
+  (bondFact, bondAssetDeposit) <- submit csd do
+    exerciseCmd issuanceReq $ IssuanceRequest_Accept "BOND007"
+
+  commissionBotTrigger <- submit issuer do
+    exerciseCmd issuerRole $ IssuerRole_CommissionAuction with
+          bondAssetDepositCid = bondAssetDeposit
+          startDate = date 2019 Jul 1
+          endDate = date 2019 Jul 2
+          minPrice = 1.0
+          size = 100
+
+  (auctionInv, _) <- submit issuer do
+    exerciseCmd commissionBotTrigger $ CommissionBotTrigger_InviteAgent with
+          bondAssetFungibleCid = funIss
+          bondAssetSettlementCid = settIss
+          cashAssetSettlementCid = settIssCash
+          fixedRateBondFactCid = bondFact
+
+  auction <- submit auctionAgent do
+    exerciseCmd auctionInv $ AuctionInvitation_Accept "auction1"
+
+  setTime (time (date 2019 Jul 1) 0 0 0)
+
+  (auction', [bidderPar]) <- submit auctionAgent do
+    exerciseCmd auction $ Auction_InviteBidders [bank1]
+
+  pbbTrigger <- submit bank1 do
+    exerciseCmd bidderPar $ BidderParticipation_PlaceBid with
+      price = 1.0
+      quantity = 100
+
+  Right(lockedCash, auctionBid, _) <- submit bank1 do
+    exerciseCmd pbbTrigger $ PlaceBidBotTrigger_LockCash with
+          cashDepositCids = [cashBank1]
+          cashAssetFungibleCid = funBank1Cash
+          lockRuleCid = lockBank1
+          investorBondAssetSettlementCid = settBank1
+
+  setTime (time (date 2019 Jul 2) 0 0 0)
+  afTrigger <- submit auctionAgent do
+    exerciseCmd auction' Auction_Finalize
+
+  ([settReq], _) <- submit auctionAgent do
+    exerciseCmd afTrigger $ AuctionFinalizeBotTrigger_AllocateBond with
+          participationCids = [bidderPar]
+          bidCids = [auctionBid]
+
+  isbTrigger <- submit bank1 do
+    exerciseCmd settReq AuctionParticipantSettleRequest_Settle
+
+  submit bank1 do
+    exerciseCmd isbTrigger $ InvestorSettlement_Finalize with
+          auctionLockedCashCids = [lockedCash]
+          cashAssetFungible = funBank1Cash
+          investorCashSettlementCid = settBank1Cash

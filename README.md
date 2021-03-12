@@ -14,7 +14,6 @@ Issuing a new bond is currently a fragmented process. A Distributed Ledger Techn
 
 Be sure you have the following installed:
 - [DAML SDK](https://docs.daml.com/)
-- Docker
 - Java
 - Yarn
 - Node v12
@@ -33,51 +32,86 @@ make build
 
 **Note:** Make sure you have built the application (see: [Build the App](#build-the-app)).
 
-There are two options:
-
-#### Option 1: Start App with Docker
-
-1. Type:
-    ```shell
-    make docker
-    ```
-2. Open the new React UI with a browser at http://localhost:3000.
-
-We also keep the deprecated Navigator available at http://localhost:7500.
-
-**Note:** If you run on Windows or MacOS, you need to increase the memory limit of the Docker Engine in the preferences (at least 5 GB).
-
-#### Option 2: Start App in Standalone with Wall Clock Time
-
-This option starts the application with wall clock time. Note that Navigator's time widget won't work in this mode as one cannot modify the time.
+These commands start the application with wall clock time. Note that Navigator's time widget won't work in this mode as one cannot modify the time.
 1. Start the DAML Sandbox. Type:
     ```shell
-    make start
+    launchers/sandbox+jsonapi
     ```
 2. Start the automation logic by starting bots. Type:
     ```shell
-    make automation
+    launchers/automation
     ```
-3. Start the React UI
-    The UI will automatically open in a new browser tab at http://localhost:3000.
+3. Start the React UI. The UI will automatically open in a new browser tab at http://localhost:3000.
     ```shell
-    make ui
+    launchers/ui
     ```
 
 ### Stopping the App
 
-#### Stopping Dockerized Run
-1. Stop the Docker containers or bots by pressing **Ctrl+C**. (Alternatively, you can also stop it by typing `docker-compose down`.)
-
-#### Stopping Standalone Run
-1. Stop the bots by pressing **Ctrl+C**.
+1. Stop the triggers by pressing **Ctrl+C**.
 2. Stop the Sandbox by pressing **Ctrl+C** in the DAML assistant.
 3. Stop the ui by pressing **Ctrl+C**.
+
+
 ### Resetting the Prototype
 
 Reset the application by following these steps:
 1.  Stop the app by following the steps in [Stopping the App](#stopping-the-app) section.
-2.  Start the app in [Docker](#option-1-start-app-with-docker) or [Standalone](#option-2-start-app-in-standalone-with-wall-clock-time) by following the steps in the relevant section.
+2.  Start the app by following the steps in [Starting the App](#starting-the-app) section.
+
+## Working with DAML Hub
+
+1. As a first step, build the whole project:
+```
+make clean build
+```
+
+2. Start a new project at DAML Hub. Upload the DARs to DAML Hub (in your new project, Deployments tab / Upload file, two files `target/bond-issuance*.dar`), deploy the model (bond-issuance.dar, Deploy Instance).
+
+3. Add the parties to the DAML Hub project: AuctionAgent, CSD, Bank1, Bank2, Bank3, Issuer, CentralBank, Regulator, Operator.
+    - Download `participants.json` (Ledger settings tab).
+    - Download `parties.json` (Users tab).
+
+4. Run the market setup:
+```
+daml script \
+  --participant-config participants.json \
+  --json-api \
+  --dar target/bond-issuance.dar \
+  --script-name DA.RefApps.Bond.MarketSetup.MarketSetupScript:setupMarketWithDablParties \
+  --input-file parties.json
+```
+
+5. Run the triggers from the DAML Hub UI:
+```
+Bank1:
+DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
+DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
+
+Bank2:
+DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
+DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
+
+Bank3:
+DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
+DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
+
+Issuer:
+DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger
+DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger
+
+AuctionAgent:
+DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger
+
+CSD:
+DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger
+
+```
+
+6. Run `make package`. Upload `target/bondui.zip` to DAML Hub and deploy the UI. Follow "View site". Upload `parties.json` to the UI using the button on the login screen (Upload parties.json (tokens)). Receiving no error means you have succeeded.
+
+Note: parties.json needs to be re-uploaded to the UI every time the tokens change.
+
 
 ## User Guide
 

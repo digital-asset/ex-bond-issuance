@@ -35,6 +35,8 @@ import org.junit.rules.TestRule;
 
 public class BondIssuanceIT {
   private static final Path RELATIVE_DAR_PATH = Paths.get("./target/bond-issuance.dar");
+  private static final Path RELATIVE_TRIGGER_DAR_PATH =
+      Paths.get("./target/bond-issuance-triggers.dar");
 
   private static final Party ISSUER_PARTY = new Party("Issuer");
   private static final Party CSD_PARTY = new Party("CSD");
@@ -56,8 +58,7 @@ public class BondIssuanceIT {
               ISSUER_PARTY.getValue(),
               CSD_PARTY.getValue())
           .useWallclockTime()
-          .module("DA.RefApps.Bond.Test.MarketSetupScript")
-          .startScript("setupMarket")
+          .moduleAndScript("DA.RefApps.Bond.MarketSetup.MarketSetupScript", "setupMarket")
           .build();
 
   @ClassRule public static ExternalResource sandboxClassRule = sandbox.getClassRule();
@@ -271,7 +272,7 @@ public class BondIssuanceIT {
   private TriggerService triggerService() {
     return TriggerService.builder()
         .ledgerPort(sandbox::getSandboxPort)
-        .dar(RELATIVE_DAR_PATH)
+        .dar(RELATIVE_TRIGGER_DAR_PATH)
         .ledgerHost("localhost")
         .useWallClockTime()
         .build();

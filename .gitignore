@@ -13,8 +13,9 @@ built/*
 build
 node_modules
 .node_modules/
-daml.js/*
+daml.js
 deploy/*
 .env
 .DS_Store
 *.dot
+ui/bondui.zip
