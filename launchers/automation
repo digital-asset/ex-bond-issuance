@@ -4,6 +4,4 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-export JAVA_TOOL_OPTIONS=-Xmx128m
-scripts/waitForSandbox.sh localhost 6865
-scripts/startTriggers.sh localhost 6865 target/bond-issuance-triggers.dar
+scripts/startTriggers.py 6865

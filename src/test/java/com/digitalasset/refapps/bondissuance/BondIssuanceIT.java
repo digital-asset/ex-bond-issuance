@@ -8,13 +8,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.daml.ledger.javaapi.data.Party;
-import com.digitalasset.refapps.bondissuance.trigger.Trigger;
-import com.digitalasset.refapps.bondissuance.triggerservice.TriggerService;
 import com.digitalasset.testing.junit4.Sandbox;
 import com.digitalasset.testing.ledger.DefaultLedgerAdapter;
 import com.digitalasset.testing.utils.ContractWithId;
 import da.finance.fact.asset.AssetDeposit;
-import da.refapps.bond.auction.*;
+import da.refapps.bond.auction.Auction;
+import da.refapps.bond.auction.AuctionBid;
+import da.refapps.bond.auction.AuctionInvitation;
+import da.refapps.bond.auction.AuctionParticipantSettleRequest;
+import da.refapps.bond.auction.BidderParticipation;
 import da.refapps.bond.fixedratebond.FixedRateBondFact;
 import da.refapps.bond.lock.AuctionLockedCash;
 import da.refapps.bond.redemption.RedemptionPayoutInfo;
@@ -27,8 +29,12 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.*;
-import org.junit.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
@@ -65,37 +71,7 @@ public class BondIssuanceIT {
 
   @Rule
   public TestRule sandboxWithTriggers =
-      RuleChain.outerRule(sandbox.getRule())
-          .around(triggerService())
-          .around(
-              trigger(
-                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
-                  BANK1_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK1_PARTY))
-          .around(
-              trigger(
-                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
-                  BANK2_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK2_PARTY))
-          .around(
-              trigger(
-                  "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger",
-                  BANK3_PARTY))
-          .around(trigger("DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger", BANK3_PARTY))
-          .around(
-              trigger("DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger", ISSUER_PARTY))
-          .around(
-              trigger(
-                  "DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger",
-                  ISSUER_PARTY))
-          .around(
-              trigger(
-                  "DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger",
-                  AGENT_PARTY))
-          .around(
-              trigger(
-                  "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger",
-                  CSD_PARTY));
+      RuleChain.outerRule(sandbox.getRule()).around(new Automation(sandbox::getSandboxPort));
 
   @Test
   public void testFullWorkflow() throws IOException {
@@ -263,18 +239,5 @@ public class BondIssuanceIT {
         return assetDeposit.contractId;
       }
     }
-  }
-
-  private Trigger trigger(String triggerName, Party party) {
-    return Trigger.builder().ledgerHost("localhost").triggerName(triggerName).party(party).build();
-  }
-
-  private TriggerService triggerService() {
-    return TriggerService.builder()
-        .ledgerPort(sandbox::getSandboxPort)
-        .dar(RELATIVE_TRIGGER_DAR_PATH)
-        .ledgerHost("localhost")
-        .useWallClockTime()
-        .build();
   }
 }
