@@ -20,6 +20,8 @@ Be sure you have the following installed:
 - Make
 - Python
 
+To sort out Python dependencies: `(cd scripts && pip install requests)`
+
 #### Build the App
 
 Type:
