@@ -4,15 +4,16 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-set -e
+set -eE
 
 cleanup() {
     pids=$(jobs -p)
     echo Killing "$pids"
+    # shellcheck disable=SC2086
     [ -n "$pids" ] && kill $pids
 }
 
-trap "cleanup" INT QUIT TERM
+trap "cleanup" INT QUIT TERM ERR
 
 if [ $# -lt 2 ]; then
     echo "${0} SANDBOX_HOST SANDBOX_PORT [DAR_FILE]"
@@ -28,10 +29,13 @@ start_trigger() {
   local pkg_id="$1"
   local trigger_name="$2"
   local party="$3"
-  curl --user ${party}':secret' \
-     -X POST localhost:${DEFAULT_SERVICE_PORT}/v1/start \
-     -H "Content-type: application/json" -H "Accept: application/json" \
-     -d '{"triggerName":"'${pkg_id}:${trigger_name}'"}'
+  curl  \
+     -X POST \
+      localhost:${DEFAULT_SERVICE_PORT}/v1/triggers \
+     -H "Content-type: application/json" \
+     -H "Accept: application/json" \
+     -d '{"triggerName":"'"${pkg_id}:${trigger_name}"'", "party": "'"$party"'"}'
+  echo
 }
 
 wait_for_service() {
@@ -41,36 +45,45 @@ wait_for_service() {
     echo "Waiting for service..."
     sleep 3
   done
-  echo "Connected to service."
 }
-
-# We grep package ID from damlc DAR inspection output
-# It is line that starts with the DAR name and containts the package ID between quotation marks
-PACKAGE_ID=$(daml damlc inspect-dar --json "${DAR_FILE}" | grep main_package_id | cut -d":" -f2 | grep "\".*\"" | cut -d'"' -f 2)
-echo "Package ID: ${PACKAGE_ID}"
 
 echo "Starting trigger service."
 daml trigger-service \
     --ledger-host "${SANDBOX_HOST}" \
     --ledger-port "${SANDBOX_PORT}" \
     --wall-clock-time \
-    --dar ${DAR_FILE} &
+    --dar "$DAR_FILE" &
 
-wait_for_service ${SANDBOX_HOST} ${DEFAULT_SERVICE_PORT}
+wait_for_service "$SANDBOX_HOST" ${DEFAULT_SERVICE_PORT}
 
 echo "Starting triggers."
-start_trigger ${PACKAGE_ID} DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank1 &
-start_trigger ${PACKAGE_ID} DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank1 &
-start_trigger ${PACKAGE_ID} DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank2 &
-start_trigger ${PACKAGE_ID} DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank2 &
-start_trigger ${PACKAGE_ID} DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger Bank3 &
-start_trigger ${PACKAGE_ID} DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger Bank3 &
-start_trigger ${PACKAGE_ID} DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger Issuer &
-start_trigger ${PACKAGE_ID} DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger Issuer &
-start_trigger ${PACKAGE_ID} DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger AuctionAgent &
-start_trigger ${PACKAGE_ID} DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger CSD &
+
+PACKAGE_ID=$(daml damlc inspect-dar --json "${DAR_FILE}" | jq --raw-output .main_package_id)
+echo PACKAGE_ID="$PACKAGE_ID"
+
+print_parties_with_triggers() {
+  cat << THE_END
+Bank1        DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
+Bank1        DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
+Bank2        DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
+Bank2        DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
+Bank3        DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
+Bank3        DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
+Issuer       DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger
+Issuer       DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger
+AuctionAgent DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger
+CSD          DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger
+THE_END
+}
+
+print_parties_with_triggers \
+  | while read -r party trigger
+do
+  start_trigger "$PACKAGE_ID" "$trigger" "$party"
+done
 
 sleep 2
 pids=$(jobs -p)
-echo Waiting for $pids
+echo Waiting for "$pids"
+# shellcheck disable=SC2086
 wait $pids
