@@ -140,8 +140,7 @@ jobs:
       - run:
           name: UI build
           command: |
-            make package CI=
-            # TODO remove "CI=" to treat warnings as errors
+            make package
       - save_cache:
           paths:
             - ~/.daml
