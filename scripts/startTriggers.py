@@ -46,6 +46,6 @@ try:
     time.sleep(3)
     print('\nPress Ctrl+C to stop...')
     service.wait()
-    logging.error(f"Trigger service died unexpectedly")
+    logging.error(f"Trigger service died unexpectedly:\n{service.stderr}")
 finally:
     kill_background_process(service)
