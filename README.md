@@ -20,7 +20,9 @@ Be sure you have the following installed:
 - Make
 - Python
 
-To sort out Python dependencies: `(cd scripts && pip install requests)`
+To sort out Python dependencies, either
+* manually resolve: `(cd scripts && pip install requests)`
+* run `pipenv install`
 
 #### Build the App
 
