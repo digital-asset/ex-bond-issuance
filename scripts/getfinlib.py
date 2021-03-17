@@ -17,7 +17,6 @@ from tempfile import mkdtemp
 from zipfile import ZipFile
 import logging
 
-
 # based on 'Cheat Sheet: Writing Python 2-3 compatible code'
 # from https://python-future.org/compatible_idioms.html
 try:
@@ -36,8 +35,10 @@ def get_source(url, tmp_directory):
     with ZipFile(BytesIO(resp.read())) as zipfile:
         zipfile.extractall(tmp_directory)
 
+
 def is_windows():
     return system() == "Windows"
+
 
 def daml_command():
     if is_windows():
@@ -45,11 +46,12 @@ def daml_command():
     else:
         return "daml"
 
+
 def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
     extracted_directory = "lib-finance-{version}".format(version=finlib_version)
     project_root = "{tmp_directory}/{extracted_directory}".format(
-                        tmp_directory=tmp_directory,
-                        extracted_directory=extracted_directory)
+        tmp_directory=tmp_directory,
+        extracted_directory=extracted_directory)
     build_command = [daml_command(), "build", "--project-root", project_root, "-o", full_path_to_dar]
     logging.info(
         'Executing {build_command} with DAML_SDK_VERSION={daml_sdk_version}'.format(
