@@ -136,6 +136,7 @@
                         <exclude>Makefile</exclude>
                         <exclude>.gitattributes</exclude>
                         <exclude>ui/yarn.lock</exclude>
+                        <exclude>ui/daml.js/**</exclude>
                     </excludes>
                     <mapping>
                         <daml>DOUBLEDASHES_STYLE</daml>
