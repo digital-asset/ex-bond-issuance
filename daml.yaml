@@ -27,7 +27,8 @@ dependencies:
   - daml-trigger
   - target/finlib-master-sdk-1.11.1.dar
 build-options:
-  - '--ghc-option'
-  - '-Werror'
+  # TODO treat warnings as errors once got rid of deprecated DA.Next
+  #  - '--ghc-option'
+  #  - '-Werror'
   - '--ghc-option'
   - '-Wunused-binds'
