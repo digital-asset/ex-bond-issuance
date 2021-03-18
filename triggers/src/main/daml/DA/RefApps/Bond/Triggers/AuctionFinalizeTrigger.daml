@@ -23,6 +23,7 @@ import DA.Finance.Fact.Asset
 import DA.Finance.Rule.Asset
 import DA.RefApps.Bond.Lock
 import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
+import DA.List (sort)
 
 auctionFinalizeTrigger : Trigger ()
 auctionFinalizeTrigger = Trigger
@@ -80,7 +81,7 @@ testAuctionWithNoBid = script do
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid finalizeTrigger
-    assertEq choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [])
+    assertEqChoices choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [])
 
 testAuctionWithSingleBid: Script ()
 testAuctionWithSingleBid = script do
@@ -107,7 +108,7 @@ testAuctionWithSingleBid = script do
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid finalizeTrigger
-    assertEq choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [bid1])
+    assertEqChoices choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [bid1])
 
 testAuctionWithTwoBids: Script ()
 testAuctionWithTwoBids = script do
@@ -140,9 +141,15 @@ testAuctionWithTwoBids = script do
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid finalizeTrigger
-    assertEq choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [bid1, bid2])
+    assertEqChoices choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [bid1, bid2])
 
 -- Helpers -------------------------
+
+assertEqChoices: AuctionFinalizeBotTrigger_AllocateBond -> AuctionFinalizeBotTrigger_AllocateBond -> Either Text ()
+assertEqChoices lhs rhs = do
+  sorted lhs === sorted rhs
+ where
+  sorted c = c with participationCids = sort c.participationCids
 
 startAuction : MarketSetup.Parties -> MarketSetup.TestIssuance -> Script (ContractId Auction, [ContractId BidderParticipation])
 startAuction MarketSetup.Parties{..} issuance = script do
