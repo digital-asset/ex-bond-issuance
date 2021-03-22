@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-sdk-version: 1.10.0
+sdk-version: 1.11.1
 name: bond-issuance-triggers
 source: src/main/daml
 sandbox-options:
@@ -25,7 +25,7 @@ dependencies:
   - daml-script
   - daml-trigger
   - ../target/bond-issuance.dar
-  - ../target/finlib-master-sdk-1.10.0.dar
+  - ../target/finlib-master-sdk-1.11.1.dar
 build-options:
   - '--ghc-option'
   - '-Werror'

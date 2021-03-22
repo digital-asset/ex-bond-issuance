@@ -4,6 +4,8 @@
 --
 
 {-# LANGUAGE ApplicativeDo #-}
+{-# OPTIONS -Wno-deprecations #-}
+
 module DA.RefApps.Bond.Test.FullScenario where
 
 import DA.Next.Set
