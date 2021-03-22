@@ -181,13 +181,13 @@ jobs:
           name: Blackduck detect
           command: |
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) \
-            ci-build digitalasset_ex-bond-issuance master \
+            ci-build digitalasset_ex-bond-issuance main \
             --logging.level.com.synopsys.integration=DEBUG \
             --detect.notices.report=false \
             --detect.timeout=3600
 ### Temporarily disabled due to Blackduck issue (see https://github.com/digital-asset/ex-bond-issuance/pull/156)
 #      - run:
-#          command: cp digitalasset_ex_bond_issuance_master_Black_Duck_Notices_Report.txt NOTICE
+#          command: cp digitalasset_ex_bond_issuance_main_Black_Duck_Notices_Report.txt NOTICE
 #      - persist_to_workspace:
 #          root: .
 #          paths:
