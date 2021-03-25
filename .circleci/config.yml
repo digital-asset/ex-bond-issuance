@@ -183,6 +183,7 @@ jobs:
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) \
             ci-build digitalasset_ex-bond-issuance master \
             --logging.level.com.synopsys.integration=DEBUG \
+            --detect.excluded.detector.types=pip \
             --detect.notices.report=false \
             --detect.timeout=3600
 ### Temporarily disabled due to Blackduck issue (see https://github.com/digital-asset/ex-bond-issuance/pull/156)
