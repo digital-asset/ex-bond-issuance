@@ -65,7 +65,7 @@ Reset the application by following these steps:
 
 ## Working with DAML Hub
 
-1. As a first step, build the whole project:
+1. As a first step, prepare the project for deployment:
 ```
 make deploy
 ```
