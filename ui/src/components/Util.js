@@ -2,7 +2,6 @@
  * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-import { CreateEvent } from '@daml/ledger';
 import participants from '../participants.json';
 
 export function addPath (baseUrl, path) {
