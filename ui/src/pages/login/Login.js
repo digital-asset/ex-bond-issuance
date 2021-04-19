@@ -2,14 +2,59 @@
  * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useState } from "react";
-import { Grid, CircularProgress, Typography, Button, TextField, Fade, Select, MenuItem, InputLabel, FormControl } from "@material-ui/core";
+import React, { useState , useEffect} from "react";
+import { Grid, CircularProgress, Typography, Button, Fade, Select, MenuItem, InputLabel, FormControl } from "@material-ui/core";
 import { withRouter } from "react-router-dom";
 import useStyles from "./styles";
 import logo from "./logo.svg";
-import { useUserDispatch, loginUser, redirectToDablLoginPage } from "../../context/UserContext";
-import { isLocalDev, handlePartiesLoad, ledgerId } from "../../config";
-import { DablPartiesInput } from '@daml/dabl-react'
+import rp from "request-promise";
+import { useUserDispatch, loginUser } from "../../context/UserContext";
+import { createTokenAll, httpBaseUrl, isLocalDev } from "../../config";
+import { addPath, getDablPartyParticipants } from "../../components/Util";
+import participants from '../../participants.json';
+
+// getDisplayPartyNames
+export function useSortedPartyNames() {
+  var [parties, setParties] = useState([]);
+  useEffect(() => {
+    getPartiesI().then(ps => setParties((ps)));
+  }, []);
+  return parties;
+}
+
+export function getParties(parties) {
+  return parties
+    .sort(compareByDisplayName);
+}
+
+async function getPartiesI() {
+  const defaultUser = "SuperAdmin";
+  const baseUrl = httpBaseUrl(defaultUser);
+  const token = createTokenAll(defaultUser);
+  const options = {
+      url: addPath(baseUrl, 'v1/parties'),
+      headers: {
+          Authorization: `Bearer ${token}`
+      }
+  };
+  if (!isLocalDev) {
+    return getDablPartyParticipants(participants)
+  }
+  else{
+  const response = await rp(options).catch(e => console.error(e))
+  const { result } = JSON.parse(response);
+  return result;
+}
+}
+function compareByDisplayName(p1, p2) {
+  if ( p1.displayName < p2.displayName ){
+    return -1;
+  }
+  if ( p1.displayName > p2.displayName ){
+    return 1;
+  }
+  return 0;
+}
 
 function Login(props) {
   var classes = useStyles();
@@ -21,7 +66,7 @@ function Login(props) {
   var [isLoading, setIsLoading] = useState(false);
   var [error, setError] = useState(null);
   var [loginValue, setLoginValue] = useState("");
-  var [passwordValue, setPasswordValue] = useState("");
+  // var [passwordValue] = useState("");
 
   return (
     <Grid container className={classes.container}>
@@ -34,18 +79,9 @@ function Login(props) {
             <React.Fragment>
               <Fade in={error}>
                 <Typography color="secondary" className={classes.errorMessage}>
-                  Something is wrong with your login or password
+                  Something is wrong with your login
                 </Typography>
               </Fade>
-              {!isLocalDev &&
-                <>
-                  <Button className={classes.dablLoginButton} variant="contained" color="primary" size="large" onClick={redirectToDablLoginPage}>
-                    Log in with DABL
-                  </Button>
-                  <Typography>
-                    OR
-                  </Typography>
-                </>}
             <FormControl variant="filled" className={classes.formControl}>
               <InputLabel id="email">Select Party</InputLabel>
               <Select
@@ -56,7 +92,6 @@ function Login(props) {
                     loginUser(
                       userDispatch,
                       loginValue,
-                      passwordValue,
                       props.history,
                       setIsLoading,
                       setError,
@@ -76,34 +111,6 @@ function Login(props) {
                 <MenuItem id="parties9" value={"CentralBank"}>CentralBank</MenuItem>
               </Select>
             </FormControl>
-              <TextField
-                id="password"
-                InputProps={{
-                  classes: {
-                    underline: classes.textFieldUnderline,
-                    input: classes.textField,
-                    root : classes.passwordShift
-                  },
-                }}
-                value={passwordValue}
-                onChange={e => setPasswordValue(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === "Enter") {
-                    loginUser(
-                      userDispatch,
-                      loginValue,
-                      passwordValue,
-                      props.history,
-                      setIsLoading,
-                      setError,
-                    )
-                  }
-                }}
-                margin="normal"
-                placeholder="Password"
-                type="password"
-                // fullWidth
-              />
               <div className={classes.formButtons}>
                 {isLoading ?
                   <CircularProgress size={26} className={classes.loginLoader} />
@@ -113,7 +120,6 @@ function Login(props) {
                       loginUser(
                         userDispatch,
                         loginValue,
-                        passwordValue,
                         props.history,
                         setIsLoading,
                         setError,
@@ -128,7 +134,7 @@ function Login(props) {
               </div>
             </React.Fragment>
         </div>
-        <div style={{marginTop: "30%"}}>
+        {/* <div style={{marginTop: "30%"}}>
           <div>
             <label for="avatar">Upload parties.json (tokens):</label>
           </div>
@@ -138,7 +144,7 @@ function Login(props) {
               onError={error => alert(error)}
               onLoad={handlePartiesLoad}/>
           </div>
-        </div>
+        </div> */}
       </div>
     </Grid>
   );

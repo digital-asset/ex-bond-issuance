@@ -5,6 +5,8 @@
 import uuidv4 from "uuid/v4";
 import * as jwt from "jsonwebtoken";
 import { convertPartiesJson } from '@daml/dabl-react';
+import participants from './participants.json';
+import {lowerCaseFirst} from "./components/Util"
 
 export const isLocalDev = process.env.NODE_ENV === 'development';
 
@@ -45,6 +47,21 @@ export function createToken(party) {
         return undefined;
     }
 }
+export function createTokenAll(party) {
+    if (isLocalDev) {
+        const token = jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
+        return token;
+    } else {
+        console.log(`Using token from parties.json file for ${party}`);
+        return dablToken(party);
+    }
+}
+
+function dablToken(username) {
+    const participantInfo = participants.participants[lowerCaseFirst(username)];
+    return participantInfo.access_token;
+}
+
 
 let loginUrl = host.slice(1)
 loginUrl.unshift('login')

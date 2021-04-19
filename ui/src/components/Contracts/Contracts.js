@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import ReactJson from "react-json-view";
 import { Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, Tooltip, MenuItem, Grid, Table, TableHead, TableRow, TableCell, TableBody, TextField, Button } from "@material-ui/core";
 import { useStyles } from "./styles";
+import { shorten } from "../Util";
 
 export function field(name, fieldType, items, itemNames) {
   return {
@@ -58,13 +59,6 @@ export default function Contracts({ contracts, columns, actions=[], dialogs=[] }
     const split = typeof path === "string" && path !== "" ? path.split(".") : [];
     const result = getByPath(data, split);
     return result;
-  }
-
-  function shorten(text) {
-    if (typeof text === "string" && text.length > 15) {
-      return `${text.substr(0,15)}...`;
-    }
-    return text;
   }
 
   function setDialogOpen(name, value) {

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React from "react";
-import { createToken, dablLoginUrl } from "../config";
+import { createTokenAll, dablLoginUrl } from "../config";
 
 var UserStateContext = React.createContext();
 var UserDispatchContext = React.createContext();
@@ -60,12 +60,12 @@ function useUserDispatch() {
 
 // ###########################################################
 
-function loginUser(dispatch, party, userToken, history, setIsLoading, setError) {
+function loginUser(dispatch, party, history, setIsLoading, setError) {
   setError(false);
   setIsLoading(true);
 
   if (!!party) {
-    const token = userToken || createToken(party)
+    const token = createTokenAll(party)
     localStorage.setItem("daml.party", party);
     localStorage.setItem("daml.token", token);
 
