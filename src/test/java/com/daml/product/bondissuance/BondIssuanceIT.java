@@ -2,7 +2,7 @@
  * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.digitalasset.refapps.bondissuance;
+package com.daml.product.bondissuance;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
