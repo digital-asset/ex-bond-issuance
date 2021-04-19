@@ -69,7 +69,7 @@ deploy: clean build yarn-install-deps
 #
 prepare_ui_for_deploy:
 	(cd ui && yarn build)
-	(cd ui && zip -r ../deploy/daphne-ui.zip build)
+	(cd ui && zip -r ../deploy/bondui.zip build)
 
 # Initialization script
 gen-ledger-parties:
