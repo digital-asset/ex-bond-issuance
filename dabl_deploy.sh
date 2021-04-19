@@ -8,7 +8,7 @@
 # Terminate on any failure
 set -ex
 
-STAMP=$(date "+%H.%M.%S" | sed "s/\.//g")
+STAMP=$(date "+%H%M%S")
 PROJECT_NAME=BondIssuance$STAMP
 
 LEDGER_NAME=bondissuance
