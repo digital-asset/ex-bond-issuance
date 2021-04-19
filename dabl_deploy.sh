@@ -20,7 +20,7 @@ LEDGER_ID=`dablc -j ledger create ${PROJECT_ID} ${LEDGER_NAME} | jq -r '.ledger_
 echo $LEDGER_ID
 
 # Create Users on ledger.
-for name in  AuctionAgent Csd Bank1 Bank2 Bank3 Issuer CentralBank Regulator Operator 
+for name in  AuctionAgent Csd Bank1 Bank2 Bank3 Issuer CentralBank Regulator Operator
 do
   dablc -j ledger party ${LEDGER_ID} $name > /dev/null
 done
