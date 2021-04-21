@@ -13,7 +13,6 @@ import { createTokenAll, httpBaseUrl, isLocalDev } from "../../config";
 import { addPath, getDablPartyParticipants } from "../../components/Util";
 import participants from '../../participants.json';
 
-// getDisplayPartyNames
 export function useSortedPartyNames() {
   var [parties, setParties] = useState([]);
   useEffect(() => {
