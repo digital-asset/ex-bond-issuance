@@ -62,10 +62,3 @@ package: yarn-install-deps
 
 # DABL specific
 deploy: build package
-
-# Initialization script
-gen-ledger-parties:
-	(cd ui/src/utils/ && node gen-ledger-parties.js && mv ledger-parties.json ../../..)
-
-dabl-script: gen-ledger-parties
-	(daml script --participant-config participants.json --json-api --dar target/bond-issuance.dar  --script-name DA.RefApps.Bond.MarketSetup.MarketSetupScript:setupMarketWithParties --input-file ledger-parties.json)
