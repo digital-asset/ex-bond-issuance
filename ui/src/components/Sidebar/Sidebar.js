@@ -22,7 +22,7 @@ function Sidebar({ location }) {
     ['auctionAgentInvitationView', ["Operator"]],
     ['auctionAgentRoleView', ["AuctionAgent", "Operator", "Regulator"]],
     ['auctionRequestView', ["AuctionAgent"]],
-    ['balanceView', ["AuctionAgent", "Bank1", "Bank2", "Bank3", "CentralBank", "CSD", "Issuer", "Regulator"]],
+    ['balanceView', ["AuctionAgent", "Bank1", "Bank2", "Bank3", "CentralBank", "Csd", "Issuer", "Regulator"]],
     ['bankInvitationView', ["Operator"]],
     ['bankRoleView', ["Bank1", "Bank2", "Bank3", "Operator", "Regulator"]],
     ['bidderParticipationView', ["AuctionAgent"]],
@@ -30,10 +30,10 @@ function Sidebar({ location }) {
     ['centralBankInvitationView', ["Operator"]],
     ['centralBankRoleView', ["CentralBank", "Operator", "Regulator"]],
     ['csdInvitationView', ["Operator"]],
-    ['csdRedemptionView', ["CSD"]],
-    ['csdRoleView', ["CSD", "Operator", "Regulator"]],
+    ['csdRedemptionView', ["Csd"]],
+    ['csdRoleView', ["Csd", "Operator", "Regulator"]],
     ['issuanceReqsView', ["Issuer"]],
-    ['issuanceReqsCsdView', ["CSD"]],
+    ['issuanceReqsCsdView', ["Csd"]],
     ['invalidBidsView', ["AuctionAgent", "Bank1", "Bank2", "Bank3"]],
     ['issuerInvitationView', ["Operator"]],
     ['issuerRoleView', ["Issuer", "Operator", "Regulator"]],
@@ -505,7 +505,6 @@ function Sidebar({ location }) {
     </Drawer>
   );
 
-  // ##################################################################
   function handleWindowWidthChange() {
     var windowWidth = window.innerWidth;
     var breakpointWidth = theme.breakpoints.values.md;

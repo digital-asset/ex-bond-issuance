@@ -106,7 +106,7 @@ function Login(props) {
                 <MenuItem id="parties4" value={"Bank1"}>Bank1</MenuItem>,
                 <MenuItem id="parties5" value={"Bank2"}>Bank2</MenuItem>,
                 <MenuItem id="parties6" value={"Bank3"}>Bank3</MenuItem>,
-                <MenuItem id="parties7" value={"CSD"}>CSD</MenuItem>,
+                <MenuItem id="parties7" value={"Csd"}>CSD</MenuItem>,
                 <MenuItem id="parties8" value={"Issuer"}>Issuer</MenuItem>,
                 <MenuItem id="parties9" value={"CentralBank"}>CentralBank</MenuItem>
               </Select>
@@ -134,17 +134,6 @@ function Login(props) {
               </div>
             </React.Fragment>
         </div>
-        {/* <div style={{marginTop: "30%"}}>
-          <div>
-            <label for="avatar">Upload parties.json (tokens):</label>
-          </div>
-          <div>
-            <DablPartiesInput
-              ledgerId={ledgerId}
-              onError={error => alert(error)}
-              onLoad={handlePartiesLoad}/>
-          </div>
-        </div> */}
       </div>
     </Grid>
   );
