@@ -61,19 +61,16 @@ package: yarn-install-deps
 	cd ui && yarn build && mkdir -p ../target && zip -r ../target/bondui.zip build/
 
 # DABL specific
-deploy: clean build yarn-install-deps
-	mkdir -p deploy
-	cp target/*.dar deploy
-	(cd ui && yarn build && zip -r ../deploy/bondui.zip build)
+deploy: build package
 
 #
 prepare_ui_for_deploy:
 	(cd ui && yarn build)
-	(cd ui && zip -r ../deploy/bondui.zip build)
+	(cd ui && zip -r ../target/bondui.zip build)
 
 # Initialization script
 gen-ledger-parties:
 	(cd ui/src/utils/ && node gen-ledger-parties.js && mv ledger-parties.json ../../..)
 
 dabl-script: gen-ledger-parties
-	(daml script --participant-config participants.json --json-api --dar deploy/bond-issuance.dar  --script-name DA.RefApps.Bond.MarketSetup.MarketSetupScript:setupMarketWithParties --input-file ledger-parties.json)
+	(daml script --participant-config participants.json --json-api --dar target/bond-issuance.dar  --script-name DA.RefApps.Bond.MarketSetup.MarketSetupScript:setupMarketWithParties --input-file ledger-parties.json)

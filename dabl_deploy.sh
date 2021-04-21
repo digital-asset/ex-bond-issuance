@@ -33,9 +33,9 @@ cp participants.json ui/src/
 make prepare_ui_for_deploy
 
 # Upload files to workspaces
-for file in `ls deploy/`
+for file in `ls target/`
 do
-  dablc -j workspace upload deploy/$file
+  dablc -j workspace upload target/$file
 done
 
 # From workspace to ledger
@@ -49,8 +49,7 @@ dablc -j ledger dar ${LEDGER_ID} ${BI_DAR_SHA}
 # UI deploy.
 dablc -j ledger ui ${LEDGER_ID} ${BI_UI_SHA}
 
-# mac os specific
-sleep 30
+sleep 90
 
 # Initialize the ledger contract data.
 # This will create a ledger-parties suitable for the Daml script.
@@ -70,21 +69,21 @@ CSD_USER_ID=`jq -r '.parties | .[] |  select( .partyName == "CSD") | .party' ${U
 rm ${USER_TEMP_FILENAME}
 
 # Deploy triggers to ledger
-dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger" ${BANK1_USER_ID} "Bank1 accepts product transfers."
-dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger" ${BANK1_USER_ID} "Bank1 accepts product transfers."
+dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger" ${BANK1_USER_ID} "Bank1 finalizes settlement"
+dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger" ${BANK1_USER_ID} "Bank1 responds to bid placing"
 
-dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger" ${BANK2_USER_ID} "Bank2 accepts product transfers."
-dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger" ${BANK2_USER_ID} "Bank2 accepts product transfers."
+dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger" ${BANK2_USER_ID} "Bank2 finalizes settlement"
+dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger" ${BANK2_USER_ID} "Bank2 responds to bid placing"
 
-dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger" ${BANK3_USER_ID} "Bank3 accepts product transfers."
-dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger" ${BANK3_USER_ID} "Bank3 accepts product transfers."
+dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger" ${BANK3_USER_ID} "Bank3 finalizes settlement"
+dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger" ${BANK3_USER_ID} "Bank3 responds to bid placing"
 
 #Issuer
 dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger" ${ISSUER_USER_ID} "Issuer commission"
-dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger" ${ISSUER_USER_ID} "Issuer finalize"
+dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger" ${ISSUER_USER_ID} "Issuer finalize redemption"
 
 #auction agent
 dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger" ${AUCTIONAGENT_USER_ID} "AuctionAgent finalize"
 
 #CSD
-dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger" ${CSD_USER_ID} "CSD finalize"
+dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger" ${CSD_USER_ID} "CSD calculate redemption"
