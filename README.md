@@ -71,7 +71,7 @@ Reset the application by following these steps:
 make deploy
 ```
 
-2. Run the cli script, after setting your token with dablc t.
+2. Run the cli script, after setting your token with `dablc t`.
 ```
 ./dabl-deploy.sh
 ```
