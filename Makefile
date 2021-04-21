@@ -63,11 +63,6 @@ package: yarn-install-deps
 # DABL specific
 deploy: build package
 
-#
-prepare_ui_for_deploy:
-	(cd ui && yarn build)
-	(cd ui && zip -r ../target/bondui.zip build)
-
 # Initialization script
 gen-ledger-parties:
 	(cd ui/src/utils/ && node gen-ledger-parties.js && mv ledger-parties.json ../../..)

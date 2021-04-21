@@ -30,7 +30,7 @@ dablc -j ledger pps ${LEDGER_ID} > participants.json
 cp participants.json ui/src/
 
 # Rebuild the UI so that it contains the right JWTs to login.
-make prepare_ui_for_deploy
+make package
 
 # Upload files to workspaces
 for file in `ls target/`
