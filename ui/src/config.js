@@ -31,22 +31,22 @@ export const wsBaseUrl =
 
 const applicationId = uuidv4();
 
-export function createToken(party) {
-    if (isLocalDev) {
-        const token = jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
-        console.log(`Using generated token: ${token}`);
-        return token;
-    } else {
-        console.log("Using token from parties.json file.");
-        const parties = retrieveParties();
-        const partyInfo = parties.find(o => o.partyName === party);
-        if (partyInfo && partyInfo.token) {
-            return partyInfo.token;
-        }
-        alert(`Warning: no credentials available for ${party}.`);
-        return undefined;
-    }
-}
+// export function createToken(party) {
+//     if (isLocalDev) {
+//         const token = jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
+//         console.log(`Using generated token: ${token}`);
+//         return token;
+//     } else {
+//         console.log("Using token from parties.json file.");
+//         const parties = retrieveParties();
+//         const partyInfo = parties.find(o => o.partyName === party);
+//         if (partyInfo && partyInfo.token) {
+//             return partyInfo.token;
+//         }
+//         alert(`Warning: no credentials available for ${party}.`);
+//         return undefined;
+//     }
+// }
 export function createTokenAll(party) {
     if (isLocalDev) {
         const token = jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
@@ -62,7 +62,6 @@ function dablToken(username) {
     return participantInfo.access_token;
 }
 
-
 let loginUrl = host.slice(1)
 loginUrl.unshift('login')
 
@@ -73,37 +72,4 @@ if (typeof s !== 'string') {
         return "";
     }
     return s.charAt(0).toUpperCase() + s.slice(1)
-}
-
-export const handlePartiesLoad = async (parties) => {
-    try {
-        storeParties(parties);
-    } catch (e) {
-        alert(`Error while trying to store parties: ${e}`);
-    }
-}
-
-const PARTIES_STORAGE_KEY = 'imported_parties';
-
-function storeParties(partiesJson) {
-    localStorage.setItem(PARTIES_STORAGE_KEY, JSON.stringify(partiesJson));
-}
-
-export function retrieveParties(validateParties) {
-    const partiesJson = localStorage.getItem(PARTIES_STORAGE_KEY);
-
-    if (!partiesJson) {
-        return undefined;
-    }
-
-    const [ parties, error ] = convertPartiesJson(partiesJson, ledgerId, true);
-
-    if (error) {
-        console.warn("Tried to load an invalid parties file from cache.", error);
-
-        localStorage.removeItem(PARTIES_STORAGE_KEY);
-        return undefined;
-    }
-
-    return parties;
 }
