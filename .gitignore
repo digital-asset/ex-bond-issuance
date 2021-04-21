@@ -19,3 +19,5 @@ deploy/*
 .DS_Store
 *.dot
 ui/bondui.zip
+scratch/
+
