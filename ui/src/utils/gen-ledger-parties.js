@@ -7,7 +7,6 @@ const participants = require('../participants.json');
 
 var stream = fs.createWriteStream("ledger-parties.json");
 
-// "chrisNorris",
 var desiredParties = [ "auctionAgent", "csd", "bank1", "bank2", "bank3", "issuer", "centralBank", "regulator", "operator"];
 
 stream.once('open', function() {
