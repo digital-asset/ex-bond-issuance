@@ -49,6 +49,4 @@ export default function SidebarLink({
       />
     </ListItem>
   );
-
-  // ###########################################################
 }

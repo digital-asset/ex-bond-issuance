@@ -28,8 +28,6 @@ export default function App() {
     </HashRouter>
   );
 
-  // #######################################################################
-
   function RootRoute(props) {
     var userDispatch = useUserDispatch();
     useEffect(() => tryUrlBasedDablLogin(userDispatch))

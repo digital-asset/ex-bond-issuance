@@ -57,9 +57,6 @@ function useUserDispatch() {
   return context;
 }
 
-
-// ###########################################################
-
 function loginUser(dispatch, party, history, setIsLoading, setError) {
   setError(false);
   setIsLoading(true);

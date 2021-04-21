@@ -9,9 +9,5 @@ const app = express();
 app.use(express.static('public'));
 app.use('/v1', proxy('http://localhost:7575', { proxyReqPathResolver: req => '/v1' + req.url }));
 
-// const router = express.Router();
-// router.get('/api/hello', (req, res, next) => { res.json('World'); });
-// app.use(router);
-
 const port = process.env.PORT || 3000;
 app.listen(port, "0.0.0.0", () => console.log(`Server listening on port: ${port}`));

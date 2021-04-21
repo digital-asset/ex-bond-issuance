@@ -15,7 +15,6 @@ export default function Report() {
     <Contracts
       contracts={roles.contracts}
 
-      // columns={[["ContractId", "contractId"], ["Bank", "payload.bank"], ["Regulators", "payload.regulators"], ]} /> ); }
       columns={[["Contract Id", "contractId"],
 
       ["Bank", "payload.bank"],

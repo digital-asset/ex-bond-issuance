@@ -161,8 +161,6 @@ export default makeStyles(theme => ({
     marginLeft: theme.spacing(2),
   },
   progress: {
-    // size: 28,
     color: "rgba(255, 255, 255, 0.35)",
-    // margin: theme.spacing(2),
   },
 }));
