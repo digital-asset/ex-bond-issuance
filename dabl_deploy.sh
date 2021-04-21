@@ -4,16 +4,16 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-
-# Terminate on any failure
 set -ex
 
-STAMP=$(date "+%H%M%S")
-PROJECT_NAME=BondIssuance$STAMP
+PROJECT_NAME=BondIssuance$(date "+%H%M%S")
+
+LEDGER_PARTIES="./scripts/ledger_parties.sh"
+DABL_SCRIPT="./scripts/dabl_script.sh"
 
 LEDGER_NAME=bondissuance
-# The 'jq -r' removes the superfluous quotes for our variables.
 
+# The 'jq -r' removes the superfluous quotes for our variables.
 PROJECT_ID=`dablc -j project ensure ${PROJECT_NAME} | jq -r '.project_id'`
 LEDGER_ID=`dablc -j ledger create ${PROJECT_ID} ${LEDGER_NAME} | jq -r '.ledger_id'`
 
@@ -49,12 +49,6 @@ dablc -j ledger dar ${LEDGER_ID} ${BI_DAR_SHA}
 # UI deploy.
 dablc -j ledger ui ${LEDGER_ID} ${BI_UI_SHA}
 
-sleep 90
-
-# Initialize the ledger contract data.
-# This will create a ledger-parties suitable for the Daml script.
-make dabl-script
-
 # Grab users
 USER_TEMP_FILENAME=`mktemp dabl_deploy.XXX`
 dablc -j ledger users ${LEDGER_ID} > ${USER_TEMP_FILENAME}
@@ -87,3 +81,12 @@ dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Trigger
 
 #CSD
 dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger" ${CSD_USER_ID} "CSD calculate redemption"
+
+sleep 120
+
+# Initialize the ledger contract data.
+# This will create a ledger-parties suitable for the Daml script.
+"$LEDGER_PARTIES"
+
+# use the generated ledger-parties in the dabl script run
+"$DABL_SCRIPT"
