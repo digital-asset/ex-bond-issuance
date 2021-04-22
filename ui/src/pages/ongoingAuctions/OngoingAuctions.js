@@ -5,13 +5,12 @@
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
 import { field } from "../../components/Contracts/Contracts";
-import { useLedger, useParty, useStreamQueries } from "@daml/react";
+import { useLedger, useStreamQueries } from "@daml/react";
 import { Auction } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Auction";
 import { standardizePartyId } from "../../components/Util";
 import { getParties, useSortedPartyNames } from "../login/Login";
 
 export default function Report() {
-  const party = useParty();
   const sortedPartyNames = useSortedPartyNames();
   const parties = getParties(sortedPartyNames);
 
