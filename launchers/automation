@@ -4,4 +4,13 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-scripts/startTriggers.py 6865
+(daml trigger --dar target/bond-issuance-triggers.dar --trigger-name DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger --ledger-host localhost --ledger-port 6865 --ledger-party Bank1 &)
+(daml trigger --dar target/bond-issuance-triggers.dar --trigger-name DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger --ledger-host localhost --ledger-port 6865 --ledger-party Bank1 &)
+(daml trigger --dar target/bond-issuance-triggers.dar --trigger-name DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger --ledger-host localhost --ledger-port 6865 --ledger-party Bank2 &)
+(daml trigger --dar target/bond-issuance-triggers.dar --trigger-name DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger --ledger-host localhost --ledger-port 6865 --ledger-party Bank2 &)
+(daml trigger --dar target/bond-issuance-triggers.dar --trigger-name DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger --ledger-host localhost --ledger-port 6865 --ledger-party Bank3 &)
+(daml trigger --dar target/bond-issuance-triggers.dar --trigger-name DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger --ledger-host localhost --ledger-port 6865 --ledger-party Bank3 &)
+(daml trigger --dar target/bond-issuance-triggers.dar --trigger-name DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger --ledger-host localhost --ledger-port 6865 --ledger-party Issuer &)
+(daml trigger --dar target/bond-issuance-triggers.dar --trigger-name DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger --ledger-host localhost --ledger-port 6865 --ledger-party Issuer &)
+(daml trigger --dar target/bond-issuance-triggers.dar --trigger-name DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger --ledger-host localhost --ledger-port 6865 --ledger-party AuctionAgent &)
+(daml trigger --dar target/bond-issuance-triggers.dar --trigger-name DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger --ledger-host localhost --ledger-port 6865 --ledger-party Csd &)
