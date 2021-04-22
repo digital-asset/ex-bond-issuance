@@ -27,8 +27,9 @@ export function getParties(parties) {
 }
 
 async function getPartiesI() {
-  const defaultUser = "SuperAdmin";
-  const baseUrl = httpBaseUrl(defaultUser);
+  const defaultUser = "Operator";
+  const baseUrl = httpBaseUrl;
+  debugger;
   const token = createTokenAll(defaultUser);
   const options = {
       url: addPath(baseUrl, 'v1/parties'),
