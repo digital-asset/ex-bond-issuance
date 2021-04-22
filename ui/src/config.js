@@ -4,7 +4,6 @@
  */
 import uuidv4 from "uuid/v4";
 import * as jwt from "jsonwebtoken";
-import { convertPartiesJson } from '@daml/dabl-react';
 import participants from './participants.json';
 import {lowerCaseFirst} from "./components/Util"
 
