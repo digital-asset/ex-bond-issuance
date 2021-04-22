@@ -6,7 +6,7 @@
 sdk-version: 1.12.0
 name: bond-issuance
 source: src/main/daml
-init-script: DA.RefApps.Bond.Test.MarketSetupScript:setupMarket
+init-script: DA.RefApps.Bond.MarketSetup.MarketSetupScript:setupMarket
 sandbox-options:
   - --ledgerid=bond-issuance
 parties:
@@ -16,7 +16,7 @@ parties:
   - Bank1
   - Bank2
   - Bank3
-  - CSD
+  - Csd
   - Issuer
   - CentralBank
 version: 2.0.0
