@@ -149,7 +149,7 @@ allocateParties = do
   bank2 <- allocateParty "Bank2"
   bank3 <- allocateParty "Bank3"
   bank4 <- allocateParty "Bank4"
-  csd <- allocateParty "CSD"
+  csd <- allocateParty "Csd"
   issuer <- allocateParty "Issuer"
   centralBank <- allocateParty "CentralBank"
   pure Parties with ..

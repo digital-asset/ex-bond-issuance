@@ -30,7 +30,7 @@ setupMarket = do
   bank1 <- getParty "Bank1"
   bank2 <- getParty "Bank2"
   bank3 <- getParty "Bank3"
-  csd <- getParty "CSD"
+  csd <- getParty "Csd"
   issuer <- getParty "Issuer"
   centralBank <- getParty "CentralBank"
   setupMarketWithParties $ BondIssuanceParties with ..

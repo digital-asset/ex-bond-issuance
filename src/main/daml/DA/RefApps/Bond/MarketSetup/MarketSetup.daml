@@ -235,7 +235,7 @@ testMarketSetupContract = script do
   bank1 <- allocateParty "Bank1"
   bank2 <- allocateParty "Bank2"
   bank3 <- allocateParty "Bank3"
-  csd <- allocateParty "CSD"
+  csd <- allocateParty "Csd"
   issuer <- allocateParty "Issuer"
   centralBank <- allocateParty "CentralBank"
   signatureCreatorCid <- submit operator do
@@ -272,7 +272,7 @@ testMarketSetup = script do
   bank1 <- allocateParty "Bank1"
   bank2 <- allocateParty "Bank2"
   bank3 <- allocateParty "Bank3"
-  csd <- allocateParty "CSD"
+  csd <- allocateParty "Csd"
   issuer <- allocateParty "Issuer"
   centralBank <- allocateParty "CentralBank"
 
