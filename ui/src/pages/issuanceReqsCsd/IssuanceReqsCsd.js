@@ -4,14 +4,14 @@
  */
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
-import { useStreamQuery, useLedger } from "@daml/react";
+import { useStreamQueries, useLedger } from "@daml/react";
 
 import { IssuanceRequest } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/IssuerRole";
 
 export default function Report() {
 
   const ledger = useLedger();
-  const requests = useStreamQuery(IssuanceRequest);
+  const requests = useStreamQueries(IssuanceRequest);
 
   const doAccept = function(c, param) {
     ledger.exercise(IssuanceRequest.IssuanceRequest_Accept, c.contractId, { isin: param })
