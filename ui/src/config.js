@@ -17,7 +17,7 @@ apiUrl.unshift('api')
 
 export const httpBaseUrl =
   isLocalDev
-  ? undefined
+  ? 'http://localhost:3000/'
   : `https://api.projectdabl.com/data/${ledgerId}/`;
 
 // Unfortunately, the development server of `create-react-app` does not proxy
