@@ -106,7 +106,7 @@ function Login(props) {
                 <MenuItem id="parties4" value={"Bank1"}>Bank1</MenuItem>,
                 <MenuItem id="parties5" value={"Bank2"}>Bank2</MenuItem>,
                 <MenuItem id="parties6" value={"Bank3"}>Bank3</MenuItem>,
-                <MenuItem id="parties7" value={"Csd"}>CSD</MenuItem>,
+                <MenuItem id="parties7" value={"Csd"}>Csd</MenuItem>,
                 <MenuItem id="parties8" value={"Issuer"}>Issuer</MenuItem>,
                 <MenuItem id="parties9" value={"CentralBank"}>CentralBank</MenuItem>
               </Select>
