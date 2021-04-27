@@ -27,6 +27,10 @@ done
 
 # Get a participants.json
 dablc -j ledger pps ${LEDGER_ID} > participants.json
+
+# workaround for participants.json using hub.daml.com when ledger
+# still on projectdabl.com (will be fixed in ui)
+sed -i ''  's/hub\.daml\.com/projectdabl\.com/' participants.json
 cp participants.json ui/src/
 
 # Rebuild the UI so that it contains the right JWTs to login.
@@ -58,7 +62,8 @@ BANK2_USER_ID=`jq -r '.parties | .[] |  select( .partyName == "Bank2") | .party'
 BANK3_USER_ID=`jq -r '.parties | .[] |  select( .partyName == "Bank3") | .party' ${USER_TEMP_FILENAME}`
 ISSUER_USER_ID=`jq -r '.parties | .[] |  select( .partyName == "Issuer") | .party' ${USER_TEMP_FILENAME}`
 AUCTIONAGENT_USER_ID=`jq -r '.parties | .[] |  select( .partyName == "AuctionAgent") | .party' ${USER_TEMP_FILENAME}`
-CSD_USER_ID=`jq -r '.parties | .[] |  select( .partyName == "CSD") | .party' ${USER_TEMP_FILENAME}`
+CSD_USER_ID=`jq -r '.parties | .[] |  select( .partyName == "Csd") | .party' ${USER_TEMP_FILENAME}`
+
 
 rm ${USER_TEMP_FILENAME}
 
@@ -76,10 +81,10 @@ dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Trigger
 dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger" ${ISSUER_USER_ID} "Issuer commission"
 dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger" ${ISSUER_USER_ID} "Issuer finalize redemption"
 
-#auction agent
+#Auction agent
 dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger" ${AUCTIONAGENT_USER_ID} "AuctionAgent finalize"
 
-#CSD
+#Csd
 dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger" ${CSD_USER_ID} "CSD calculate redemption"
 
 sleep 120
