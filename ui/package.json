@@ -29,6 +29,7 @@
     "react-json-view": "^1.19.1",
     "react-router-dom": "^5.0.1",
     "react-scripts": "4.0.3",
+    "request-promise": "^4.2.6",
     "tinycolor2": "^1.4.1",
     "uuid": "^3.3.3"
   },

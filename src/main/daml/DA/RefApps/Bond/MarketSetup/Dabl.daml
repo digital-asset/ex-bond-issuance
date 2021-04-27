@@ -25,7 +25,7 @@ fromDablParties dablParties =
     bank1 = party "Bank1"
     bank2 = party "Bank2"
     bank3 = party "Bank3"
-    csd = party "CSD"
+    csd = party "Csd"
     issuer = party "Issuer"
     centralBank = party "CentralBank"
   where
@@ -44,7 +44,7 @@ testFromDablPartiesCanConvert = do
       bank1 = "Bank1"
       bank2 = "Bank2"
       bank3 = "Bank3"
-      csd = "CSD"
+      csd = "Csd"
       issuer = "Issuer"
       centralBank = "CentralBank"
       expected =

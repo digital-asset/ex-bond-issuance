@@ -48,7 +48,6 @@ function useLayoutDispatch() {
 
 export { LayoutProvider, useLayoutState, useLayoutDispatch, toggleSidebar };
 
-// ###########################################################
 function toggleSidebar(dispatch) {
   dispatch({
     type: "TOGGLE_SIDEBAR",

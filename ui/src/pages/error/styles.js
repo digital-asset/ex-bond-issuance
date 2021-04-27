@@ -12,7 +12,6 @@ export default makeStyles(theme => ({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    // backgroundColor: theme.palette.primary.main,
     position: "absolute",
     top: 0,
     left: 0,

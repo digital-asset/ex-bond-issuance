@@ -58,7 +58,7 @@ public class Automation extends ExternalResource {
   }
 
   private boolean isServiceStarted() throws MalformedURLException {
-    return isAvailable(new URL("http://localhost:8088/v1/triggers?party=CSD"));
+    return isAvailable(new URL("http://localhost:8088/v1/triggers?party=Csd"));
   }
 
   private boolean isAvailable(URL url) {

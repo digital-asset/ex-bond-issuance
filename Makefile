@@ -59,3 +59,6 @@ yarn-install-deps: $(UI_INSTALL_ARTIFACT)
 .PHONY: package
 package: yarn-install-deps
 	cd ui && yarn build && mkdir -p ../target && zip -r ../target/bondui.zip build/
+
+# DABL specific
+deploy: build package

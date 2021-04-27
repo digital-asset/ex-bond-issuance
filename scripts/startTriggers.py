@@ -24,7 +24,7 @@ triggers_with_parties = [
     ("Issuer", "DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger"),
     ("Issuer", "DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger"),
     ("AuctionAgent", "DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger"),
-    ("CSD", "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger"),
+    ("Csd", "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger"),
 ]
 
 if len(sys.argv) < 2:

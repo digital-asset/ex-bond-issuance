@@ -45,7 +45,7 @@ public class BondIssuanceIT {
       Paths.get("./target/bond-issuance-triggers.dar");
 
   private static final Party ISSUER_PARTY = new Party("Issuer");
-  private static final Party CSD_PARTY = new Party("CSD");
+  private static final Party CSD_PARTY = new Party("Csd");
   private static final Party AGENT_PARTY = new Party("AuctionAgent");
   private static final Party BANK1_PARTY = new Party("Bank1");
   private static final Party BANK2_PARTY = new Party("Bank2");

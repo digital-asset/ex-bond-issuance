@@ -5,18 +5,21 @@
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";
 import { field } from "../../components/Contracts/Contracts";
-import { useStreamQuery, useLedger } from "@daml/react";
-
+import { useLedger, useStreamQueries } from "@daml/react";
 import { Auction } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Auction";
+import { standardizePartyId } from "../../components/Util";
+import { getParties, useSortedPartyNames } from "../login/Login";
 
 export default function Report() {
+  const sortedPartyNames = useSortedPartyNames();
+  const parties = getParties(sortedPartyNames);
 
   const ledger = useLedger()
-  const ongoingAuctions = useStreamQuery(Auction);
+  const ongoingAuctions = useStreamQueries(Auction);
 
   const bidders = "Bidders (separated by commas)"
   const doInviteBidders = function(contract, params) {
-    const bidderList = params[bidders].split(",").map(i => i.trim());
+    const bidderList = params[bidders].split(",").map(i => standardizePartyId(parties, i.trim()));
     const payload = {
       bidders: bidderList
     }

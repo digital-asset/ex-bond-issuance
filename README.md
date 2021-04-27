@@ -65,18 +65,26 @@ Reset the application by following these steps:
 
 ## Working with DAML Hub
 
-1. As a first step, build the whole project:
+### If you do have cli access, please follow these steps:
+1. Prepare the project for deployment:
 ```
-make clean build
+make deploy
 ```
 
-2. Start a new project at DAML Hub. Upload the DARs to DAML Hub (in your new project, Deployments tab / Upload file, two files `target/bond-issuance*.dar`), deploy the model (bond-issuance.dar, Deploy Instance).
+2. Run the cli script, after setting your token with `dablc t`.
+```
+./dabl-deploy.sh
+```
 
-3. Add the parties to the DAML Hub project: AuctionAgent, CSD, Bank1, Bank2, Bank3, Issuer, CentralBank, Regulator, Operator.
+### If you do *not* have cli access, please follow these steps:
+
+1. Start a new project at DAML Hub. Upload the DARs to DAML Hub (in your new project, Deployments tab / Upload file, two files `target/bond-issuance*.dar`), deploy the model (bond-issuance.dar, Deploy Instance).
+
+2. Add the parties to the DAML Hub project: AuctionAgent, CSD, Bank1, Bank2, Bank3, Issuer, CentralBank, Regulator, Operator.
     - Download `participants.json` (Ledger settings tab).
     - Download `parties.json` (Users tab).
 
-4. Run the market setup:
+3. Run the market setup:
 ```
 daml script \
   --participant-config participants.json \
@@ -86,37 +94,29 @@ daml script \
   --input-file parties.json
 ```
 
-5. Run the triggers from the DAML Hub UI:
+4. Run the triggers from the DAML Hub UI:
 ```
 Bank1:
 DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
 DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
-
 Bank2:
 DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
 DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
-
 Bank3:
 DA.RefApps.Bond.Triggers.InvestorSettlementTrigger:investorSettlementTrigger
 DA.RefApps.Bond.Triggers.PlaceBidTrigger:placeBidTrigger
-
 Issuer:
 DA.RefApps.Bond.Triggers.CommissionTrigger:commissionTrigger
 DA.RefApps.Bond.Triggers.RedemptionFinalizeTrigger:redemptionFinalizeTrigger
-
 AuctionAgent:
 DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger:auctionFinalizeTrigger
-
 CSD:
 DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger
-
 ```
 
-6. Run `make package`. Upload `target/bondui.zip` to DAML Hub and deploy the UI. Follow "View site". Upload `parties.json` to the UI using the button on the login screen (Upload parties.json (tokens)). Receiving no error means you have succeeded.
+5. Run `make package`. Upload `target/bondui.zip` to DAML Hub and deploy the UI. Follow "View site". Upload `parties.json` to the UI using the button on the login screen (Upload parties.json (tokens)). Receiving no error means you have succeeded.
 
-Note: parties.json needs to be re-uploaded to the UI every time the tokens change.
-
-
+**Note:** parties.json needs to be re-uploaded to the UI every time the tokens change.
 ## User Guide
 
 This User Guide will take you step-by-step through the whole bond issuance, bond auction, and redemption process. It will lead you through all the major UI screens and data fields that you will need to use.

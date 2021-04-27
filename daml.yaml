@@ -16,7 +16,7 @@ parties:
   - Bank1
   - Bank2
   - Bank3
-  - CSD
+  - Csd
   - Issuer
   - CentralBank
 version: 2.0.0
