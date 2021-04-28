@@ -57,8 +57,5 @@ $(UI_INSTALL_ARTIFACT): ui/package.json ui/yarn.lock $(JS_CODEGEN_ARTIFACT)
 yarn-install-deps: $(UI_INSTALL_ARTIFACT)
 
 .PHONY: package
-package: yarn-install-deps
+daml-hub-package: yarn-install-deps
 	cd ui && yarn build && mkdir -p ../target && zip -r ../target/bondui.zip build/
-
-# DABL specific
-deploy: build package

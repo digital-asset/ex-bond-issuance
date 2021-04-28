@@ -27,7 +27,7 @@ dablc -j ledger pps ${LEDGER_ID} > participants.json
 sed -i ''  's/hub\.daml\.com/projectdabl\.com/' participants.json
 cp participants.json ui/src/
 
-make package
+make daml-hub-package
 
 for file in target/*
 do
