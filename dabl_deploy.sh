@@ -8,9 +8,6 @@ set -ex
 
 PROJECT_NAME=BondIssuance$(date "+%H%M%S")
 
-LEDGER_PARTIES="./scripts/ledger_parties.sh"
-DABL_SCRIPT="./scripts/dabl_script.sh"
-
 LEDGER_NAME=bondissuance
 
 PROJECT_ID=`dablc -j project ensure ${PROJECT_NAME} | jq -r '.project_id'`
@@ -76,6 +73,6 @@ dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Trigger
 
 sleep 120
 
-"$LEDGER_PARTIES"
+scripts/ledger_parties.sh
 
-"$DABL_SCRIPT"
+scripts/dabl_script.sh
