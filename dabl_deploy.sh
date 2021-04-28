@@ -88,7 +88,6 @@ dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Trigger
 # Possibly, the API is not up yet (despite that dablc health reports OK).
 sleep 120
 
-# Initialize the ledger contract data.
 # This will create a ledger-parties suitable for the Daml script.
 scripts/ledger_parties.sh
 
