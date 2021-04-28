@@ -24,7 +24,7 @@ dablc -j ledger pps ${LEDGER_ID} > participants.json
 
 # workaround for participants.json using hub.daml.com when ledger
 # still on projectdabl.com (will be fixed in ui)
-sed -i ''  's/hub\.daml\.com/projectdabl\.com/' participants.json
+sed -i 's/hub\.daml\.com/projectdabl\.com/' participants.json
 cp participants.json ui/src/
 
 make daml-hub-package
