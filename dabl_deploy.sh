@@ -71,6 +71,8 @@ dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Trigger
 
 dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger" ${CSD_USER_ID} "CSD calculate redemption"
 
+# Daml Script returns an error if called "too early".
+# Possibly, the API is not up yet (despite that dablc health reports OK).
 sleep 120
 
 scripts/ledger_parties.sh
