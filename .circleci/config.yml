@@ -58,7 +58,11 @@ jobs:
           name: Daml tests
           command: |
             make test-dars
-      - save_cache:
+      - run:
+          name: Check daml.yaml file
+          command: |
+            scripts/checkYamlInitScriptAlsoExistsInDaml.sh
+       - save_cache:
           paths:
             - ~/.daml
           key: daml-{{ checksum "daml.yaml" }}
