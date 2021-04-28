@@ -30,22 +30,6 @@ export const wsBaseUrl =
 
 const applicationId = uuidv4();
 
-// export function createToken(party) {
-//     if (isLocalDev) {
-//         const token = jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
-//         console.log(`Using generated token: ${token}`);
-//         return token;
-//     } else {
-//         console.log("Using token from parties.json file.");
-//         const parties = retrieveParties();
-//         const partyInfo = parties.find(o => o.partyName === party);
-//         if (partyInfo && partyInfo.token) {
-//             return partyInfo.token;
-//         }
-//         alert(`Warning: no credentials available for ${party}.`);
-//         return undefined;
-//     }
-// }
 export function createTokenAll(party) {
     if (isLocalDev) {
         const token = jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");

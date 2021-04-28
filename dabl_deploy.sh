@@ -8,9 +8,6 @@ set -ex
 
 PROJECT_NAME=BondIssuance$(date "+%H%M%S")
 
-LEDGER_PARTIES="./scripts/ledger_parties.sh"
-DABL_SCRIPT="./scripts/dabl_script.sh"
-
 LEDGER_NAME=bondissuance
 
 # The 'jq -r' removes the superfluous quotes for our variables.
@@ -30,16 +27,16 @@ dablc -j ledger pps ${LEDGER_ID} > participants.json
 
 # workaround for participants.json using hub.daml.com when ledger
 # still on projectdabl.com (will be fixed in ui)
-sed -i ''  's/hub\.daml\.com/projectdabl\.com/' participants.json
+sed -i 's/hub\.daml\.com/projectdabl\.com/' participants.json
 cp participants.json ui/src/
 
 # Rebuild the UI so that it contains the right JWTs to login.
-make package
+make daml-hub-package
 
 # Upload files to workspaces
-for file in `ls target/`
+for file in target/*
 do
-  dablc -j workspace upload target/$file
+  dablc -j workspace upload "$file"
 done
 
 # From workspace to ledger
@@ -87,11 +84,12 @@ dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Trigger
 #Csd
 dablc -j ledger trigger ${LEDGER_ID} ${BI_TRIGGER_HASH} "DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger" ${CSD_USER_ID} "CSD calculate redemption"
 
+# Daml Script returns an error if called "too early".
+# Possibly, the API is not up yet (despite that dablc health reports OK).
 sleep 120
 
-# Initialize the ledger contract data.
 # This will create a ledger-parties suitable for the Daml script.
-"$LEDGER_PARTIES"
+scripts/ledger_parties.sh
 
 # use the generated ledger-parties in the dabl script run
-"$DABL_SCRIPT"
+scripts/dabl_script.sh

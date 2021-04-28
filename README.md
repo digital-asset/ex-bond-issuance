@@ -66,12 +66,7 @@ Reset the application by following these steps:
 ## Working with DAML Hub
 
 ### If you do have cli access, please follow these steps:
-1. Prepare the project for deployment:
-```
-make deploy
-```
-
-2. Run the cli script, after setting your token with `dablc t`.
+1. Run the cli script, after setting your token with `dablc t`.
 ```
 ./dabl-deploy.sh
 ```
@@ -114,7 +109,7 @@ CSD:
 DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger:redemptionCalculationTrigger
 ```
 
-5. Run `make package`. Upload `target/bondui.zip` to DAML Hub and deploy the UI. Follow "View site". Upload `parties.json` to the UI using the button on the login screen (Upload parties.json (tokens)). Receiving no error means you have succeeded.
+5. Run `make daml-hub-package`. Upload `target/bondui.zip` to DAML Hub and deploy the UI. Follow "View site". Upload `parties.json` to the UI using the button on the login screen (Upload parties.json (tokens)). Receiving no error means you have succeeded.
 
 **Note:** parties.json needs to be re-uploaded to the UI every time the tokens change.
 ## User Guide
