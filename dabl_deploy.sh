@@ -29,9 +29,9 @@ cp participants.json ui/src/
 
 make package
 
-for file in `ls target/`
+for file in target/*
 do
-  dablc -j workspace upload target/$file
+  dablc -j workspace upload "$file"
 done
 
 BI_DAR_SHA=`dablc -j workspace install bond-issuance.dar ${LEDGER_ID} | jq -r '.artifact_hash'`
