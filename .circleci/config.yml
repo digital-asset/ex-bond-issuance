@@ -62,7 +62,7 @@ jobs:
           name: Check daml.yaml file
           command: |
             scripts/checkYamlInitScriptAlsoExistsInDaml.sh
-       - save_cache:
+      - save_cache:
           paths:
             - ~/.daml
           key: daml-{{ checksum "daml.yaml" }}
