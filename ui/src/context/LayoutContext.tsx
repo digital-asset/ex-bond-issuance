@@ -4,10 +4,14 @@
  */
 import React from "react";
 
-var LayoutStateContext = React.createContext();
-var LayoutDispatchContext = React.createContext();
+const LayoutStateContext = React.createContext<LayoutState>({ isSidebarOpened: true });
+const LayoutDispatchContext = React.createContext<React.Dispatch<any>>({} as React.Dispatch<any>);
 
-function layoutReducer(state, action) {
+type LayoutState = {
+  isSidebarOpened : boolean
+}
+
+function layoutReducer(state : LayoutState, action : any) {
   switch (action.type) {
     case "TOGGLE_SIDEBAR":
       return { ...state, isSidebarOpened: !state.isSidebarOpened };
@@ -17,7 +21,7 @@ function layoutReducer(state, action) {
   }
 }
 
-function LayoutProvider({ children }) {
+const LayoutProvider : React.FC = ({ children }) => {
   var [state, dispatch] = React.useReducer(layoutReducer, {
     isSidebarOpened: true,
   });
@@ -48,7 +52,7 @@ function useLayoutDispatch() {
 
 export { LayoutProvider, useLayoutState, useLayoutDispatch, toggleSidebar };
 
-function toggleSidebar(dispatch) {
+function toggleSidebar(dispatch : React.Dispatch<any>) {
   dispatch({
     type: "TOGGLE_SIDEBAR",
   });
