@@ -2,34 +2,21 @@
  * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useState , useEffect} from "react";
-import { Grid, CircularProgress, Typography, Button, Fade, Select, MenuItem, InputLabel, FormControl } from "@material-ui/core";
+import { Button, CircularProgress, Fade, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from "@material-ui/core";
+import React, { useEffect, useState } from "react";
 import { withRouter } from "react-router-dom";
-import useStyles from "./styles";
-import logo from "./logo.svg";
 import rp from "request-promise";
-import { useUserDispatch, loginUser } from "../../context/UserContext";
+import { addPath, addSpacesBetweenWords, getDablPartyParticipants } from "../../components/Util";
 import { createTokenAll, httpBaseUrl, isLocalDev } from "../../config";
-import { addPath, getDablPartyParticipants } from "../../components/Util";
+import { loginUser, useUserDispatch } from "../../context/UserContext";
 import participants from '../../participants.json';
+import logo from "./logo.svg";
+import useStyles from "./styles";
 
-export function useSortedPartyNames() {
-  var [parties, setParties] = useState([]);
-  useEffect(() => {
-    getPartiesI().then(ps => setParties((ps)));
-  }, []);
-  return parties;
-}
 
-export function getParties(parties) {
-  return parties
-    .sort(compareByDisplayName);
-}
-
-async function getPartiesI() {
+async function getParties(): Promise<any[]> {
   const defaultUser = "Operator";
-  const baseUrl = httpBaseUrl;
-  debugger;
+  const baseUrl = httpBaseUrl(defaultUser);
   const token = createTokenAll(defaultUser);
   const options = {
       url: addPath(baseUrl, 'v1/parties'),
@@ -46,7 +33,8 @@ async function getPartiesI() {
   return result;
 }
 }
-function compareByDisplayName(p1, p2) {
+
+function compareByDisplayName(p1: { displayName: string; }, p2: { displayName: string; }): number {
   if ( p1.displayName < p2.displayName ){
     return -1;
   }
@@ -56,7 +44,34 @@ function compareByDisplayName(p1, p2) {
   return 0;
 }
 
-function Login(props) {
+function addSpacesBetweenWordsInDisplayName(p: any) {
+  return {...p, displayName: addSpacesBetweenWords(p.displayName)};
+}
+
+function sortParties(parties: any[]): any[] {
+  return parties
+      .sort(compareByDisplayName)
+      .map(addSpacesBetweenWordsInDisplayName);
+}
+
+// getDisplayPartyNames
+export function useSortedPartyNames(): any[] {
+  var [parties, setParties] = useState([] as any[]);
+  useEffect(() => {
+    getParties().then(ps => setParties((ps)));
+  }, []);
+  return parties;
+}
+
+export function getDisplayPartyNames(parties:any[]) {
+  return sortParties(parties);
+}
+
+export function getIdentifier(parties:any[],party : string) {
+  return parties.find(x => x.displayName === party).identifier
+}
+
+const Login = (props: any) => {
   var classes = useStyles();
 
   // global
@@ -64,9 +79,8 @@ function Login(props) {
 
   // local
   var [isLoading, setIsLoading] = useState(false);
-  var [error, setError] = useState(null);
+  var [error, setError] = useState(false);
   var [loginValue, setLoginValue] = useState("");
-  // var [passwordValue] = useState("");
 
   return (
     <Grid container className={classes.container}>
@@ -86,7 +100,7 @@ function Login(props) {
               <InputLabel id="email">Select Party</InputLabel>
               <Select
                 value={loginValue}
-                onChange={e => setLoginValue(e.target.value)}
+                onChange={(e:any) => setLoginValue(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === "Enter") {
                     loginUser(
