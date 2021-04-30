@@ -44,10 +44,10 @@ function Layout() {
   const layoutState = useLayoutState();
 
   return (
-    <DamlLedger party={user.party} token={user.token} httpBaseUrl={httpBaseUrl} wsBaseUrl={wsBaseUrl}>
-      <div className={classes.root}>
+    <DamlLedger party={user.party} token={user.token} httpBaseUrl={ httpBaseUrl('') ?? undefined } wsBaseUrl={wsBaseUrl('') ?? undefined}>
+    <div className={classes.root}>
           <>
-            <Header />
+            <Header/>
             <Sidebar />
             <div
               className={classnames(classes.content, {

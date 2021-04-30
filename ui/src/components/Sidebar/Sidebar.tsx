@@ -2,23 +2,24 @@
  * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useState, useEffect } from "react";
 import { useParty } from '@daml/react';
 import { Drawer, IconButton, List } from "@material-ui/core";
-import { green} from '@material-ui/core/colors';
-import { List as ListIcon, Gavel, Update, CompareArrows, AttachMoney, Warning, ArrowBack, Build, CardMembership, DirectionsRun, ListAlt } from "@material-ui/icons";
-import { useTheme } from "@material-ui/styles";
-import { withRouter } from "react-router-dom";
+import { ArrowBack, AttachMoney, Build, CardMembership, CompareArrows, DirectionsRun, Gavel, List as ListIcon, ListAlt, Update, Warning } from "@material-ui/icons";
 import classNames from "classnames";
-import useStyles from "./styles";
+import React, { useState } from "react";
+import { RouteComponentProps, withRouter } from "react-router-dom";
+import { toggleSidebar, useLayoutDispatch, useLayoutState } from "../../context/LayoutContext";
 import SidebarLink from "./components/SidebarLink/SidebarLink";
-import { useLayoutState, useLayoutDispatch, toggleSidebar } from "../../context/LayoutContext";
+import useStyles from "./styles";
 
 const allParties = "All"
 
-function Sidebar({ location }) {
+type PartyNames = "AuctionAgent" | "Bank1" | "Bank2" | "Bank3" | "CentralBank" | "Csd" | "Issuer" | "Regulator" | "Operator" | "All"
+type Views = "auctionAgentInvitationView" | "auctionAgentRoleView" | "auctionRequestView" | "balanceView" | "bankInvitationView" | "bankRoleView" | "bidderParticipationView" | "bidView" | "centralBankInvitationView" | "centralBankRoleView" | "csdInvitationView" | "csdRedemptionView" | "csdRoleView" | "issuanceReqsView" | "issuanceReqsCsdView" | "invalidBidsView" | "issuerInvitationView" | "issuerRoleView" | "ongoingAuctionsForBiddersView" | "ongoingAuctionsView" | "operatorRoleView" | "pendingSettlementsViewForBanks" | "pendingSettlementsViewForIssuer"
 
-  var sigObsMap = new Map([
+const Sidebar = ({ location } : RouteComponentProps) => {
+
+  var sigObsMap : Map<Views, PartyNames[]> = new Map([
     ['auctionAgentInvitationView', ["Operator"]],
     ['auctionAgentRoleView', ["AuctionAgent", "Operator", "Regulator"]],
     ['auctionRequestView', ["AuctionAgent"]],
@@ -41,8 +42,9 @@ function Sidebar({ location }) {
     ['ongoingAuctionsView', ["AuctionAgent", "Issuer"]],
     ['operatorRoleView', ["Regulator"]],
     ['pendingSettlementsViewForBanks', ["Bank1", "Bank2", "Bank3"]],
-    ['pendingSettlementsViewForIssuer', ["Issuer"]],]);
-  var panelNames = new Map([
+    ['pendingSettlementsViewForIssuer', ["Issuer"]],])
+
+    var panelNames : Map<Views, string> = new Map([
     ['auctionAgentInvitationView', "Auction Agent Invitations"],
     ['centralBankInvitationView', "Central Bank Invitations"],
     ['csdInvitationView', "CSD Invitations"],
@@ -69,7 +71,6 @@ function Sidebar({ location }) {
   ]);
 
   var classes = useStyles();
-  var theme = useTheme();
   const party = useParty();
 
   // global
@@ -77,25 +78,17 @@ function Sidebar({ location }) {
   var layoutDispatch = useLayoutDispatch();
 
   // local
-  var [isPermanent, setPermanent] = useState(true);
-
-  useEffect(function () {
-    window.addEventListener("resize", handleWindowWidthChange);
-    handleWindowWidthChange();
-    return function cleanup() {
-      window.removeEventListener("resize", handleWindowWidthChange);
-    };
-  });
+  var [isPermanent] = useState(true);
 
   function AuctionAgentInvitation() {
     var panelMap = sigObsMap.get('auctionAgentInvitationView');
-    if (panelMap.includes(party) || panelMap.includes(allParties)) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="AuctionAgentRole"
           label={panelNames.get('auctionAgentInvitationView') || "unassigned"}
           path="/app/auctionAgentInvitation"
-          icon={(<CardMembership style={{ color: '#536DFE' }} />)}
+          icon={(<CardMembership className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />
@@ -105,13 +98,13 @@ function Sidebar({ location }) {
   }
   function AuctionAgentRole() {
     var panelMap = sigObsMap.get('auctionAgentRoleView');
-    if (panelMap.includes(party) || panelMap.includes(allParties)) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="AuctionAgentRole"
           label={panelNames.get('auctionAgentRoleView') || "unassigned"}
           path="/app/auctionAgentRole"
-          icon={(<Build style={{ color: '#536DFE' }} />)}
+          icon={(<Build className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />
@@ -121,13 +114,13 @@ function Sidebar({ location }) {
   }
   function AuctionRequest() {
     var panelMap = sigObsMap.get('auctionRequestView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="AuctionRequest"
           label={panelNames.get('auctionRequestView') || "unassigned"}
           path="/app/auctionRequest"
-          icon={(<ListAlt style={{ color: '#536DFE' }}/>)}
+          icon={(<ListAlt className={classes.lightBlue}/>)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -136,13 +129,13 @@ function Sidebar({ location }) {
   }
   function Balance() {
     var panelMap = sigObsMap.get('balanceView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="Balance"
           label={panelNames.get('balanceView') || "unassigned"}
           path="/app/balance"
-          icon={(<AttachMoney style={{ color: green[400] }} />)}
+          icon={(<AttachMoney className={classes.lightGreen} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -151,13 +144,13 @@ function Sidebar({ location }) {
   }
   function BankInvitation() {
     var panelMap = sigObsMap.get('bankInvitationView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="BankInvitation"
           label={panelNames.get('bankInvitationView') || "unassigned"}
           path="/app/bankInvitation"
-          icon={(<CardMembership style={{ color: '#536DFE' }} />)}
+          icon={(<CardMembership className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -166,13 +159,13 @@ function Sidebar({ location }) {
   }
   function BankRole() {
     var panelMap = sigObsMap.get('bankRoleView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="BankRole"
           label={panelNames.get('bankRoleView') || "unassigned"}
           path="/app/bankRole"
-          icon={(<Build style={{ color: '#536DFE' }} />)}
+          icon={(<Build className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -181,13 +174,13 @@ function Sidebar({ location }) {
   }
   function BidderParticipation() {
     var panelMap = sigObsMap.get('bidderParticipationView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="BidderParticipation"
           label={panelNames.get('bidderParticipationView') || "unassigned"}
           path="/app/bidderParticipation"
-          icon={(<DirectionsRun style={{ color: '#536DFE' }} />)}
+          icon={(<DirectionsRun className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -197,13 +190,13 @@ function Sidebar({ location }) {
   }
   function Bid() {
     var panelMap = sigObsMap.get('bidView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="Bid"
           label={panelNames.get('bidView') || "unassigned"}
           path="/app/bid"
-          icon={(<CompareArrows style={{ color: '#536DFE' }} />)}
+          icon={(<CompareArrows className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -213,13 +206,13 @@ function Sidebar({ location }) {
   }
   function CentralBankInvitation() {
     var panelMap = sigObsMap.get('centralBankInvitationView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="CentralBankInvitation"
           label={panelNames.get('centralBankInvitationView') || "unassigned"}
           path="/app/centralBankInvitation"
-          icon={(<CardMembership style={{ color: '#536DFE' }} />)}
+          icon={(<CardMembership className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -229,13 +222,13 @@ function Sidebar({ location }) {
   }
   function CentralBankRole() {
     var panelMap = sigObsMap.get('centralBankRoleView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="CentralBankRole"
           label={panelNames.get('centralBankRoleView') || "unassigned"}
           path="/app/centralBankRole"
-          icon={(<Build style={{ color: '#536DFE' }} />)}
+          icon={(<Build className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -245,13 +238,13 @@ function Sidebar({ location }) {
   }
   function CsdInvitation() {
     var panelMap = sigObsMap.get('csdInvitationView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="CsdInvitation"
           label={panelNames.get('csdInvitationView') || "unassigned"}
           path="/app/csdInvitation"
-          icon={(<CardMembership style={{ color: '#536DFE' }} />)}
+          icon={(<CardMembership className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -261,13 +254,13 @@ function Sidebar({ location }) {
   }
   function CsdRedemption() {
     var panelMap = sigObsMap.get('csdRedemptionView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="CsdRedemption"
           label={panelNames.get('csdRedemptionView') || "unassigned"}
           path="/app/csdRedemption"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<ListIcon className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -277,13 +270,13 @@ function Sidebar({ location }) {
   }
   function CsdRole() {
     var panelMap = sigObsMap.get('csdRoleView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="CsdRole"
           label={panelNames.get('csdRoleView') || "unassigned"}
           path="/app/csdRole"
-          icon={(<Build style={{ color: '#536DFE' }} />)}
+          icon={(<Build className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -293,13 +286,13 @@ function Sidebar({ location }) {
   }
   function IssuanceReqs() {
     var panelMap = sigObsMap.get('issuanceReqsView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="IssuanceReqs"
           label={panelNames.get('issuanceReqsView') || "unassigned"}
           path="/app/issuanceReqs"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<ListIcon className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -309,13 +302,13 @@ function Sidebar({ location }) {
   }
   function IssuanceReqsCsd() {
     var panelMap = sigObsMap.get('issuanceReqsCsdView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="IssuanceReqsCsd"
           label={panelNames.get('issuanceReqsCsdView') || "unassigned"}
           path="/app/issuanceReqsCsd"
-          icon={(<ListIcon style={{ color: '#536DFE' }} />)}
+          icon={(<ListIcon className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -325,13 +318,13 @@ function Sidebar({ location }) {
   }
   function InvalidBids() {
     var panelMap = sigObsMap.get('invalidBidsView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="InvalidBids"
           label={panelNames.get('invalidBidsView') || "unassigned"}
           path="/app/invalidBids"
-          icon={(<Warning style={{ color: '#e97300de' }} />)}
+          icon={(<Warning className={classes.warning} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -341,13 +334,13 @@ function Sidebar({ location }) {
   }
   function IssuerInvitation() {
     var panelMap = sigObsMap.get('issuerInvitationView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="IssuerInvitation"
           label={panelNames.get('issuerInvitationView') || "unassigned"}
           path="/app/issuerInvitation"
-          icon={(<CardMembership style={{ color: '#536DFE' }} />)}
+          icon={(<CardMembership className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -357,13 +350,13 @@ function Sidebar({ location }) {
   }
   function IssuerRole() {
     var panelMap = sigObsMap.get('issuerRoleView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="IssuerRole"
           label={panelNames.get('issuerRoleView') || "unassigned"}
           path="/app/issuerRole"
-          icon={(<Build style={{ color: '#536DFE' }} />)}
+          icon={(<Build className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -373,13 +366,13 @@ function Sidebar({ location }) {
   }
   function OngoingAuctionsForBidders() {
     var panelMap = sigObsMap.get('ongoingAuctionsForBiddersView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="OngoingAuctionsForBidders"
           label={panelNames.get('ongoingAuctionsForBiddersView') || "unassigned"}
           path="/app/ongoingAuctionsForBidders"
-          icon={(<Gavel style={{ color: '#536DFE' }} />)}
+          icon={(<Gavel className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -389,13 +382,13 @@ function Sidebar({ location }) {
   }
   function OngoingAuctions() {
     var panelMap = sigObsMap.get('ongoingAuctionsView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="OngoingAuctions"
           label={panelNames.get('ongoingAuctionsView') || "unassigned"}
           path="/app/ongoingAuctions"
-          icon={(<Gavel style={{ color: '#536DFE' }} />)}
+          icon={(<Gavel className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -405,13 +398,13 @@ function Sidebar({ location }) {
   }
   function OperatorRole() {
     var panelMap = sigObsMap.get('operatorRoleView');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="OperatorRole"
           label={panelNames.get('operatorRoleView') || "unassigned"}
           path="/app/operatorRole"
-          icon={(<Build style={{ color: '#536DFE' }} />)}
+          icon={(<Build className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -421,13 +414,13 @@ function Sidebar({ location }) {
   }
   function PendingSettlementsForBanks() {
     var panelMap = sigObsMap.get('pendingSettlementsViewForBanks');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="PendingSettlementsForBanks"
           label={panelNames.get('pendingSettlementsViewForBanks') || "unassigned"}
           path="/app/pendingSettlementsForBanks"
-          icon={(<Update style={{ color: '#536DFE' }} />)}
+          icon={(<Update className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -437,13 +430,13 @@ function Sidebar({ location }) {
   }
   function PendingSettlementsForIssuer() {
     var panelMap = sigObsMap.get('pendingSettlementsViewForIssuer');
-    if (panelMap.includes(party) || panelMap.includes("All")) {
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
       return (
         <SidebarLink
           key="PendingSettlementsForIssuer"
           label={panelNames.get('pendingSettlementsViewForIssuer') || "unassigned"}
           path="/app/pendingSettlementsForIssuer"
-          icon={(<Update style={{ color: '#536DFE' }} />)}
+          icon={(<Update className={classes.lightBlue} />)}
           location={location}
           isSidebarOpened={isSidebarOpened}
         />);
@@ -477,7 +470,7 @@ function Sidebar({ location }) {
           />
         </IconButton>
       </div>
-      <List className={classes.sidebarList}>
+      <List>
         <AuctionAgentInvitation/>
         <AuctionAgentRole />
         <AuctionRequest />
@@ -504,18 +497,6 @@ function Sidebar({ location }) {
       </List>
     </Drawer>
   );
-
-  function handleWindowWidthChange() {
-    var windowWidth = window.innerWidth;
-    var breakpointWidth = theme.breakpoints.values.md;
-    var isSmallScreen = windowWidth < breakpointWidth;
-
-    if (isSmallScreen && isPermanent) {
-      setPermanent(false);
-    } else if (!isSmallScreen && !isPermanent) {
-      setPermanent(true);
-    }
-  }
 }
 
 export default withRouter(Sidebar);

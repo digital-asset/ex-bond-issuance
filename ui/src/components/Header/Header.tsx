@@ -2,17 +2,18 @@
  * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-import React from "react";
-import { withRouter } from "react-router-dom";
-import { AppBar, Toolbar, IconButton, Typography } from "@material-ui/core";
-import { Menu, ExitToApp, ArrowBack, Refresh } from "@material-ui/icons";
-import classNames from "classnames";
-import useStyles from "./styles";
-import { useLayoutState, useLayoutDispatch, toggleSidebar } from "../../context/LayoutContext";
-import { useUserDispatch, signOut, useUserState } from "../../context/UserContext";
 import { useReload } from "@daml/react";
+import { AppBar, IconButton, Toolbar, Typography } from "@material-ui/core";
+import { ArrowBack, ExitToApp, Menu, Refresh } from "@material-ui/icons";
+import classNames from "classnames";
+import React from "react";
+import { RouteComponentProps, withRouter } from "react-router-dom";
+import { toggleSidebar, useLayoutDispatch, useLayoutState } from "../../context/LayoutContext";
+import { signOut, useUserDispatch, useUserState } from "../../context/UserContext";
+import useStyles from "./styles";
 
-function Header({ history }) {
+const Header = ({ history } : RouteComponentProps) => {
+
   const classes = useStyles();
 
   // global
@@ -50,11 +51,11 @@ function Header({ history }) {
             />
           )}
         </IconButton>
-        <Typography variant="h6" weight="medium" className={classes.logotype}>
+        <Typography variant="h6" className={classes.logotype}>
           BOND Issuance
         </Typography>
         <div className={classes.grow} />
-        <Typography variant="h6" weight="medium">User: {userState.party}</Typography>
+        <Typography variant="h6">User: {userState.party}</Typography>
         <IconButton
           color="inherit"
           aria-haspopup="true"
@@ -68,7 +69,7 @@ function Header({ history }) {
           color="inherit"
           className={classes.headerMenuButton}
           aria-controls="profile-menu"
-          onClick={(event) => signOut(event, userDispatch, history)}
+          onClick={() => signOut(userDispatch, history)}
         >
           <ExitToApp classes={{ root: classes.headerIcon }} />
         </IconButton>

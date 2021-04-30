@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React, { useEffect } from "react";
-import { HashRouter, Route, Switch, Redirect } from "react-router-dom";
-import Layout from "./Layout/Layout";
+import { HashRouter, Redirect, Route, Switch } from "react-router-dom";
+import { tryUrlBasedDablLogin, useUserDispatch, useUserState } from "../context/UserContext";
 import Error from "../pages/error/Error";
 import Login from "../pages/login/Login";
-import { useUserState, useUserDispatch, tryUrlBasedDablLogin } from "../context/UserContext";
+import Layout from "./Layout/Layout";
+
 
 export default function App() {
   const userState = useUserState();
@@ -28,7 +29,7 @@ export default function App() {
     </HashRouter>
   );
 
-  function RootRoute(props) {
+  function RootRoute() {
     var userDispatch = useUserDispatch();
     useEffect(() => tryUrlBasedDablLogin(userDispatch))
 
@@ -37,7 +38,7 @@ export default function App() {
     )
   }
 
-  function PrivateRoute({ component, ...rest }) {
+  function PrivateRoute({ component, ...rest } : any) {
     return (
       <Route
         {...rest}
@@ -59,7 +60,7 @@ export default function App() {
     );
   }
 
-  function PublicRoute({ component, ...rest }) {
+  function PublicRoute({ component, ...rest } : any) {
     return (
       <Route
         {...rest}

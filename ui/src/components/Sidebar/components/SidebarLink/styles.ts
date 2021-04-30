@@ -1,10 +1,17 @@
+///
+/// Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+/// SPDX-License-Identifier: Apache-2.0
+///
+
 /*
  * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-import { makeStyles } from "@material-ui/styles";
+import { createStyles, makeStyles } from "@material-ui/styles";
 
-export default makeStyles(theme => ({
+export default makeStyles((theme : any) => createStyles({
+
+  linkRoot: {},
   link: {
     textDecoration: "none",
     "&:hover, &:focus": {
