@@ -2,10 +2,11 @@
  * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-import uuidv4 from "uuid/v4";
 import * as jwt from "jsonwebtoken";
+import { getDisplayName, lowerCaseFirst } from "./components/Util";
 import participants from './participants.json';
-import {lowerCaseFirst} from "./components/Util"
+import { uuid } from 'uuidv4';
+
 
 export const isLocalDev = process.env.NODE_ENV === 'development';
 
@@ -15,22 +16,30 @@ export const ledgerId = isLocalDev ? "bond-issuance" : host[0];
 let apiUrl = host.slice(1)
 apiUrl.unshift('api')
 
-export const httpBaseUrl =
-  isLocalDev
-  ? 'http://localhost:3000/'
-  : `https://api.projectdabl.com/data/${ledgerId}/`;
+// TODO: this is hardwired to 3000 for the moment
+export function httpBaseUrl(user: string): string {
+    if (isLocalDev) {
+        return 'http://localhost:3000/';
+    }
+    else {
+        return ('https://' + apiUrl.join('.') + (window.location.port ? ':' + window.location.port : '') + '/data/' + ledgerId + '/');
+    }
+}
 
 // Unfortunately, the development server of `create-react-app` does not proxy
 // websockets properly. Thus, we need to bypass it and talk to the JSON API
 // directly in development mode.
-export const wsBaseUrl =
-    isLocalDev
-    ? 'ws://localhost:7575/'
-    : undefined;
+export function wsBaseUrl(user: string): string | undefined {
+    if (isLocalDev) {
+        return 'ws://localhost:7575/'
+    } else {
+        return undefined;
+    }
+}
 
-const applicationId = uuidv4();
+const applicationId = uuid();
 
-export function createTokenAll(party) {
+export function createTokenAll(party: string) {
     if (isLocalDev) {
         const token = jwt.sign({ "https://daml.com/ledger-api": { ledgerId, applicationId, admin: true, actAs: [party], readAs: [party] } }, "secret");
         return token;
@@ -40,8 +49,10 @@ export function createTokenAll(party) {
     }
 }
 
-function dablToken(username) {
-    const participantInfo = participants.participants[lowerCaseFirst(username)];
+type DablUserNames = "auctionAgent" | "bank1" | "bank2" | "bank3" | "centralBank" | "csd" | "issuer" | "regulator" | "operator"
+
+function dablToken(username: string) {
+    const participantInfo = participants.participants[lowerCaseFirst(username) as DablUserNames];
     return participantInfo.access_token;
 }
 
@@ -50,9 +61,20 @@ loginUrl.unshift('login')
 
 export const dablLoginUrl = loginUrl.join('.') + (window.location.port ? ':' + window.location.port : '') + '/auth/login?ledgerId=' + ledgerId;
 
-export function capitalize(s) {
+export function capitalize(s : string) {
 if (typeof s !== 'string') {
         return "";
     }
     return s.charAt(0).toUpperCase() + s.slice(1)
+}
+export const damlPartyKey = applicationId + ".daml.party";
+export const damlTokenKey = applicationId + ".daml.token";
+
+export function getLedgerId(user: string): string {
+    const userName = getDisplayName(user);
+    switch (userName) {
+
+        default:
+            return ledgerId
+    }
 }
