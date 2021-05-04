@@ -1199,10 +1199,10 @@
 "@daml.js/bond-issuance-2.0.0@file:daml.js/bond-issuance-2.0.0":
   version "1.12.0"
   dependencies:
-    "@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4" "file:daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4"
-    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
-    "@daml.js/finlib-1.0.0" "file:daml.js/finlib-1.0.0"
+    "@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4" "file:../../../../Library/Caches/Yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-fc146afe-f673-44c5-898b-1778ff148982-1619614343043/node_modules/@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4"
+    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../../Library/Caches/Yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-fc146afe-f673-44c5-898b-1778ff148982-1619614343043/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../../Library/Caches/Yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-fc146afe-f673-44c5-898b-1778ff148982-1619614343043/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/finlib-1.0.0" "file:../../../../Library/Caches/Yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-fc146afe-f673-44c5-898b-1778ff148982-1619614343043/node_modules/@daml.js/finlib-1.0.0"
     "@mojotech/json-type-validation" "^3.1.0"
 
 "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662@file:daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662":
@@ -1213,9 +1213,9 @@
 "@daml.js/finlib-1.0.0@file:daml.js/finlib-1.0.0":
   version "1.12.0"
   dependencies:
-    "@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4" "file:daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4"
-    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4" "file:../../../../Library/Caches/Yarn/v6/npm-@daml-js-finlib-1-0-0-1.12.0-ca13bd21-1135-4b7a-9b20-037cf64469b2-1619614343049/node_modules/@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4"
+    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../../Library/Caches/Yarn/v6/npm-@daml-js-finlib-1-0-0-1.12.0-ca13bd21-1135-4b7a-9b20-037cf64469b2-1619614343049/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../../Library/Caches/Yarn/v6/npm-@daml-js-finlib-1-0-0-1.12.0-ca13bd21-1135-4b7a-9b20-037cf64469b2-1619614343049/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
     "@mojotech/json-type-validation" "^3.1.0"
 
 "@daml/dabl-react@file:./dabl-react":
@@ -2976,7 +2976,7 @@ bindings@^1.5.0:
   dependencies:
     file-uri-to-path "1.0.0"
 
-bluebird@^3.5.5:
+bluebird@^3.5.0, bluebird@^3.5.5:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
@@ -9924,6 +9924,16 @@ request-promise-native@^1.0.9:
     stealthy-require "^1.1.1"
     tough-cookie "^2.3.3"
 
+request-promise@^4.2.6:
+  version "4.2.6"
+  resolved "https://registry.yarnpkg.com/request-promise/-/request-promise-4.2.6.tgz#7e7e5b9578630e6f598e3813c0f8eb342a27f0a2"
+  integrity sha512-HCHI3DJJUakkOr8fNoCc73E5nU5bqITjOYFMDrKHYOXWXrgD/SBaC7LjwuPymUprRyuF06UK7hd/lMHkmUXglQ==
+  dependencies:
+    bluebird "^3.5.0"
+    request-promise-core "1.1.4"
+    stealthy-require "^1.1.1"
+    tough-cookie "^2.3.3"
+
 request@^2.88.2:
   version "2.88.2"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.2.tgz#d73c918731cb5a87da047e207234146f664d12b3"
@@ -11312,6 +11322,11 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
+
+typescript@^4.2.4:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.4.tgz#8610b59747de028fda898a8aef0e103f156d0961"
+  integrity sha512-V+evlYHZnQkaz8TRBuxTA92yZBPotr5H+WhQ7bD3hZUndx5tGOa1fuCgeSjxAzM1RiN5IzvadIXTVefuuwZCRg==
 
 ua-parser-js@^0.7.18:
   version "0.7.24"

@@ -1,0 +1,502 @@
+/*
+ * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+import { useParty } from '@daml/react';
+import { Drawer, IconButton, List } from "@material-ui/core";
+import { ArrowBack, AttachMoney, Build, CardMembership, CompareArrows, DirectionsRun, Gavel, List as ListIcon, ListAlt, Update, Warning } from "@material-ui/icons";
+import classNames from "classnames";
+import React, { useState } from "react";
+import { RouteComponentProps, withRouter } from "react-router-dom";
+import { toggleSidebar, useLayoutDispatch, useLayoutState } from "../../context/LayoutContext";
+import SidebarLink from "./components/SidebarLink/SidebarLink";
+import useStyles from "./styles";
+
+const allParties = "All"
+
+type PartyNames = "AuctionAgent" | "Bank1" | "Bank2" | "Bank3" | "CentralBank" | "Csd" | "Issuer" | "Regulator" | "Operator" | "All"
+type Views = "auctionAgentInvitationView" | "auctionAgentRoleView" | "auctionRequestView" | "balanceView" | "bankInvitationView" | "bankRoleView" | "bidderParticipationView" | "bidView" | "centralBankInvitationView" | "centralBankRoleView" | "csdInvitationView" | "csdRedemptionView" | "csdRoleView" | "issuanceReqsView" | "issuanceReqsCsdView" | "invalidBidsView" | "issuerInvitationView" | "issuerRoleView" | "ongoingAuctionsForBiddersView" | "ongoingAuctionsView" | "operatorRoleView" | "pendingSettlementsViewForBanks" | "pendingSettlementsViewForIssuer"
+
+const Sidebar = ({ location } : RouteComponentProps) => {
+
+  var sigObsMap : Map<Views, PartyNames[]> = new Map([
+    ['auctionAgentInvitationView', ["Operator"]],
+    ['auctionAgentRoleView', ["AuctionAgent", "Operator", "Regulator"]],
+    ['auctionRequestView', ["AuctionAgent"]],
+    ['balanceView', ["AuctionAgent", "Bank1", "Bank2", "Bank3", "CentralBank", "Csd", "Issuer", "Regulator"]],
+    ['bankInvitationView', ["Operator"]],
+    ['bankRoleView', ["Bank1", "Bank2", "Bank3", "Operator", "Regulator"]],
+    ['bidderParticipationView', ["AuctionAgent"]],
+    ['bidView', ["AuctionAgent", "Bank1", "Bank2", "Bank3"]],
+    ['centralBankInvitationView', ["Operator"]],
+    ['centralBankRoleView', ["CentralBank", "Operator", "Regulator"]],
+    ['csdInvitationView', ["Operator"]],
+    ['csdRedemptionView', ["Csd"]],
+    ['csdRoleView', ["Csd", "Operator", "Regulator"]],
+    ['issuanceReqsView', ["Issuer"]],
+    ['issuanceReqsCsdView', ["Csd"]],
+    ['invalidBidsView', ["AuctionAgent", "Bank1", "Bank2", "Bank3"]],
+    ['issuerInvitationView', ["Operator"]],
+    ['issuerRoleView', ["Issuer", "Operator", "Regulator"]],
+    ['ongoingAuctionsForBiddersView', ["Bank1", "Bank2", "Bank3"]],
+    ['ongoingAuctionsView', ["AuctionAgent", "Issuer"]],
+    ['operatorRoleView', ["Regulator"]],
+    ['pendingSettlementsViewForBanks', ["Bank1", "Bank2", "Bank3"]],
+    ['pendingSettlementsViewForIssuer', ["Issuer"]],])
+
+    var panelNames : Map<Views, string> = new Map([
+    ['auctionAgentInvitationView', "Auction Agent Invitations"],
+    ['centralBankInvitationView', "Central Bank Invitations"],
+    ['csdInvitationView', "CSD Invitations"],
+    ['bankInvitationView', "Bank Invitations"],
+    ['issuerInvitationView', "Issuer Invitations"],
+    ['auctionAgentRoleView', "Auction Agent Actions"],
+    ['operatorRoleView', "Operator Actions"],
+    ['centralBankRoleView', "Central Bank Actions"],
+    ['csdRoleView', "CSD Actions"],
+    ['csdRedemptionView', "Redemption Requests"],
+    ['bankRoleView', "Bank Actions"],
+    ['invalidBidsView', "Invalid Bids"],
+    ['bidderParticipationView', "Participating Bidders"],
+    ['ongoingAuctionsForBiddersView', "Ongoing Auctions"],
+    ['issuerRoleView',"Issuer Actions"],
+    ['ongoingAuctionsView',"Ongoing Auctions"],
+    ['bidView',"Bids"],
+    ['issuanceReqsView',"Issuance and ISIN Request"],
+    ['issuanceReqsCsdView',"Issuance and ISIN Request"],
+    ['pendingSettlementsViewForBanks',"Pending Settlements"],
+    ['pendingSettlementsViewForIssuer',"Pending Settlements"],
+    ['auctionRequestView',"Auction Request"],
+    ['balanceView','Balance view']
+  ]);
+
+  var classes = useStyles();
+  const party = useParty();
+
+  // global
+  var { isSidebarOpened } = useLayoutState();
+  var layoutDispatch = useLayoutDispatch();
+
+  // local
+  var [isPermanent] = useState(true);
+
+  function AuctionAgentInvitation() {
+    var panelMap = sigObsMap.get('auctionAgentInvitationView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="AuctionAgentRole"
+          label={panelNames.get('auctionAgentInvitationView') || "unassigned"}
+          path="/app/auctionAgentInvitation"
+          icon={(<CardMembership className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />
+      );
+    }
+    return null;
+  }
+  function AuctionAgentRole() {
+    var panelMap = sigObsMap.get('auctionAgentRoleView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="AuctionAgentRole"
+          label={panelNames.get('auctionAgentRoleView') || "unassigned"}
+          path="/app/auctionAgentRole"
+          icon={(<Build className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />
+      );
+    }
+    return null;
+  }
+  function AuctionRequest() {
+    var panelMap = sigObsMap.get('auctionRequestView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="AuctionRequest"
+          label={panelNames.get('auctionRequestView') || "unassigned"}
+          path="/app/auctionRequest"
+          icon={(<ListAlt className={classes.lightBlue}/>)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+  }
+  function Balance() {
+    var panelMap = sigObsMap.get('balanceView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="Balance"
+          label={panelNames.get('balanceView') || "unassigned"}
+          path="/app/balance"
+          icon={(<AttachMoney className={classes.lightGreen} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+  }
+  function BankInvitation() {
+    var panelMap = sigObsMap.get('bankInvitationView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="BankInvitation"
+          label={panelNames.get('bankInvitationView') || "unassigned"}
+          path="/app/bankInvitation"
+          icon={(<CardMembership className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+  }
+  function BankRole() {
+    var panelMap = sigObsMap.get('bankRoleView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="BankRole"
+          label={panelNames.get('bankRoleView') || "unassigned"}
+          path="/app/bankRole"
+          icon={(<Build className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+  }
+  function BidderParticipation() {
+    var panelMap = sigObsMap.get('bidderParticipationView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="BidderParticipation"
+          label={panelNames.get('bidderParticipationView') || "unassigned"}
+          path="/app/bidderParticipation"
+          icon={(<DirectionsRun className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function Bid() {
+    var panelMap = sigObsMap.get('bidView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="Bid"
+          label={panelNames.get('bidView') || "unassigned"}
+          path="/app/bid"
+          icon={(<CompareArrows className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function CentralBankInvitation() {
+    var panelMap = sigObsMap.get('centralBankInvitationView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="CentralBankInvitation"
+          label={panelNames.get('centralBankInvitationView') || "unassigned"}
+          path="/app/centralBankInvitation"
+          icon={(<CardMembership className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function CentralBankRole() {
+    var panelMap = sigObsMap.get('centralBankRoleView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="CentralBankRole"
+          label={panelNames.get('centralBankRoleView') || "unassigned"}
+          path="/app/centralBankRole"
+          icon={(<Build className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function CsdInvitation() {
+    var panelMap = sigObsMap.get('csdInvitationView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="CsdInvitation"
+          label={panelNames.get('csdInvitationView') || "unassigned"}
+          path="/app/csdInvitation"
+          icon={(<CardMembership className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function CsdRedemption() {
+    var panelMap = sigObsMap.get('csdRedemptionView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="CsdRedemption"
+          label={panelNames.get('csdRedemptionView') || "unassigned"}
+          path="/app/csdRedemption"
+          icon={(<ListIcon className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function CsdRole() {
+    var panelMap = sigObsMap.get('csdRoleView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="CsdRole"
+          label={panelNames.get('csdRoleView') || "unassigned"}
+          path="/app/csdRole"
+          icon={(<Build className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function IssuanceReqs() {
+    var panelMap = sigObsMap.get('issuanceReqsView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="IssuanceReqs"
+          label={panelNames.get('issuanceReqsView') || "unassigned"}
+          path="/app/issuanceReqs"
+          icon={(<ListIcon className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function IssuanceReqsCsd() {
+    var panelMap = sigObsMap.get('issuanceReqsCsdView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="IssuanceReqsCsd"
+          label={panelNames.get('issuanceReqsCsdView') || "unassigned"}
+          path="/app/issuanceReqsCsd"
+          icon={(<ListIcon className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function InvalidBids() {
+    var panelMap = sigObsMap.get('invalidBidsView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="InvalidBids"
+          label={panelNames.get('invalidBidsView') || "unassigned"}
+          path="/app/invalidBids"
+          icon={(<Warning className={classes.warning} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function IssuerInvitation() {
+    var panelMap = sigObsMap.get('issuerInvitationView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="IssuerInvitation"
+          label={panelNames.get('issuerInvitationView') || "unassigned"}
+          path="/app/issuerInvitation"
+          icon={(<CardMembership className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function IssuerRole() {
+    var panelMap = sigObsMap.get('issuerRoleView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="IssuerRole"
+          label={panelNames.get('issuerRoleView') || "unassigned"}
+          path="/app/issuerRole"
+          icon={(<Build className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function OngoingAuctionsForBidders() {
+    var panelMap = sigObsMap.get('ongoingAuctionsForBiddersView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="OngoingAuctionsForBidders"
+          label={panelNames.get('ongoingAuctionsForBiddersView') || "unassigned"}
+          path="/app/ongoingAuctionsForBidders"
+          icon={(<Gavel className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function OngoingAuctions() {
+    var panelMap = sigObsMap.get('ongoingAuctionsView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="OngoingAuctions"
+          label={panelNames.get('ongoingAuctionsView') || "unassigned"}
+          path="/app/ongoingAuctions"
+          icon={(<Gavel className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function OperatorRole() {
+    var panelMap = sigObsMap.get('operatorRoleView');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="OperatorRole"
+          label={panelNames.get('operatorRoleView') || "unassigned"}
+          path="/app/operatorRole"
+          icon={(<Build className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function PendingSettlementsForBanks() {
+    var panelMap = sigObsMap.get('pendingSettlementsViewForBanks');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="PendingSettlementsForBanks"
+          label={panelNames.get('pendingSettlementsViewForBanks') || "unassigned"}
+          path="/app/pendingSettlementsForBanks"
+          icon={(<Update className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+  function PendingSettlementsForIssuer() {
+    var panelMap = sigObsMap.get('pendingSettlementsViewForIssuer');
+    if (panelMap!.includes(party as PartyNames) || panelMap!.includes(allParties)) {
+      return (
+        <SidebarLink
+          key="PendingSettlementsForIssuer"
+          label={panelNames.get('pendingSettlementsViewForIssuer') || "unassigned"}
+          path="/app/pendingSettlementsForIssuer"
+          icon={(<Update className={classes.lightBlue} />)}
+          location={location}
+          isSidebarOpened={isSidebarOpened}
+        />);
+    }
+    return null;
+
+  }
+
+  return (
+    <Drawer
+      variant={isPermanent ? "permanent" : "temporary"}
+      className={classNames(classes.drawer, {
+        [classes.drawerOpen]: isSidebarOpened,
+        [classes.drawerClose]: !isSidebarOpened,
+      })}
+      classes={{
+        paper: classNames({
+          [classes.drawerOpen]: isSidebarOpened,
+          [classes.drawerClose]: !isSidebarOpened,
+        }),
+      }}
+      open={isSidebarOpened}
+    >
+      <div className={classes.toolbar} />
+      <div className={classes.mobileBackButton}>
+        <IconButton onClick={() => toggleSidebar(layoutDispatch)}>
+          <ArrowBack
+            classes={{
+              root: classNames(classes.headerIcon, classes.headerIconCollapse),
+            }}
+          />
+        </IconButton>
+      </div>
+      <List>
+        <AuctionAgentInvitation/>
+        <AuctionAgentRole />
+        <AuctionRequest />
+        <Balance />
+        <BankInvitation />
+        <BankRole />
+        <BidderParticipation />
+        <Bid />
+        <CentralBankInvitation />
+        <CentralBankRole />
+        <CsdInvitation />
+        <CsdRedemption />
+        <CsdRole />
+        <IssuanceReqs />
+        <IssuanceReqsCsd />
+        <InvalidBids />
+        <IssuerInvitation />
+        <IssuerRole />
+        <OngoingAuctionsForBidders />
+        <OngoingAuctions />
+        <OperatorRole />
+        <PendingSettlementsForBanks />
+        <PendingSettlementsForIssuer />
+      </List>
+    </Drawer>
+  );
+}
+
+export default withRouter(Sidebar);
