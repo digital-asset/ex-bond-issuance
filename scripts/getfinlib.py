@@ -8,7 +8,7 @@
 # Arguments: daml_sdk_version
 
 from io import BytesIO
-from os import environ, getcwd, path
+from os import environ, getcwd, path, chdir, chmod, path, mkdir
 from platform import system
 from shutil import rmtree
 from subprocess import call
@@ -16,6 +16,7 @@ from sys import argv
 from tempfile import mkdtemp
 from zipfile import ZipFile
 import logging
+from shutil import copyfile
 
 # based on 'Cheat Sheet: Writing Python 2-3 compatible code'
 # from https://python-future.org/compatible_idioms.html
@@ -24,8 +25,7 @@ try:
 except ImportError:
     from urllib2 import urlopen
 
-# We use c9284704da890fa08ce96624f51ff997512711c4, the last one before FinLib 2.0
-finlib_version = 'c9284704da890fa08ce96624f51ff997512711c4'
+finlib_version = '5d7fc48efcaebc400dd2b98aaee6d4c403264a7e'
 url = "https://github.com/digital-asset/lib-finance/archive/{version}.zip".format(version=finlib_version)
 
 
@@ -49,15 +49,26 @@ def daml_command():
 
 def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
     extracted_directory = "lib-finance-{version}".format(version=finlib_version)
+    target_dir='{pwd}/target/'.format(pwd=getcwd())
     project_root = "{tmp_directory}/{extracted_directory}".format(
         tmp_directory=tmp_directory,
         extracted_directory=extracted_directory)
-    build_command = [daml_command(), "build", "--project-root", project_root, "-o", full_path_to_dar]
+    build_command = ["./build.sh", "build-dars"]
     logging.info(
         'Executing {build_command} with DAML_SDK_VERSION={daml_sdk_version}'.format(
             build_command=" ".join(build_command), daml_sdk_version=daml_sdk_version))
+    logging.info('Setting environment to {d}'.format(d=daml_sdk_version))
     environ['DAML_SDK_VERSION'] = daml_sdk_version
-    call(build_command)
+    logging.info('Calling to {build_command}')
+    # call(build_command)
+    chdir(project_root)
+
+    chmod( './build.sh', 0o775)
+    call([ './build.sh', 'build-dars'])
+    if not path.exists(target_dir):
+        mkdir(target_dir)
+    logging.info('Copying to {dest}'.format(dest=full_path_to_dar))
+    copyfile('./model/.daml/dist/finlib-2.0.0.dar', full_path_to_dar)
 
 
 logging.basicConfig(level=logging.INFO)
@@ -79,5 +90,5 @@ get_source(url, tmp_directory)
 
 build_dar(daml_sdk_version, full_path_to_dar, tmp_directory)
 
-## logging.debug('Removing {tmp_directory}'.format(tmp_directory=tmp_directory))
-## rmtree(tmp_directory)
+logging.info('Removing {tmp_directory}'.format(tmp_directory=tmp_directory))
+rmtree(tmp_directory)
