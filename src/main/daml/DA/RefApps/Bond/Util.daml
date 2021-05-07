@@ -9,7 +9,9 @@ import DA.Finance.Asset
 import DA.Finance.Asset.Settlement
 
 import DA.List
-import DA.Finance.Types (Account)
+import DA.Finance.Types
+import DA.Set (fromList)
+import DA.RefApps.Bond.MarketSetup.Parties(Parties(..))
 
 data BondBundleData = BondBundleData {
   assetDepositCid: ContractId AssetDeposit
@@ -19,6 +21,9 @@ data BondBundleData = BondBundleData {
 , cashAccount: Account
 , assetLabel: Text
 } deriving (Eq, Show)
+
+buildAccounts : Text -> [Text]
+buildAccounts accountType = ["Bank" <> show i <> accountType <> "Account" | i <- [1..3]]
 
 -- Utility function to combine a set of AssetFacts so that it results in a single
 -- AssetFact which has the required quantity and the rest.
@@ -41,3 +46,40 @@ mergeForQuantity firstAssetCid firstAsset otherAssets requiredQuantity
       mergedAssetCid <- exercise firstAssetCid $ AssetDeposit_Merge [head otherAssets]
       mergedAsset <- fetch mergedAssetCid
       mergeForQuantity mergedAssetCid mergedAsset (tail otherAssets) requiredQuantity
+
+data AccountCreation = AccountCreation with
+  issuerCashAccount : Account
+  bank1CashAccount : Account
+  bank2CashAccount : Account
+  bank3CashAccount : Account
+  issuerBondAccount: Account
+  bank1BondAccount : Account
+  bank2BondAccount : Account
+  bank3BondAccount : Account
+
+toBankCashAccounts AccountCreation{..} =
+  [bank1CashAccount, bank2CashAccount, bank3CashAccount]
+
+toBankBondAccounts AccountCreation{..} =
+  [bank1BondAccount, bank2BondAccount, bank3BondAccount]
+
+getAccounts : Parties -> AccountCreation
+getAccounts Parties{..} =
+  let banks = [bank1, bank2, bank3]
+      issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
+      issuerBondAccount = createAccount issuer csd "IssuerBondAccount"
+      [bank1CashAccount, bank2CashAccount, bank3CashAccount]=
+        (\(label, owner)-> createAccount owner centralBank label) <$> ((buildAccounts "Cash") `zip` banks)
+      [bank1BondAccount, bank2BondAccount,bank3BondAccount] =
+        (\(label, owner)-> createAccount owner csd label) <$> ((buildAccounts "Bond") `zip` banks) in
+  AccountCreation with ..
+
+createAccount: Party -> Party -> Text -> Account
+createAccount owner provider label =
+  Account with
+    id = Id with
+      signatories = fromList [provider]
+      label = label
+      version = 0
+    provider = provider
+    owner = owner
