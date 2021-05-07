@@ -128,15 +128,6 @@ setupMarketWithParties parties@BondIssuanceParties{..} = do
       exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount [bank1, bank2, bank3]
 
   submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank1CashAccount
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank2CashAccount
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateFungibleRule bank3CashAccount
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateFungibleRule issuerCashAccount
-
-  submit centralBank $
     exerciseCmd centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
   submit centralBank $
     exerciseCmd centralBankRoleCid $ CentralBankRole_CreateLockRule bank2CashAccount
