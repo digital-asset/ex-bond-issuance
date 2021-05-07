@@ -152,7 +152,6 @@ template CommissionBotTrigger
     controller issuer can
       CommissionBotTrigger_InviteAgent: (ContractId AuctionInvitation,  [ContractId AssetDeposit])
         with
-          bondAssetFungibleCid: ContractId AssetDeposit
           bondAssetSettlementCid: ContractId AssetSettlementRule
           bondAccount : Account
           cashAssetSettlementCid: ContractId AssetSettlementRule
@@ -164,7 +163,7 @@ template CommissionBotTrigger
               rest = bondAssetDeposit.asset.quantity - decimalSize
           -- Splitting the asset if needed
           splitFactPair <- if (bondAssetDeposit.asset.quantity > intToDecimal size) then do
-                 first :: remaining <- exercise bondAssetFungibleCid $ AssetDeposit_Split [decimalSize, rest]
+                 first :: remaining <- exercise bondAssetDepositCid $ AssetDeposit_Split [decimalSize, rest]
                  return (first, remaining)
                 else return (bondAssetDepositCid, [])
           let splitFactCid = fst splitFactPair
@@ -183,10 +182,9 @@ template CommissionBotTrigger
                 fixedRateBondFact = fixedRateBondFact
                 cashAssetId = fixedRateBondFact.cashAssetId
                 issuerCashAccountProvider = cashAccountProvider
-                bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetFungibleCid bondAssetSettlementCid bondAccount cashAssetSettlementCid cashAccount observedBondAssetDeposit.asset.id.label
+                bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetSettlementCid bondAccount cashAssetSettlementCid cashAccount observedBondAssetDeposit.asset.id.label
                 invitedBidders = []
                 auctionName = ""
-
 
           invitation <- create AuctionInvitation with auction
           return (invitation, snd splitFactPair)

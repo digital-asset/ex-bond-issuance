@@ -212,18 +212,17 @@ data RedemptionInstruction = RedemptionInstruction
 
 processInstructions: [RedemptionInstruction] ->
                      [ContractId AssetDeposit] ->
-                     ContractId AssetDeposit ->
                      ContractId AssetSettlementRule ->
                      [ContractId AssetDeposit] ->
                      Update [ContractId AssetDeposit]
-processInstructions instructions cashAssetDepositCids cashAssetFungibleCid cashAssetSettlementCid payments
+processInstructions instructions cashAssetDepositCids cashAssetSettlementCid payments
   | null instructions =
       pure payments
   | otherwise = do
       let instruction :: otherInstructions = instructions
       let firstCid = head cashAssetDepositCids
       firstCashDeposit <- fetch firstCid
-      mergeResult <- mergeForQuantity firstCid firstCashDeposit (tail cashAssetDepositCids) instruction.payment cashAssetFungibleCid
+      mergeResult <- mergeForQuantity firstCid firstCashDeposit (tail cashAssetDepositCids) instruction.payment
       assertMsg "Cash assets should suffice when paying out on redemption" $ isSome mergeResult
       let (merged, remainingAssets)  = fromSome $ mergeResult
       payoutInfo <- fetch instruction.redemptionPayoutInfoCid
@@ -232,7 +231,7 @@ processInstructions instructions cashAssetDepositCids cashAssetFungibleCid cashA
         issuerCashAssetSettlementCid = cashAssetSettlementCid
         bondArchivalRequestCid = instruction.bondArchivalRequestCid
         fixedRateBondFactCid = instruction.fixedRateBondFactCid
-      processInstructions otherInstructions remainingAssets cashAssetFungibleCid cashAssetSettlementCid (payment :: payments)
+      processInstructions otherInstructions remainingAssets cashAssetSettlementCid (payment :: payments)
 
 -- Triggers the redemption finalize bot which accepts the redemption payment
 -- on behalf of the investor.
@@ -253,10 +252,9 @@ template RedemptionFinalizeBotTrigger
         with
           cashAssetDepositCids: [ContractId AssetDeposit] -- the cash assets this choice can merge and split the required payment from
           cashAssetSettlementCid: ContractId AssetSettlementRule
-          cashAssetFungibleCid: ContractId AssetDeposit
         do
           assertMsg "Cash asset parameter should not be empty" $ (length cashAssetDepositCids) > 0
-          processInstructions instructions cashAssetDepositCids cashAssetFungibleCid cashAssetSettlementCid []
+          processInstructions instructions cashAssetDepositCids cashAssetSettlementCid []
 
 -- Helper contract to archive the bond assets (which needs signature of both
 -- the investor and the provider (CSD))

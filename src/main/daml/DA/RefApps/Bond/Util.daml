@@ -13,7 +13,6 @@ import DA.Finance.Types (Account)
 
 data BondBundleData = BondBundleData {
   assetDepositCid: ContractId AssetDeposit
-, assetFungibleCid: ContractId AssetDeposit
 , bondSettlementCid: ContractId AssetSettlementRule
 , bondAccount: Account
 , cashSettlementCid: ContractId AssetSettlementRule
@@ -27,19 +26,18 @@ mergeForQuantity: ContractId AssetDeposit ->
                   AssetDeposit ->
                   [ContractId AssetDeposit] ->
                   Decimal ->
-                  ContractId AssetDeposit ->
                   Update (Optional (ContractId AssetDeposit, [ContractId AssetDeposit]))
-mergeForQuantity firstAssetCid firstAsset otherAssets requiredQuantity assetFungible
+mergeForQuantity firstAssetCid firstAsset otherAssets requiredQuantity
   | firstAsset.asset.quantity == requiredQuantity = do return (Some (firstAssetCid, otherAssets))
   | firstAsset.asset.quantity > requiredQuantity = do
     let rest = firstAsset.asset.quantity - requiredQuantity
-    withRequiredQuantity :: remainder <- exercise assetFungible $ AssetDeposit_Split [requiredQuantity, rest]
+    withRequiredQuantity :: remainder <- exercise firstAssetCid $ AssetDeposit_Split [requiredQuantity, rest]
     return (Some (withRequiredQuantity, remainder <> otherAssets))
   | otherwise =
     if null otherAssets then
       -- There's no subsequent asset to merge into the firstAsset, it means that the sum is lower than the required quantity.
       pure None
     else do
-      mergedAssetCid <- exercise assetFungible $ AssetDeposit_Merge [firstAssetCid, head otherAssets]
+      mergedAssetCid <- exercise firstAssetCid $ AssetDeposit_Merge [head otherAssets]
       mergedAsset <- fetch mergedAssetCid
-      mergeForQuantity mergedAssetCid mergedAsset (tail otherAssets) requiredQuantity assetFungible
+      mergeForQuantity mergedAssetCid mergedAsset (tail otherAssets) requiredQuantity
