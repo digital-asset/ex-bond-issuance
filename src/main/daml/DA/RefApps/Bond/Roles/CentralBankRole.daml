@@ -3,16 +3,15 @@
 -- SPDX-License-Identifier: Apache-2.0
 --
 
-{-# OPTIONS -Wno-deprecations #-}
+-- {-# OPTIONS -Wno-deprecations #-}
 
 module DA.RefApps.Bond.Roles.CentralBankRole where
 
-import DA.Next.Set
+import DA.Set
 
 import DA.Finance.Types
-import DA.Finance.Fact.Asset
-import DA.Finance.Rule.Asset
-
+import DA.Finance.Asset
+import DA.Finance.Asset.Settlement
 import DA.RefApps.Bond.Lock
 
 -- Role contract invitation for Central Bank (cash issuer) role.
@@ -66,20 +65,31 @@ template CentralBankRole
               quantity = quantity
             observers = empty, ..
 
-      nonconsuming CentralBankRole_CreateSettlementRule: ContractId AssetSettlement
+      nonconsuming CentralBankRole_CreateSettlementRule: ContractId AssetSettlementRule
         with
           account: Account
           observers: [Party]
         do
-          create AssetSettlement with
+          create AssetSettlementRule with
             account = account
             observers = fromList observers
+            ctrls = fromList observers
+      nonconsuming CentralBankRole_CreateSettlementRuleId: Id
+        with
+          account: Account
+          observers: [Party]
+        do
+          create AssetSettlementRule with
+            account = account
+            observers = fromList observers
+            ctrls = fromList observers
+          return account.id
 
-      nonconsuming CentralBankRole_CreateFungibleRule: ContractId AssetFungible
+      nonconsuming CentralBankRole_CreateFungibleRule: ContractId AssetDeposit
         with
           account: Account
         do
-          create AssetFungible with
+          create AssetDeposit with
             account = account
             observers = empty
 
