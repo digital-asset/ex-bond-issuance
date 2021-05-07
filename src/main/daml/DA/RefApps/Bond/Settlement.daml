@@ -12,7 +12,6 @@ import DA.Finance.Trade.Dvp.Settlement
 import DA.Finance.Asset
 
 import DA.Finance.Types
-import DA.Finance.Utils
 
 
 import DA.RefApps.Bond.Redemption
@@ -23,7 +22,6 @@ import DA.Optional
 import DA.Action
 import DA.RefApps.Bond.Util
 import DA.Finance.Trade.SettlementInstruction
-import DA.Finance.Asset.Settlement
 
 
 
@@ -40,7 +38,7 @@ template AuctionSettleRequest
     issuerBondAssetDeposit: AssetDeposit
     cashAmountToPay: Decimal
     bondSettlementChainCid: ContractId SettlementInstruction
-    issuerCashSettlementCid: ContractId AssetSettlementRule
+    issuerCashSettlementCid: Account -- ContractId AssetSettlementRule
     cashAssetId: Id
     regulators: [Party]
   where
@@ -68,7 +66,7 @@ template InvestorSettlement
         with
           auctionLockedCashCids: [ContractId AuctionLockedCash]
           cashAssetFungible: ContractId AssetDeposit
-          investorCashSettlementCid: ContractId AssetSettlementRule
+          investorCashSettlementCid: Account -- ContractId AssetSettlementRule
         do
 
           -- unlock
@@ -116,12 +114,7 @@ template InvestorSettlement
               steps = [cashSettlementStep]
               observers = Set.fromList regulators
 
-            allocatedCashChain <- exercise cashChain $ SettlementInstruction_AllocateNext cashMergedForQuantityCid
-
-            let settleParam = DvpSettlement_Process_Result with
-                  dvpCid = dvpCid
-                  paymentDepositCids = [allocatedCashChain]
-                  deliveryDepositCids = [settleRequest.bondSettlementChainCid]
+            allocatedCashChain <- exercise cashChain SettlementInstruction_AllocateNext with ctrl = investor, depositCid = cashMergedForQuantityCid
 
             dvpSettlement <- create DvpSettlementRule with
               masterAgreement = bondChain.masterAgreement
@@ -129,7 +122,7 @@ template InvestorSettlement
 
             result <- exercise dvpSettlement DvpSettlement_Process with
               dvpCid=dvpCid
-              paymentInstructionCids=1
+              paymentInstructionCids=[]
               deliveryInstructionCids=[]
               ctrl=bondChain.masterAgreement.party1
 

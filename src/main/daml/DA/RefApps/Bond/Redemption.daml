@@ -42,7 +42,7 @@ template RedemptionPayoutInfo
     bondAccountProvider: Party
     investorCashAccount: Account
     settlementResult: DvpSettlement_Process_Result
-    investorCashAssetSettlementCid: Id
+    investorCashAssetSettlementCid: Account
     regulators: [Party]
   where
     signatory investor
@@ -68,7 +68,7 @@ template RedemptionPayoutInfo
           exercise bondArchivalRequestCid BondArchivalRequest_Archive
 
           -- transfer
-          exercise issuerCashAssetSettlementCid $ AssetSettlement_Transfer investorCashAssetSettlementCid cashAssetDepositCid 
+          exercise issuerCashAssetSettlementCid $ AssetSettlement_Transfer investorCashAssetSettlementCid.id cashAssetDepositCid
 
 -- The issuer can initiate a redemption at the bond account provider using this contract.
 -- The `RedemptionRequest_Accept` choice creates a trigger contract which is picked

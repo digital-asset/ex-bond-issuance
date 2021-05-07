@@ -16,7 +16,7 @@ import DA.RefApps.Bond.Lock
 import DA.List as List
 import DA.Set as Set
 import DA.RefApps.Bond.Util
-
+import DA.Finance.Trade.SettlementInstruction
 
 {-
   In the workflow described here, the auction agent should already be verified.
@@ -109,7 +109,7 @@ splitAsset bondBundleData remainedFactCid (awardedBid :: awardedBids) bidWithAss
   else do
     let neededQuantity = intToDecimal awardedBid.bidData.quantity
         rest = remainedFact.asset.quantity - neededQuantity
-    fragment :: newRemainder :: [] <- exercise (bondBundleData.assetFungibleCid) $ AssetFungible_Split remainedFactCid [neededQuantity, rest]
+    fragment :: newRemainder :: [] <- exercise (bondBundleData.assetFungibleCid) $ AssetDeposit_Split [neededQuantity, rest]
     let bidWithAsset = BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid fragment
     splitAsset bondBundleData newRemainder awardedBids (bidWithAsset :: bidWithAssets)
 splitAsset bondBundleData remainedFactCid [] bidWithAssets = do
@@ -254,12 +254,10 @@ template AuctionFinalizeBotTrigger
             auctionBid <- fetch bidWithAsset.auctionBidCid
             issuerBondAssetDeposit <- fetch bidWithAsset.bondAssetDepositCid
 
-            let bondSettlementStep = AssetSettlementStep with
-                    sender = issuer
-                    receiver = auctionBid.bidder
+            let bondSettlementStep = SettlementDetails with
                     depositCid = None
-                    creditSettlementCid = bondBundleData.bondSettlementCid
-                    debitSettlementCid = auctionBid.investorBondAssetSettlementCid
+                    receiverAccount = auctionBid.investorAccount
+                    senderAccount = bondBundleData.bondAccount
                 masterAgreement = MasterAgreement with
                   id = Id with
                     signatories = Set.fromList [auctionAgent]
@@ -279,7 +277,7 @@ template AuctionFinalizeBotTrigger
               steps = [bondSettlementStep]
               observers = Set.fromList regulators
 
-            allocatedBondChain <- exercise bondChain $ SettlementInstruction_AllocateNext bidWithAsset.bondAssetDepositCid
+            allocatedBondChain <- exercise bondChain SettlementInstruction_AllocateNext with ctrl = auctionAgent, depositCid = bidWithAsset.bondAssetDepositCid
             request <- create AuctionSettleRequest with
               investor = auctionBid.bidder
               issuer = issuer
@@ -290,7 +288,7 @@ template AuctionFinalizeBotTrigger
               issuerBondAssetDeposit = issuerBondAssetDeposit
               cashAmountToPay = auctionResult.price * intToDecimal bidWithAsset.bidData.quantity
               bondSettlementChainCid = allocatedBondChain
-              issuerCashSettlementCid = bondBundleData.cashSettlementCid
+              issuerCashSettlementCid = bondBundleData.cashAccount
               cashAssetId = cashAssetId
               regulators = regulators
             return (auctionBid.bidder, request)
@@ -402,7 +400,7 @@ template PlaceBidBotTrigger
           cashDepositCids: [ContractId AssetDeposit]
           cashAssetFungibleCid: ContractId AssetDeposit
           lockRuleCid: ContractId AssetLockRule
-          investorBondAssetSettlementCid: ContractId AssetSettlementRule
+          investorAccount : Account
         do
           assertMsg "The cashAssets should not be empty" $ length cashDepositCids > 0
           let firstCashAssetCid = head cashDepositCids
@@ -440,7 +438,7 @@ template AuctionBid
     bidData: BidData
     auctionName: Text
     bondAssetId: Id
-    investorBondAssetSettlementCid: ContractId AssetSettlementRule
+    investorAccount : Account
     regulators: [Party]
   where
     signatory auctionAgent, bidder

@@ -24,6 +24,8 @@ import DA.RefApps.Bond.Settlement
 import DA.Finance.Asset
 import DA.RefApps.Bond.Lock
 import DA.RefApps.Bond.Redemption
+import DA.Finance.Asset.Settlement
+import DA.Finance.Types (Account)
 
 data MarketSetupData =
   MarketSetupData
@@ -37,8 +39,10 @@ data MarketSetupData =
   , settIssCash: ContractId AssetSettlementRule
   , cashBank1: ContractId AssetDeposit
   , funBank1Cash: ContractId AssetDeposit
-  , settBank1: ContractId AssetSettlementRule
-  , settBank1Cash: ContractId AssetSettlementRule
+  -- , settBank1: ContractId AssetSettlementRule
+  , bank1BondAccount : Account
+  -- , settBank1Cash: ContractId AssetSettlementRule
+  , bank1CashAccount : Account
   , lockBank1: ContractId AssetLockRule
   }
 
@@ -224,7 +228,7 @@ template MarketSetup
                 CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
           return $ MarketSetupData issuer issuerRole csd auctionAgent bank1 funIss
                                    settIss settIssCash cashBank1 funBank1Cash
-                                   settBank1 settBank1Cash lockBank1
+                                   bank1BondAccount bank1CashAccount lockBank1
 
 testMarketSetupContract: Script ()
 testMarketSetupContract = script do
@@ -375,13 +379,13 @@ testMarketSetup = script do
   setTime (time (date 2019 Apr 1) 0 0 0)
   return $ MarketSetupData issuer issuerRole csd auctionAgent bank1 funIss
                            settIss settIssCash cashBank1 funBank1Cash
-                           settBank1 settBank1Cash lockBank1
+                           bank1BondAccount bank1CashAccount lockBank1
 
 testMarketSetupFull: Script [ContractId RedemptionPayoutInfo]
 testMarketSetupFull = script $ do
   MarketSetupData issuer issuerRole csd auctionAgent bank1
                   funIss settIss settIssCash cashBank1
-                  funBank1Cash settBank1 settBank1Cash lockBank1 <- testMarketSetup
+                  funBank1Cash bank1BondAccount bank1CashAccount lockBank1 <- testMarketSetup
   issuanceReq <- submit issuer do
     exerciseCmd issuerRole $ IssuerRole_Issuance with
                             issueSize = 100
@@ -409,6 +413,8 @@ testMarketSetupFull = script $ do
           bondAssetSettlementCid = settIss
           cashAssetSettlementCid = settIssCash
           fixedRateBondFactCid = bondFact
+          bondAccount = bank1BondAccount
+          cashAccount = bank1CashAccount
 
   auction <- submit auctionAgent do
     exerciseCmd auctionInv $ AuctionInvitation_Accept "auction1"
@@ -428,7 +434,7 @@ testMarketSetupFull = script $ do
           cashDepositCids = [cashBank1]
           cashAssetFungibleCid = funBank1Cash
           lockRuleCid = lockBank1
-          investorBondAssetSettlementCid = settBank1
+          investorAccount = bank1BondAccount
 
   setTime (time (date 2019 Jul 2) 0 0 0)
   afTrigger <- submit auctionAgent do
@@ -446,4 +452,4 @@ testMarketSetupFull = script $ do
     exerciseCmd isbTrigger $ InvestorSettlement_Finalize with
           auctionLockedCashCids = [lockedCash]
           cashAssetFungible = funBank1Cash
-          investorCashSettlementCid = settBank1Cash
+          investorCashSettlementCid = bank1CashAccount

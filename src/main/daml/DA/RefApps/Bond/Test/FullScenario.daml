@@ -33,6 +33,7 @@ import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Redemption
 import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Util
+import DA.Finance.Asset.Settlement (AssetSettlementRule)
 
 data TestRoles = TestRoles {
   issuerRoleCid: ContractId IssuerRole
@@ -324,7 +325,9 @@ setupIssuance parties@Parties{..} = script do
                       assetDepositCid = assetDepositCid
                       assetFungibleCid = issuerFungibleRule
                       bondSettlementCid = issuerBondSettlement
+                      bondAccount = issuerBondAccount
                       cashSettlementCid = issuerCashSettlement
+                      cashAccount = issuerCashAccount
                       assetLabel = bondIsin, ..
       cashAssetId = Id (DA.Set.singleton centralBank) "USD" 0
   pure TestIssuance {
@@ -384,6 +387,8 @@ startAuction Parties{..} issuance = script do
       bondAssetSettlementCid = issuance.bondBundleData.bondSettlementCid
       cashAssetSettlementCid = issuance.bondBundleData.cashSettlementCid
       fixedRateBondFactCid = issuance.fixedRateBondFactCid
+      bondAccount = issuance.bondBundleData.bondAccount
+      cashAccount = issuance.bondBundleData.cashAccount
 
   auctionCid <- submit auctionAgent do
     exerciseCmd auctionInvitationCid AuctionInvitation_Accept with
@@ -409,6 +414,8 @@ startAuction Parties{..} issuance = script do
       bondAssetSettlementCid = issuance.bondBundleData.bondSettlementCid
       cashAssetSettlementCid = issuance.bondBundleData.cashSettlementCid
       fixedRateBondFactCid = issuance.fixedRateBondFactCid
+      bondAccount = issuance.bondBundleData.bondAccount
+      cashAccount = issuance.bondBundleData.cashAccount
 
   otherAuctionCid <- submit auctionAgent do
     exerciseCmd otherAuctionInvitation AuctionInvitation_Accept with
@@ -426,12 +433,14 @@ startAuction Parties{..} issuance = script do
     exerciseCmd bidderParticipationCid1 BidderParticipation_PlaceBid with
       price = 42.0
       quantity = 200000
+  Some bank1Settlement <- queryContractId bank1 issuance.rules.bank1BondSettlementCid
   lockCashResult <- submit bank1 do
     exerciseCmd bidLockReq PlaceBidBotTrigger_LockCash with
       cashDepositCids = [issuance.cashAssets.bank1CashDepositCid]
       cashAssetFungibleCid = issuance.rules.bank1CashFungibleCid
       lockRuleCid = issuance.rules.bank1LockRuleCid
-      investorBondAssetSettlementCid = issuance.rules.bank1BondSettlementCid
+      investorAccount = bank1Settlement.account
+
   let (bank1Lock1, bidCid1_1, bank1RemainingCash) = fromSome $ eitherToOptional $ lockCashResult
 
 
@@ -441,12 +450,13 @@ startAuction Parties{..} issuance = script do
     exerciseCmd bidderParticipationCid2 BidderParticipation_PlaceBid with
       price = 25.0
       quantity = 800000
+  bank2Settlement <- queryContractId bank2 issuance.rules.bank2BondSettlementCid
   lockCashResult1 <- submit bank2 do
     exerciseCmd bidLockReq1 PlaceBidBotTrigger_LockCash with
       cashDepositCids = [issuance.cashAssets.bank2CashDepositCid]
       cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
       lockRuleCid = issuance.rules.bank2LockRuleCid
-      investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
+      investorAccount = bank1Settlement.account
   let (bank2Lock1, bidCid2_1, rest) = fromSome $ eitherToOptional $ lockCashResult1
   bidLockReq2 <- submit bank2 do
     exerciseCmd bidderParticipationCid2 BidderParticipation_PlaceBid with
@@ -457,7 +467,7 @@ startAuction Parties{..} issuance = script do
       cashDepositCids = rest
       cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
       lockRuleCid = issuance.rules.bank2LockRuleCid
-      investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
+      investorAccount = bank1Settlement.account
   let (bank2Lock2, bidCid2_2, rest') = fromSome $ eitherToOptional $ lockCashResult2
   bidLockReq3 <- submit bank2 do
     exerciseCmd bidderParticipationCid2 BidderParticipation_PlaceBid with
@@ -468,7 +478,7 @@ startAuction Parties{..} issuance = script do
       cashDepositCids = rest'
       cashAssetFungibleCid = issuance.rules.bank2CashFungibleCid
       lockRuleCid = issuance.rules.bank2LockRuleCid
-      investorBondAssetSettlementCid = issuance.rules.bank2BondSettlementCid
+      investorAccount = bank1Settlement.account
   let (bank2Lock3, bidCid2_3, _) = fromSome $ eitherToOptional $ lockCashResult3
 
   passTime $ seconds 1
@@ -477,12 +487,13 @@ startAuction Parties{..} issuance = script do
     exerciseCmd bidderParticipationCid3 BidderParticipation_PlaceBid with
       price = 43.0
       quantity = 400000
+  Some bank3Settlement <- queryContractId bank3 issuance.rules.bank3BondSettlementCid
   lockCashResult <- submit bank3 do
     exerciseCmd bidLockReq PlaceBidBotTrigger_LockCash with
       cashDepositCids = [issuance.cashAssets.bank3CashDepositCid]
       cashAssetFungibleCid = issuance.rules.bank3CashFungibleCid
       lockRuleCid = issuance.rules.bank3LockRuleCid
-      investorBondAssetSettlementCid = issuance.rules.bank3BondSettlementCid
+      investorAccount = bank3Settlement.account
   let (bank3Lock, bidCid3_1, _) = fromSome $ eitherToOptional $ lockCashResult
   passTime $ seconds 1
 
@@ -500,7 +511,7 @@ startAuction Parties{..} issuance = script do
       cashDepositCids = bank1RemainingCash
       cashAssetFungibleCid = issuance.rules.bank1CashFungibleCid
       lockRuleCid = issuance.rules.bank1LockRuleCid
-      investorBondAssetSettlementCid = issuance.rules.bank1BondSettlementCid
+      investorAccount = bank1Settlement.account
   let (bank1Lock2, otherBidCid1_1, _) = fromSome $ eitherToOptional $ lockCashResult
 
   passTime $ seconds 1
@@ -589,11 +600,12 @@ doSettlement Parties{..} issuance settleRequests auctionProgress = script do
 
   settlementStarted <- submit bank1 do
     exerciseCmd settleRequests.bank1SettleReqCid AuctionParticipantSettleRequest_Settle
+  Some bank1Settlement <- queryContractId bank1 issuance.rules.bank1CashSettlementCid
   [rdmpPI1] <- submit bank1 do
     exerciseCmd settlementStarted InvestorSettlement_Finalize with
       cashAssetFungible = issuance.rules.bank1CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank1Locks
-      investorCashSettlementCid = issuance.rules.bank1CashSettlementCid
+      investorCashSettlementCid = bank1Settlement.account
   Some rdmpPayoutInfo <- queryContractId bank1 rdmpPI1
   let assetCid1 = head $ head rdmpPayoutInfo.settlementResult.deliveryDepositCids
       paymentCid1 = head $ head rdmpPayoutInfo.settlementResult.paymentDepositCids
@@ -604,11 +616,12 @@ doSettlement Parties{..} issuance settleRequests auctionProgress = script do
 
   settlementStarted <- submit bank2 do
     exerciseCmd settleRequests.bank2SettleReqCid AuctionParticipantSettleRequest_Settle
+  Some bank2Settlement <- queryContractId bank2 issuance.rules.bank2CashSettlementCid
   [rdmpPI2] <- submit bank2 do
     exerciseCmd  settlementStarted InvestorSettlement_Finalize with
       cashAssetFungible = issuance.rules.bank2CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank2Locks
-      investorCashSettlementCid = issuance.rules.bank2CashSettlementCid
+      investorCashSettlementCid = bank2Settlement.account
   Some rdmpPayoutInfo <- queryContractId bank2 rdmpPI2
   let assetCid2 = head $ head rdmpPayoutInfo.settlementResult.deliveryDepositCids
       paymentCid2 = head $ head rdmpPayoutInfo.settlementResult.paymentDepositCids
@@ -619,11 +632,12 @@ doSettlement Parties{..} issuance settleRequests auctionProgress = script do
 
   settlementStarted <- submit bank3 do
     exerciseCmd settleRequests.bank3SettleReqCid AuctionParticipantSettleRequest_Settle
+  Some bank3Settlement <- queryContractId bank3 issuance.rules.bank3CashSettlementCid
   [rdmpPI3] <- submit bank3 do
     exerciseCmd settlementStarted InvestorSettlement_Finalize with
       cashAssetFungible = issuance.rules.bank3CashFungibleCid
       auctionLockedCashCids = auctionProgress.bank3Locks
-      investorCashSettlementCid = issuance.rules.bank3CashSettlementCid
+      investorCashSettlementCid = bank3Settlement.account
   Some rdmpPayoutInfo <- queryContractId bank3 rdmpPI3
   let assetCid3 = head $ head rdmpPayoutInfo.settlementResult.deliveryDepositCids
       paymentCid3 = head $ head rdmpPayoutInfo.settlementResult.paymentDepositCids

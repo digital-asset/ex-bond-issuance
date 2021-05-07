@@ -26,29 +26,29 @@ instance HasAccount AssetSettlementRule where
 instance HasAccount AssetDeposit where
   accountOf t = t.account
 
-filterContractIds: (a -> Bool) -> [Contract a] -> [ContractId a]
-filterContractIds p contracts = [id | (id, value) <- contracts, p value]
+filterContracts: (a -> Bool) -> [Contract a] -> [a]
+filterContracts p contracts = [ value | (_, value) <- contracts, p value]
 
 headNote: Text -> [a] -> a
 headNote message = (fromSomeNote message) . head
 
-findAsset: (HasAccount a) => Party -> Party -> [Contract a] -> ContractId a
+findAsset: (HasAccount a) => Party -> Party -> [Contract a] -> a
 findAsset provider owner assets =
   findAsset' [provider] owner assets
 
-findAsset': (HasAccount a) => [Party] -> Party -> [Contract a] -> ContractId a
+findAsset': (HasAccount a) => [Party] -> Party -> [Contract a] -> a
 findAsset' providers owner assets =
   headNote "Can't find any asset contract" $
-    filterContractIds (accountBelongsToAnyOf providers owner) assets
+    filterContracts (accountBelongsToAnyOf providers owner) assets
 
 accountBelongsToAnyOf: (HasAccount a) => [Party] -> Party -> a -> Bool
 accountBelongsToAnyOf providers owner a = do
   let account = accountOf a
   account.provider `elem` providers && owner == account.owner
 
-findAuctionLockedCashes: [Contract AuctionLockedCash] -> Party -> Text -> [ContractId AuctionLockedCash]
+findAuctionLockedCashes: [Contract AuctionLockedCash] -> Party -> Text -> [AuctionLockedCash]
 findAuctionLockedCashes auctionLockedCashes auctionAgent auctionName =
-  filterContractIds (auctionBelongsTo auctionAgent auctionName) auctionLockedCashes
+  filterContracts (auctionBelongsTo auctionAgent auctionName) auctionLockedCashes
 
 auctionBelongsTo: Party -> Text -> AuctionLockedCash -> Bool
 auctionBelongsTo auctionAgent auctionName auction =

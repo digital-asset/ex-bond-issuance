@@ -9,12 +9,15 @@ import DA.Finance.Asset
 import DA.Finance.Asset.Settlement
 
 import DA.List
+import DA.Finance.Types (Account)
 
 data BondBundleData = BondBundleData {
   assetDepositCid: ContractId AssetDeposit
 , assetFungibleCid: ContractId AssetDeposit
 , bondSettlementCid: ContractId AssetSettlementRule
+, bondAccount: Account
 , cashSettlementCid: ContractId AssetSettlementRule
+, cashAccount: Account
 , assetLabel: Text
 } deriving (Eq, Show)
 
