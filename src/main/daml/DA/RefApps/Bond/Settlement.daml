@@ -65,7 +65,6 @@ template InvestorSettlement
       InvestorSettlement_Finalize: [ContractId RedemptionPayoutInfo]
         with
           auctionLockedCashCids: [ContractId AuctionLockedCash]
-          cashAssetFungible: ContractId AssetDeposit
           investorCashSettlementCid: Account -- ContractId AssetSettlementRule
         do
 
@@ -83,7 +82,7 @@ template InvestorSettlement
             settleRequest <- fetch settleRequestCid
             let firstCashAssetCid = head remaining
             firstCashAsset <- fetch firstCashAssetCid
-            mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail remaining) settleRequest.cashAmountToPay cashAssetFungible
+            mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail remaining) settleRequest.cashAmountToPay
             assertMsg "Locked cash should be sufficient to finalize settlement" $ isSome mergeResult
             let (cashMergedForQuantityCid, remainingNew)  = fromSome $ mergeResult
             cashMergedForQuantity <- fetch cashMergedForQuantityCid

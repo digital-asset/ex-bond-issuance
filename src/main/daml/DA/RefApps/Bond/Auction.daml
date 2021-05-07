@@ -109,7 +109,7 @@ splitAsset bondBundleData remainedFactCid (awardedBid :: awardedBids) bidWithAss
   else do
     let neededQuantity = intToDecimal awardedBid.bidData.quantity
         rest = remainedFact.asset.quantity - neededQuantity
-    fragment :: newRemainder :: [] <- exercise (bondBundleData.assetFungibleCid) $ AssetDeposit_Split [neededQuantity, rest]
+    fragment :: newRemainder :: [] <- exercise (bondBundleData.assetDepositCid) $ AssetDeposit_Split [neededQuantity, rest]
     let bidWithAsset = BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid fragment
     splitAsset bondBundleData newRemainder awardedBids (bidWithAsset :: bidWithAssets)
 splitAsset bondBundleData remainedFactCid [] bidWithAssets = do
@@ -398,7 +398,6 @@ template PlaceBidBotTrigger
       PlaceBidBotTrigger_LockCash: Either (ContractId InvalidBidNotification) (ContractId AuctionLockedCash, ContractId AuctionBid, [ContractId AssetDeposit])
         with
           cashDepositCids: [ContractId AssetDeposit]
-          cashAssetFungibleCid: ContractId AssetDeposit
           lockRuleCid: ContractId AssetLockRule
           investorAccount : Account
         do
@@ -406,7 +405,7 @@ template PlaceBidBotTrigger
           let firstCashAssetCid = head cashDepositCids
               requiredQuantity = bidData.price * intToDecimal bidData.quantity
           firstCashAsset <- fetch firstCashAssetCid
-          mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail cashDepositCids) requiredQuantity cashAssetFungibleCid
+          mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail cashDepositCids) requiredQuantity
           auctionBidCid <- create AuctionBid with ..
           case mergeResult of
             None -> do
