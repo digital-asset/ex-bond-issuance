@@ -186,7 +186,6 @@ template CommissionBotTrigger
                 invitedBidders = []
                 auctionName = ""
 
-
           invitation <- create AuctionInvitation with auction
           return (invitation, snd splitFactPair)
 

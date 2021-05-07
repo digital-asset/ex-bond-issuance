@@ -101,19 +101,21 @@ calcAuctionResult details@(AuctionData auctionSize limitPrice) (x::xs) (ResultDa
     calcAuctionResult details xs newResult
 
 splitAsset: BondBundleData -> (ContractId AssetDeposit) -> [SortableBidData] -> [BidWithAssetData] -> Update ([BidWithAssetData], Optional (ContractId AssetDeposit))
-splitAsset bondBundleData remainedFactCid (awardedBid :: awardedBids) bidWithAssets = do
-  remainedFact <- fetch remainedFactCid
-  if (remainedFact.asset.quantity == intToDecimal awardedBid.bidData.quantity) then do
-    let bidWithAsset = BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid remainedFactCid
+splitAsset bondBundleData remainingAssetCid (awardedBid :: awardedBids) bidWithAssets = do
+  remainingAsset <- fetch remainingAssetCid
+  if remainingAsset.asset.quantity == intToDecimal awardedBid.bidData.quantity
+  then do
+    let bidWithAsset = BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid remainingAssetCid
     return (bidWithAsset :: bidWithAssets, None)
   else do
     let neededQuantity = intToDecimal awardedBid.bidData.quantity
-        rest = remainedFact.asset.quantity - neededQuantity
-    fragment :: newRemainder :: [] <- exercise (bondBundleData.assetDepositCid) $ AssetDeposit_Split [neededQuantity, rest]
+    fragment :: newRemainder :: [] <-
+        exercise remainingAssetCid $
+          AssetDeposit_Split [neededQuantity]
     let bidWithAsset = BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid fragment
     splitAsset bondBundleData newRemainder awardedBids (bidWithAsset :: bidWithAssets)
-splitAsset bondBundleData remainedFactCid [] bidWithAssets = do
-  return (bidWithAssets, Some remainedFactCid)
+splitAsset bondBundleData remainingAssetCid [] bidWithAssets = do
+  return (bidWithAssets, Some remainingAssetCid)
 
 invalidBidText: BidData -> AuctionData -> Text
 invalidBidText bid auctionData =
@@ -218,7 +220,7 @@ template AuctionFinalizeBotTrigger
           participationCids: [ContractId BidderParticipation]
           bidCids: [ContractId AuctionBid]
         do
-
+          debug "c0"
           -- fetching participations and asserting validity
           participationsOfThisAuction
             <- forA participationCids $ \participationCid -> do
@@ -226,7 +228,7 @@ template AuctionFinalizeBotTrigger
               assertMsg "Participation should refer to the same auction" $
                 participation.auctionAgent == auctionAgent && participation.auctionName == auctionName
               return participation
-
+          debug "c01"
           -- fetching and checking if all bidders were invited
           let bidders = sort $ map (\p -> (p.bidder)) participationsOfThisAuction
           assertMsg ("Only invited bidders should participate. Bidders: " <> (show bidders) <> "\ninvited bidders: " <> (show invitedBidders)) $ isSubset bidders invitedBidders
@@ -239,7 +241,7 @@ template AuctionFinalizeBotTrigger
                 bid.auctionAgent == auctionAgent && bid.auctionName == auctionName
               assertMsg "Bidder should be invited to this auction" $ elem bid.bidder bidders
               return (SortableBidData bid.bidData bidCid)
-
+          debug "c02"
           -- sort bids
           let sortedBids = sortBy cmpBids bids
               -- calculate auction result, if successful the clearing price and quantities --
@@ -247,8 +249,10 @@ template AuctionFinalizeBotTrigger
               auctionResult = calcAuctionResult auctionData sortedBids (ResultData 0.0 0 [] [])
 
           -- split the asset --
-          (bidWithAssets, remainedAssetFact) <- splitAsset bondBundleData (bondBundleData.assetDepositCid) (auctionResult.awardedBids) []
+          (bidWithAssets, remainedAssetFact) <-
+            splitAsset bondBundleData bondBundleData.assetDepositCid auctionResult.awardedBids []
 
+          debug "c1"
           -- allocate --
           settleRequestsWithBidder <- forA bidWithAssets $ \bidWithAsset -> do
             auctionBid <- fetch bidWithAsset.auctionBidCid
@@ -267,7 +271,7 @@ template AuctionFinalizeBotTrigger
                   party2 = issuer
                 tradeId = Id with
                   signatories = Set.fromList [auctionBid.bidder, issuer]
-                  label = "DvPMasterSettleAuctionTrade"
+                  label = "DvPMasterSettleAuctionTrade " <> show this
                   version = 0
 
             bondChain <- create SettlementInstruction with
@@ -277,7 +281,10 @@ template AuctionFinalizeBotTrigger
               steps = [bondSettlementStep]
               observers = Set.fromList regulators
 
-            allocatedBondChain <- exercise bondChain SettlementInstruction_AllocateNext with ctrl = auctionAgent, depositCid = bidWithAsset.bondAssetDepositCid
+            debug bondSettlementStep
+            allocatedBondChain <- exercise bondChain SettlementInstruction_AllocateNext with
+              ctrl = issuer
+              depositCid = bidWithAsset.bondAssetDepositCid
             request <- create AuctionSettleRequest with
               investor = auctionBid.bidder
               issuer = issuer
