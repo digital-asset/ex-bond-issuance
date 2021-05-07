@@ -8,9 +8,9 @@
 module DA.RefApps.Bond.Lock where
 
 import DA.Finance.Types
-import DA.Finance.Fact.Asset
+import DA.Finance.Asset
 
-import DA.Next.Set
+import DA.Set
 
 -- A rule template to let the account owner lock some AssetDeposit for a transaction
 template AssetLockRule

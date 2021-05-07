@@ -10,8 +10,8 @@ import Daml.Script (Script, script)
 import qualified Daml.Script as Script
 import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
 import DA.RefApps.Bond.Redemption
-import DA.Finance.Fact.Asset
-import DA.Finance.Rule.Asset
+import DA.Finance.Asset
+import DA.Finance.Asset
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.ContractUtils
 import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
@@ -30,9 +30,9 @@ redemptionFinalizeTrigger = Trigger
   , rule = redemptionFinalizeRule
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @RedemptionFinalizeBotTrigger,
-      registeredTemplate @AssetSettlement,
+      registeredTemplate @AssetSettlementRule,
       registeredTemplate @AssetDeposit,
-      registeredTemplate @AssetFungible
+      registeredTemplate @AssetDeposit
     ]
   , heartbeat = None
   }
@@ -40,9 +40,9 @@ redemptionFinalizeTrigger = Trigger
 redemptionFinalizeRule : Party -> TriggerA () ()
 redemptionFinalizeRule party = do
   redemptionFinalizeTriggers <- query @RedemptionFinalizeBotTrigger
-  assetSettlements <- query @AssetSettlement
+  assetSettlements <- query @AssetSettlementRule
   assetDeposits <- query @AssetDeposit
-  assetFungibles <- query @AssetFungible
+  assetFungibles <- query @AssetDeposit
 
   forA_ redemptionFinalizeTriggers $ \(triggerCid, trigger) -> do
     let assetSettlementCid =

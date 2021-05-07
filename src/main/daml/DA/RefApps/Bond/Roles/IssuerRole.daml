@@ -7,11 +7,10 @@
 
 module DA.RefApps.Bond.Roles.IssuerRole where
 
-import DA.Next.Set
+import DA.Set
 
 import DA.Finance.Types
-import DA.Finance.Fact.Asset
-import DA.Finance.Rule.Asset
+import DA.Finance.Asset
 
 import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Auction
@@ -152,9 +151,9 @@ template CommissionBotTrigger
     controller issuer can
       CommissionBotTrigger_InviteAgent: (ContractId AuctionInvitation,  [ContractId AssetDeposit])
         with
-          bondAssetFungibleCid: ContractId AssetFungible
-          bondAssetSettlementCid: ContractId AssetSettlement
-          cashAssetSettlementCid: ContractId AssetSettlement
+          bondAssetFungibleCid: ContractId AssetDeposit
+          bondAssetSettlementCid: ContractId AssetSettlementRule
+          cashAssetSettlementCid: ContractId AssetSettlementRule
           fixedRateBondFactCid: ContractId FixedRateBondFact
         do
           bondAssetDeposit <- fetch bondAssetDepositCid

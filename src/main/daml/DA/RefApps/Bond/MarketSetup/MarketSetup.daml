@@ -21,8 +21,7 @@ import DA.RefApps.Bond.Roles.AuctionAgentRole
 import DA.RefApps.Bond.Test.FullScenario
 import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Settlement
-import DA.Finance.Fact.Asset
-import DA.Finance.Rule.Asset
+import DA.Finance.Asset
 import DA.RefApps.Bond.Lock
 import DA.RefApps.Bond.Redemption
 
@@ -33,13 +32,13 @@ data MarketSetupData =
   , csd: Party
   , auctionAgent: Party
   , bank1: Party
-  , funIss: ContractId AssetFungible
-  , settIss: ContractId AssetSettlement
-  , settIssCash: ContractId AssetSettlement
+  , funIss: ContractId AssetDeposit
+  , settIss: ContractId AssetSettlementRule
+  , settIssCash: ContractId AssetSettlementRule
   , cashBank1: ContractId AssetDeposit
-  , funBank1Cash: ContractId AssetFungible
-  , settBank1: ContractId AssetSettlement
-  , settBank1Cash: ContractId AssetSettlement
+  , funBank1Cash: ContractId AssetDeposit
+  , settBank1: ContractId AssetSettlementRule
+  , settBank1Cash: ContractId AssetSettlementRule
   , lockBank1: ContractId AssetLockRule
   }
 
@@ -343,7 +342,7 @@ testMarketSetup = script do
     exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash bank3CashAccount "USD" 50000000.0
     exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash issuerCashAccount "USD" 100000000.0
 
-    settBank1Cash <- exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
+    settBank1Cash <- exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRuleId bank1CashAccount []
     exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount []
     exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount []
     settIssCash <- exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount [bank1, bank2, bank3]

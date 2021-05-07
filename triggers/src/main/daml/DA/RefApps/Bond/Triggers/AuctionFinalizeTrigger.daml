@@ -19,8 +19,8 @@ import DA.RefApps.Bond.Roles.IssuerRole
 import DA.Either
 import DA.Optional
 
-import DA.Finance.Fact.Asset
-import DA.Finance.Rule.Asset
+import DA.Finance.Asset
+import DA.Finance.Asset
 import DA.RefApps.Bond.Lock
 import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
 import DA.List (sort)
@@ -175,7 +175,7 @@ startAuction MarketSetup.Parties{..} issuance = script do
       bidders = [bank1, bank2]
 
 placeBid : Party -> Decimal -> Int -> ContractId BidderParticipation -> ContractId AssetDeposit
-            -> ContractId AssetFungible -> ContractId AssetLockRule -> ContractId AssetSettlement
+            -> ContractId AssetDeposit -> ContractId AssetLockRule -> ContractId AssetSettlementRule
             -> Script (ContractId AuctionBid, [ContractId AssetDeposit], ContractId AuctionLockedCash)
 placeBid bank price quantity bidderParticipationCid bankCashDepositCid
     bankCashFungibleCid bankLockRuleCid bankBondSettlementCid = script do

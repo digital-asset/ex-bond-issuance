@@ -8,7 +8,7 @@
 
 module DA.RefApps.Bond.Test.FullScenario where
 
-import DA.Next.Set
+import DA.Set
 import DA.Date
 import DA.Either
 import DA.List
@@ -19,8 +19,7 @@ import DA.Assert
 import Daml.Script
 
 import DA.Finance.Types
-import DA.Finance.Fact.Asset
-import DA.Finance.Rule.Asset
+import DA.Finance.Asset
 
 import DA.RefApps.Bond.Lock
 import DA.RefApps.Bond.FixedRateBond
@@ -103,17 +102,17 @@ data AssetsForRedemption = AssetsForRedemption {
 }
 
 data Rules = Rules {
-  issuerCashSettlementCid: ContractId AssetSettlement
-, bank1BondSettlementCid: ContractId AssetSettlement
-, bank2BondSettlementCid: ContractId AssetSettlement
-, bank3BondSettlementCid: ContractId AssetSettlement
-, bank1CashSettlementCid: ContractId AssetSettlement
-, bank2CashSettlementCid: ContractId AssetSettlement
-, bank3CashSettlementCid: ContractId AssetSettlement
-, issuerCashFungibleCid: ContractId AssetFungible
-, bank1CashFungibleCid: ContractId AssetFungible
-, bank2CashFungibleCid: ContractId AssetFungible
-, bank3CashFungibleCid: ContractId AssetFungible
+  issuerCashSettlementCid: ContractId AssetSettlementRule
+, bank1BondSettlementCid: ContractId AssetSettlementRule
+, bank2BondSettlementCid: ContractId AssetSettlementRule
+, bank3BondSettlementCid: ContractId AssetSettlementRule
+, bank1CashSettlementCid: ContractId AssetSettlementRule
+, bank2CashSettlementCid: ContractId AssetSettlementRule
+, bank3CashSettlementCid: ContractId AssetSettlementRule
+, issuerCashFungibleCid: ContractId AssetDeposit
+, bank1CashFungibleCid: ContractId AssetDeposit
+, bank2CashFungibleCid: ContractId AssetDeposit
+, bank3CashFungibleCid: ContractId AssetDeposit
 , bank1LockRuleCid: ContractId AssetLockRule
 , bank2LockRuleCid: ContractId AssetLockRule
 , bank3LockRuleCid: ContractId AssetLockRule
@@ -327,7 +326,7 @@ setupIssuance parties@Parties{..} = script do
                       bondSettlementCid = issuerBondSettlement
                       cashSettlementCid = issuerCashSettlement
                       assetLabel = bondIsin, ..
-      cashAssetId = Id (DA.Next.Set.singleton centralBank) "USD" 0
+      cashAssetId = Id (DA.Set.singleton centralBank) "USD" 0
   pure TestIssuance {
     roles = testRoles
   , fixedRateBondFactCid = fixedRateBondFactCid
