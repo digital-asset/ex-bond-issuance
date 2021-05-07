@@ -7,15 +7,14 @@
 
 module DA.RefApps.Bond.Auction where
 
-import DA.Finance.Fact.Asset
-import DA.Finance.Rule.Asset
+import DA.Finance.Asset
 import DA.Finance.Types
 
 import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Lock
 import DA.List as List
-import DA.Next.Set as Set
+import DA.Set as Set
 import DA.RefApps.Bond.Util
 
 
@@ -273,14 +272,14 @@ template AuctionFinalizeBotTrigger
                   label = "DvPMasterSettleAuctionTrade"
                   version = 0
 
-            bondChain <- create AssetSettlementChain with
+            bondChain <- create SettlementInstruction with
               masterAgreement = masterAgreement
               tradeId = tradeId
               asset = issuerBondAssetDeposit.asset
               steps = [bondSettlementStep]
               observers = Set.fromList regulators
 
-            allocatedBondChain <- exercise bondChain $ AssetSettlementChain_AllocateNext bidWithAsset.bondAssetDepositCid
+            allocatedBondChain <- exercise bondChain $ SettlementInstruction_AllocateNext bidWithAsset.bondAssetDepositCid
             request <- create AuctionSettleRequest with
               investor = auctionBid.bidder
               issuer = issuer
@@ -401,9 +400,9 @@ template PlaceBidBotTrigger
       PlaceBidBotTrigger_LockCash: Either (ContractId InvalidBidNotification) (ContractId AuctionLockedCash, ContractId AuctionBid, [ContractId AssetDeposit])
         with
           cashDepositCids: [ContractId AssetDeposit]
-          cashAssetFungibleCid: ContractId AssetFungible
+          cashAssetFungibleCid: ContractId AssetDeposit
           lockRuleCid: ContractId AssetLockRule
-          investorBondAssetSettlementCid: ContractId AssetSettlement
+          investorBondAssetSettlementCid: ContractId AssetSettlementRule
         do
           assertMsg "The cashAssets should not be empty" $ length cashDepositCids > 0
           let firstCashAssetCid = head cashDepositCids
@@ -441,7 +440,7 @@ template AuctionBid
     bidData: BidData
     auctionName: Text
     bondAssetId: Id
-    investorBondAssetSettlementCid: ContractId AssetSettlement
+    investorBondAssetSettlementCid: ContractId AssetSettlementRule
     regulators: [Party]
   where
     signatory auctionAgent, bidder
