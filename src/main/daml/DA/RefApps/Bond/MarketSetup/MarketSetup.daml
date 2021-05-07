@@ -112,15 +112,15 @@ template MarketSetupSignatureCreator
 template MarketSetup
   with
     operator : Party
-    regulator: Party
+    regulator : Party
     auctionAgent: Party
-    bank1: Party
-    bank2: Party
-    bank3: Party
-    csd: Party
-    issuer: Party
-    centralBank: Party
-    signatories: [Party]
+    bank1 : Party
+    bank2 : Party
+    bank3 : Party
+    csd : Party
+    issuer : Party
+    centralBank : Party
+    signatories : [Party]
   where
     signatory signatories
     observer operator, regulator, auctionAgent, bank1, bank2, bank3, csd, issuer, centralBank
@@ -206,21 +206,14 @@ template MarketSetup
 
 testMarketSetupContract: Script ()
 testMarketSetupContract = script do
-  parties@Parties{..} <- allocateParties
+  Parties{..} <- allocateParties
+  let parties = [auctionAgent, bank1, bank2, bank3, csd, issuer, centralBank]
   signatureCreatorCid <-
     submit operator do createCmd MarketSetupSignatureCreator with signatories = [operator], ..
-  signature1 <- submit auctionAgent $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature auctionAgent
-  signature2 <- submit bank1 $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature bank1
-  signature3 <- submit bank2 $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature bank2
-  signature4 <- submit bank3 $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature bank3
-  signature5 <- submit csd $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature csd
-  signature6 <- submit issuer $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature issuer
-  signature7 <- submit centralBank $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature centralBank
+  void $ forA parties (\party -> submit party $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature party)
+    >>= \signatures -> submit operator do
+    exerciseCmd signatureCreatorCid MarketSetupSignatureCreator_SetupMarket {..}
 
-  submit operator do
-    exerciseCmd signatureCreatorCid MarketSetupSignatureCreator_SetupMarket with
-      signatures = [signature1, signature2, signature3, signature4, signature5, signature6, signature7]
-  return ()
 
 -- | Initial setup of the market participants and some cash
 testMarketSetup: Script MarketSetupData
