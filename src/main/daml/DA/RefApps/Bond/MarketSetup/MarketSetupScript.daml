@@ -14,32 +14,18 @@ import DA.RefApps.Bond.Roles.OperatorRole
 import DA.RefApps.Bond.Roles.BankRole
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.Roles.AuctionAgentRole
-import DA.RefApps.Bond.Test.FullScenario
 import DA.RefApps.Bond.MarketSetup.Parties
-import DA.RefApps.Bond.MarketSetup.Dabl
-
-getParty : Text -> Script Party
-getParty name = allocatePartyWithHint name (PartyIdHint name)
+import DA.RefApps.Bond.Util
+import DA.RefApps.Bond.Test.Common.Parties(allocateParties)
 
 setupMarket : Script ()
 setupMarket = do
   debug "Ledger is being initialized..."
-  operator <- getParty "Operator"
-  regulator <- getParty "Regulator"
-  auctionAgent <- getParty "AuctionAgent"
-  bank1 <- getParty "Bank1"
-  bank2 <- getParty "Bank2"
-  bank3 <- getParty "Bank3"
-  csd <- getParty "Csd"
-  issuer <- getParty "Issuer"
-  centralBank <- getParty "CentralBank"
-  setupMarketWithParties $ BondIssuanceParties with ..
+  allocateParties >>= setupMarketWithParties
 
-setupMarketWithDablParties : [DablParty] -> Script ()
-setupMarketWithDablParties = setupMarketWithParties . fromDablParties
-
-setupMarketWithParties : BondIssuanceParties -> Script ()
-setupMarketWithParties parties@BondIssuanceParties{..} = do
+-- WIP;reducing verbosity and reusing code
+setupMarketWithParties : Parties -> Script ()
+setupMarketWithParties parties@Parties{..} = do
   debug "Starting market setup..."
   operatorCid <-
     submit operator $
@@ -99,14 +85,7 @@ setupMarketWithParties parties@BondIssuanceParties{..} = do
   centralBankRoleCid <- submit centralBank do
     exerciseCmd centralBankCid CentralBankRoleInvitation_Accept
 
-  let issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
-      bank1CashAccount = createAccount bank1 centralBank "Bank1CashAccount"
-      bank2CashAccount = createAccount bank2 centralBank "Bank2CashAccount"
-      bank3CashAccount = createAccount bank3 centralBank "Bank3CashAccount"
-      issuerBondAccount = createAccount issuer csd "IssuerBondAccount"
-      bank1BondAccount = createAccount bank1 csd "Bank1BondAccount"
-      bank2BondAccount = createAccount bank2 csd "Bank2BondAccount"
-      bank3BondAccount = createAccount bank3 csd "Bank3BondAccount"
+  let AccountCreation{..} = getAccounts $ Parties with ..
 
   submit centralBank $
     exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0

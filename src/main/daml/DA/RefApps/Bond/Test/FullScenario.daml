@@ -4,7 +4,6 @@
 --
 
 {-# LANGUAGE ApplicativeDo #-}
-{-# OPTIONS -Wno-deprecations #-}
 
 module DA.RefApps.Bond.Test.FullScenario where
 
@@ -21,8 +20,6 @@ import Daml.Script
 import DA.Finance.Types
 import DA.Finance.Asset
 
-import DA.RefApps.Bond.Lock
-import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Roles.CentralBankRole
 import DA.RefApps.Bond.Roles.CsdRole
 import DA.RefApps.Bond.Roles.OperatorRole
@@ -33,87 +30,8 @@ import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Redemption
 import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Util
-import DA.Finance.Asset.Settlement (AssetSettlementRule)
-
-data TestRoles = TestRoles {
-  issuerRoleCid: ContractId IssuerRole
-, csdRoleCid: ContractId CsdRole
-, centralBankRoleCid: ContractId CentralBankRole
-}
-
-data TestIssuance = TestIssuance {
-  roles: TestRoles
-, fixedRateBondFactCid: ContractId FixedRateBondFact
-, bondBundleData: BondBundleData
-, cashAccounts: Accounts
-, bondAccounts: Accounts
-, cashAssets: CashAssets
-, rules: Rules
-, cashAssetId: Id
-}
-
-data Accounts = Accounts {
-  issuerAccount: Account
-, bank1Account: Account
-, bank2Account: Account
-, bank3Account: Account
-}
-
-data CashAssets = CashAssets {
-  issuerCashDepositCid: ContractId AssetDeposit
-, bank1CashDepositCid: ContractId AssetDeposit
-, bank2CashDepositCid: ContractId AssetDeposit
-, bank3CashDepositCid: ContractId AssetDeposit
-}
-
-data AuctionProgress = AuctionProgress {
-  auction: ContractId Auction
-, bidderParticipationCid1 : ContractId BidderParticipation
-, bidderParticipationCid2 : ContractId BidderParticipation
-, bidderParticipationCid3 : ContractId BidderParticipation
-, bidCid1_1 : ContractId AuctionBid
-, bidCid2_1 : ContractId AuctionBid
-, bidCid2_2 : ContractId AuctionBid
-, bidCid3_1 : ContractId AuctionBid
-, otherAuction: ContractId Auction
-, otherBidderParticipationCid1: ContractId BidderParticipation
-, otherBidderParticipationCid2: ContractId BidderParticipation
-, otherBidderParticipationCid3: ContractId BidderParticipation
-, otherBidCid1_1 : ContractId AuctionBid
-, bank1Locks: [ContractId AuctionLockedCash]
-, bank2Locks: [ContractId AuctionLockedCash]
-, bank3Locks: [ContractId AuctionLockedCash]
-, bank1OtherLocks: [ContractId AuctionLockedCash]
-}
-
-data SettleRequests = SettleRequests {
-  bank1SettleReqCid: ContractId AuctionParticipantSettleRequest
-, bank2SettleReqCid: ContractId AuctionParticipantSettleRequest
-, bank3SettleReqCid: ContractId AuctionParticipantSettleRequest
-, otherSettleReqCid: ContractId AuctionParticipantSettleRequest
-}
-
-data AssetsForRedemption = AssetsForRedemption {
-  bank1BondDepositCid: ContractId AssetDeposit
-, bank2BondDepositCid: ContractId AssetDeposit
-, bank3BondDepositCid: ContractId AssetDeposit
-, bank1RedemptionPayoutInfoCid: ContractId RedemptionPayoutInfo
-, bank2RedemptionPayoutInfoCid: ContractId RedemptionPayoutInfo
-, bank3RedemptionPayoutInfoCid: ContractId RedemptionPayoutInfo
-}
-
-data Rules = Rules {
-  issuerCashSettlementCid: ContractId AssetSettlementRule
-, bank1BondSettlementCid: ContractId AssetSettlementRule
-, bank2BondSettlementCid: ContractId AssetSettlementRule
-, bank3BondSettlementCid: ContractId AssetSettlementRule
-, bank1CashSettlementCid: ContractId AssetSettlementRule
-, bank2CashSettlementCid: ContractId AssetSettlementRule
-, bank3CashSettlementCid: ContractId AssetSettlementRule
-, bank1LockRuleCid: ContractId AssetLockRule
-, bank2LockRuleCid: ContractId AssetLockRule
-, bank3LockRuleCid: ContractId AssetLockRule
-}
+import DA.RefApps.Bond.Test.Common.Parties
+import DA.RefApps.Bond.Test.Common.Types
 
 bondIsin: Text
 bondIsin = "BOND-007"
@@ -124,41 +42,12 @@ auctionEndDate = date 2020 Jan 20
 maturity: Date
 maturity = date 2022 Jan 20
 
-data Parties = Parties with
-  operator : Party
-  regulator : Party
-  auctionAgent : Party
-  bank1 : Party
-  bank2 : Party
-  bank3 : Party
-  bank4 : Party
-  csd : Party
-  issuer : Party
-  centralBank : Party
-
-allocateParties : Script Parties
-allocateParties = do
-  operator <- allocateParty "Operator"
-  regulator <- allocateParty "Regulator"
-  auctionAgent <- allocateParty "AuctionAgent"
-  bank1 <- allocateParty "Bank1"
-  bank2 <- allocateParty "Bank2"
-  bank3 <- allocateParty "Bank3"
-  bank4 <- allocateParty "Bank4"
-  csd <- allocateParty "Csd"
-  issuer <- allocateParty "Issuer"
-  centralBank <- allocateParty "CentralBank"
-  pure Parties with ..
-
 setupRoles: Parties -> Script TestRoles
 setupRoles Parties{..} = script do
 
-
   operatorCid <- submit operator do
-    createCmd OperatorRole with
-      operator = operator
-      regulators = [regulator]
-  (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, bankInvitationCid4, csdInvitationCid, issuerCid, centralBankCid)
+    createCmd OperatorRole with regulators = [regulator], ..
+  RoleInvite{..}
     <- submit operator do
       auctionAgentInvitationCid
         <- exerciseCmd operatorCid OperatorRole_InviteAuctionAgent with
@@ -172,9 +61,6 @@ setupRoles Parties{..} = script do
       bankInvitationCid3
         <- exerciseCmd operatorCid OperatorRole_InviteBank with
               bank = bank3
-      bankInvitationCid4
-        <- exerciseCmd operatorCid OperatorRole_InviteBank with
-              bank = bank4
       csdInvitationCid
         <- exerciseCmd operatorCid OperatorRole_InviteCsd with
               csd = csd
@@ -187,7 +73,7 @@ setupRoles Parties{..} = script do
       centralBankCid
         <- exerciseCmd operatorCid OperatorRole_InviteCentralBank with
               centralBank = centralBank
-      pure (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, bankInvitationCid4, csdInvitationCid, issuerCid, centralBankCid)
+      pure RoleInvite with ..
 
   auctionAgentRole <- submit auctionAgent do
     exerciseCmd auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
@@ -201,8 +87,8 @@ setupRoles Parties{..} = script do
   bankRole3Cid <- submit bank3 do
     exerciseCmd bankInvitationCid3 BankRoleInvitation_Accept
 
-  bankRole4Cid <- submit bank4 do
-    exerciseCmd bankInvitationCid4 BankRoleInvitation_Reject
+  -- bankRole4Cid <- submit bank4 do
+  --   exerciseCmd bankInvitationCid4 BankRoleInvitation_Reject
 
   csdRole <- submit csd do
     exerciseCmd csdInvitationCid CsdRoleInvitation_Accept
@@ -218,28 +104,10 @@ setupRoles Parties{..} = script do
   , centralBankRoleCid = centralBankRoleCid
   }
 
-createAccount: Party -> Party -> Text -> Account
-createAccount owner provider label =
-  Account with
-    id = Id with
-      signatories = fromList [provider]
-      label = label
-      version = 0
-    provider = provider
-    owner = owner
-
-
 setupIssuance: Parties -> Script TestIssuance
 setupIssuance parties@Parties{..} = script do
   testRoles <- setupRoles parties
-  let issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
-      bank1CashAccount = createAccount bank1 centralBank "Bank1CashAccount"
-      bank2CashAccount = createAccount bank2 centralBank "Bank2CashAccount"
-      bank3CashAccount = createAccount bank3 centralBank "Bank3CashAccount"
-      issuerBondAccount = createAccount issuer csd "IssuerBondAccount"
-      bank1BondAccount = createAccount bank1 csd "Bank1BondAccount"
-      bank2BondAccount = createAccount bank2 csd "Bank2BondAccount"
-      bank3BondAccount = createAccount bank3 csd "Bank3BondAccount"
+  let AccountCreation{..} = getAccounts parties
 
   -- Rules and cash
   (bank1CashSettlement, bank1Lock, bank1CashAsset) <- submit centralBank do
@@ -310,23 +178,16 @@ setupIssuance parties@Parties{..} = script do
         bank3Lock
 
   let bondBundleData = BondBundleData with
-                      assetDepositCid = assetDepositCid
                       bondSettlementCid = issuerBondSettlement
                       bondAccount = issuerBondAccount
                       cashSettlementCid = issuerCashSettlement
                       cashAccount = issuerCashAccount
-                      assetLabel = bondIsin, ..
+                      assetLabel = bondIsin
+                      ..
       cashAssetId = Id (DA.Set.singleton centralBank) "USD" 0
-  pure TestIssuance {
+  pure TestIssuance with
     roles = testRoles
-  , fixedRateBondFactCid = fixedRateBondFactCid
-  , bondBundleData = bondBundleData
-  , cashAccounts
-  , bondAccounts
-  , cashAssets
-  , rules
-  , cashAssetId
-  }
+    ..
 
 {-
   Example scenario
@@ -353,11 +214,10 @@ setupIssuance parties@Parties{..} = script do
  | Bank3   | 42 * 400000 |
  | Bank1   | 42 * 200000 |
  | Bank2   | 42 * 400000 |
-
-There is a parallely going auction of the same
+There is another auction being conducted in parallel
 -}
 startAuction: Parties -> TestIssuance -> Script AuctionProgress
-startAuction Parties{..} issuance = script do
+startAuction parties@Parties{..} issuance = script do
   setTime (time auctionStartDate 0 0 0)
 
   -- Auction ----------------------------
@@ -381,7 +241,7 @@ startAuction Parties{..} issuance = script do
       auctionName = "testAuction"
   (auction', [bidderParticipationCid1, bidderParticipationCid2, bidderParticipationCid3]) <- submit auctionAgent do
     exerciseCmd auctionCid Auction_InviteBidders with
-      bidders = [bank1, bank2, bank3]
+      bidders = banks parties
 
   passTime $ seconds 1
 

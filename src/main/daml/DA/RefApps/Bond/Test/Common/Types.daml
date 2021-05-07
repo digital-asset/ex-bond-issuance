@@ -1,0 +1,109 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+module DA.RefApps.Bond.Test.Common.Types where
+
+import DA.RefApps.Bond.Lock
+import DA.RefApps.Bond.FixedRateBond
+import DA.RefApps.Bond.Roles.CentralBankRole
+import DA.RefApps.Bond.Roles.CsdRole
+import DA.RefApps.Bond.Roles.AuctionAgentRole
+import DA.RefApps.Bond.Roles.IssuerRole
+import DA.RefApps.Bond.Roles.BankRole
+import DA.RefApps.Bond.Auction
+import DA.RefApps.Bond.Redemption
+import DA.RefApps.Bond.Util
+import DA.Finance.Types
+import DA.Finance.Asset
+import DA.Finance.Asset.Settlement (AssetSettlementRule)
+
+data TestRoles = TestRoles {
+  issuerRoleCid: ContractId IssuerRole
+, csdRoleCid: ContractId CsdRole
+, centralBankRoleCid: ContractId CentralBankRole
+}
+
+data TestIssuance = TestIssuance {
+  roles: TestRoles
+, fixedRateBondFactCid: ContractId FixedRateBondFact
+, bondBundleData: BondBundleData
+, cashAccounts: Accounts
+, bondAccounts: Accounts
+, cashAssets: CashAssets
+, rules: Rules
+, cashAssetId: Id
+}
+
+data Accounts = Accounts {
+  issuerAccount: Account
+, bank1Account: Account
+, bank2Account: Account
+, bank3Account: Account
+}
+
+data CashAssets = CashAssets {
+  issuerCashDepositCid: ContractId AssetDeposit
+, bank1CashDepositCid: ContractId AssetDeposit
+, bank2CashDepositCid: ContractId AssetDeposit
+, bank3CashDepositCid: ContractId AssetDeposit
+}
+
+data AuctionProgress = AuctionProgress {
+  auction: ContractId Auction
+, bidderParticipationCid1 : ContractId BidderParticipation
+, bidderParticipationCid2 : ContractId BidderParticipation
+, bidderParticipationCid3 : ContractId BidderParticipation
+, bidCid1_1 : ContractId AuctionBid
+, bidCid2_1 : ContractId AuctionBid
+, bidCid2_2 : ContractId AuctionBid
+, bidCid3_1 : ContractId AuctionBid
+, otherAuction: ContractId Auction
+, otherBidderParticipationCid1: ContractId BidderParticipation
+, otherBidderParticipationCid2: ContractId BidderParticipation
+, otherBidderParticipationCid3: ContractId BidderParticipation
+, otherBidCid1_1 : ContractId AuctionBid
+, bank1Locks: [ContractId AuctionLockedCash]
+, bank2Locks: [ContractId AuctionLockedCash]
+, bank3Locks: [ContractId AuctionLockedCash]
+, bank1OtherLocks: [ContractId AuctionLockedCash]
+}
+
+data SettleRequests = SettleRequests {
+  bank1SettleReqCid: ContractId AuctionParticipantSettleRequest
+, bank2SettleReqCid: ContractId AuctionParticipantSettleRequest
+, bank3SettleReqCid: ContractId AuctionParticipantSettleRequest
+, otherSettleReqCid: ContractId AuctionParticipantSettleRequest
+}
+
+data AssetsForRedemption = AssetsForRedemption {
+  bank1BondDepositCid: ContractId AssetDeposit
+, bank2BondDepositCid: ContractId AssetDeposit
+, bank3BondDepositCid: ContractId AssetDeposit
+, bank1RedemptionPayoutInfoCid: ContractId RedemptionPayoutInfo
+, bank2RedemptionPayoutInfoCid: ContractId RedemptionPayoutInfo
+, bank3RedemptionPayoutInfoCid: ContractId RedemptionPayoutInfo
+}
+
+data Rules = Rules {
+  issuerCashSettlementCid: ContractId AssetSettlementRule
+, bank1BondSettlementCid: ContractId AssetSettlementRule
+, bank2BondSettlementCid: ContractId AssetSettlementRule
+, bank3BondSettlementCid: ContractId AssetSettlementRule
+, bank1CashSettlementCid: ContractId AssetSettlementRule
+, bank2CashSettlementCid: ContractId AssetSettlementRule
+, bank3CashSettlementCid: ContractId AssetSettlementRule
+, bank1LockRuleCid: ContractId AssetLockRule
+, bank2LockRuleCid: ContractId AssetLockRule
+, bank3LockRuleCid: ContractId AssetLockRule
+}
+
+data RoleInvite = RoleInvite with
+  auctionAgentInvitationCid : ContractId AuctionAgentRoleInvitation
+  bankInvitationCid1 : ContractId BankRoleInvitation
+  bankInvitationCid2 : ContractId BankRoleInvitation
+  bankInvitationCid3 : ContractId BankRoleInvitation
+  csdInvitationCid : ContractId CsdRoleInvitation
+  issuerCid : ContractId IssuerRoleInvitation
+  centralBankCid : ContractId CentralBankRoleInvitation

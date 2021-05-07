@@ -11,14 +11,13 @@ import DA.Time
 import DA.Action
 
 import Daml.Script
-
 import DA.RefApps.Bond.Roles.CentralBankRole
 import DA.RefApps.Bond.Roles.CsdRole
 import DA.RefApps.Bond.Roles.OperatorRole
 import DA.RefApps.Bond.Roles.BankRole
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.Roles.AuctionAgentRole
-import DA.RefApps.Bond.Test.FullScenario
+import DA.RefApps.Bond.Util
 import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Settlement
 import DA.Finance.Asset
@@ -27,6 +26,8 @@ import DA.RefApps.Bond.Redemption
 import DA.Finance.Asset.Settlement
 import DA.Finance.Types (Account)
 import DA.Foldable (forA_)
+import DA.RefApps.Bond.Test.Common.Parties
+import DA.RefApps.Bond.Test.Common.Types
 
 data MarketSetupData =
   MarketSetupData
@@ -75,8 +76,6 @@ template MarketSetupSignatureCreator
     centralBank: Party
     signatories: [Party]
   where
-    -- TODO: 'everyone' cannot be used here with "unused bindings" turned on.
-    -- See: https://github.com/digital-asset/daml/issues/5878
     observer [operator, regulator, auctionAgent, bank1, bank2, bank3,
                     csd, issuer, centralBank]
     signatory operator
@@ -97,9 +96,8 @@ template MarketSetupSignatureCreator
           marketSetupCid <- create MarketSetup with ..
           signedMarketSetupCid
             <- foldlA
-                  (\signed marketSetupCid' ->
-                    exercise marketSetupCid' MarketSetupSignature_UseSignature
-                          with targetContractId = signed)
+                  (\targetContractId marketSetupSignatureCid ->
+                    exercise marketSetupSignatureCid MarketSetupSignature_UseSignature with ..)
                   marketSetupCid
                   signatures
           exercise signedMarketSetupCid MarketSetup_SetupMarket
@@ -132,10 +130,18 @@ template MarketSetup
     controller operator can
       MarketSetup_SetupMarket : MarketSetupData
         do
+          let
+              tenMillion : Numeric 10 = 10.0^7
+              parties = Parties with ..
+              bankList = banks parties
+              accounts@AccountCreation{..} = getAccounts parties
+              bankCashAccounts = toBankCashAccounts accounts
+              bankBondAccounts = toBankBondAccounts accounts
+
           operatorCid <- create OperatorRole with regulators = [regulator], ..
           auctionAgentInvitationCid <- exercise operatorCid OperatorRole_InviteAuctionAgent with ..
-          invites@[bankInvitationCid1, bankInvitationCid2, bankInvitationCid3] <-
-            forA [bank1, bank2, bank3] $
+          invites <-
+            forA bankList $
               \bank -> exercise operatorCid OperatorRole_InviteBank with ..
 
           csdInvitationCid
@@ -156,45 +162,35 @@ template MarketSetup
           issuerRole <- exercise issuerCid IssuerRoleInvitation_Accept
           centralBankRoleCid <- exercise centralBankCid CentralBankRoleInvitation_Accept
 
-          let buildAccounts accountType = ["Bank" <> show i <> accountType <> "Account" | i <- [1..3]]
-              banks = [bank1, bank2, bank3]
-              oneMillion : Numeric 10 = 10.0^6
-              issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
-              issuerBondAccount = createAccount issuer csd "IssuerBondAccount"
-              cashAccounts@(bank1CashAccount:: _) =
-                (\(label, owner)-> createAccount owner centralBank label) <$> ((buildAccounts "Cash") `zip` banks)
-              bondAccounts@(bank1BondAccount:: _) =
-                (\(label, owner)-> createAccount owner csd label) <$> ((buildAccounts "Bond") `zip` banks)
-
           (cashBank1:: _) <-
             mapA (\(account, cashAmount) -> exercise centralBankRoleCid $ CentralBankRole_IssueCash account "USD" cashAmount)
-            (cashAccounts `zip` ((* oneMillion) <$> [50.0, 60.0, 50.0]))
+            (bankCashAccounts `zip` ((* tenMillion) <$> [5.0, 6.0, 5.0]))
 
           exercise centralBankRoleCid $
-              CentralBankRole_IssueCash issuerCashAccount "USD" (10.0 * oneMillion)
+              CentralBankRole_IssueCash issuerCashAccount "USD" tenMillion
 
           (settBank1Cash:: _) <-
-            forA cashAccounts (\account -> exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule account[])
+            forA bankCashAccounts (\account -> exercise centralBankRoleCid $ CentralBankRole_CreateSettlementRule account[])
 
           settIssCash <-
               exercise centralBankRoleCid $
-                CentralBankRole_CreateSettlementRule issuerCashAccount banks
+                CentralBankRole_CreateSettlementRule issuerCashAccount bankList
 
           (lockBank1:: _) <-
-            forA cashAccounts (exercise centralBankRoleCid . CentralBankRole_CreateLockRule)
+            forA bankCashAccounts (exercise centralBankRoleCid . CentralBankRole_CreateLockRule)
 
-          forA_ bondAccounts $
+          forA_ bankBondAccounts $
               \account -> exercise csdRoleCid $ CsdRole_CreateFungibleRule account []
 
           funIss <-
               exercise csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
 
           (settBank1:: _) <-
-            forA bondAccounts (\account -> exercise csdRoleCid $ CsdRole_CreateSettlementRule account [])
+            forA bankBondAccounts (\account -> exercise csdRoleCid $ CsdRole_CreateSettlementRule account [])
 
           settIss <-
               exercise csdRoleCid $
-                CsdRole_CreateSettlementRule issuerBondAccount (auctionAgent :: banks)
+                CsdRole_CreateSettlementRule issuerBondAccount (auctionAgent :: bankList)
 
           return $ MarketSetupData with ..
 
@@ -208,14 +204,13 @@ testMarketSetupContract = script do
     >>= \signatures -> submit operator do
     exerciseCmd signatureCreatorCid MarketSetupSignatureCreator_SetupMarket {..}
 
-
 -- | Initial setup of the market participants and some cash
 testMarketSetup: Script MarketSetupData
 testMarketSetup = script do
   parties@Parties{..} <- allocateParties
   operatorCid <- submit operator do
     createCmd OperatorRole with regulators = [regulator], ..
-  (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, csdInvitationCid, issuerCid, centralBankCid)
+  RoleInvite{..}
     <- submit operator do
       auctionAgentInvitationCid
         <- exerciseCmd operatorCid OperatorRole_InviteAuctionAgent with
@@ -239,20 +234,12 @@ testMarketSetup = script do
               ..
       centralBankCid
         <- exerciseCmd operatorCid OperatorRole_InviteCentralBank with ..
-      return (auctionAgentInvitationCid, bankInvitationCid1, bankInvitationCid2, bankInvitationCid3, csdInvitationCid, issuerCid, centralBankCid)
+      return RoleInvite with ..
   submit auctionAgent do
     exerciseCmd auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
 
-  forA_ ([bank1, bank2, bank3] `zip` [bankInvitationCid1, bankInvitationCid2, bankInvitationCid3]) $
+  forA_ (banks parties `zip` [bankInvitationCid1, bankInvitationCid2, bankInvitationCid3]) $
       \(bank, invitation) -> submit bank do exerciseCmd invitation BankRoleInvitation_Accept
-  -- submit bank1 do
-  --   exerciseCmd bankInvitationCid1 BankRoleInvitation_Accept
-
-  -- submit bank2 do
-  --   exerciseCmd bankInvitationCid2 BankRoleInvitation_Accept
-
-  -- submit bank3 do
-  --   exerciseCmd bankInvitationCid3 BankRoleInvitation_Accept
 
   csdRoleCid <- submit csd do
     exerciseCmd csdInvitationCid CsdRoleInvitation_Accept
@@ -263,15 +250,8 @@ testMarketSetup = script do
   centralBankRoleCid <- submit centralBank do
     exerciseCmd centralBankCid CentralBankRoleInvitation_Accept
 
-  let issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
-      bank1CashAccount = createAccount bank1 centralBank "Bank1CashAccount"
-      bank2CashAccount = createAccount bank2 centralBank "Bank2CashAccount"
-      bank3CashAccount = createAccount bank3 centralBank "Bank3CashAccount"
-      issuerBondAccount = createAccount issuer csd "IssuerBondAccount"
-      bank1BondAccount = createAccount bank1 csd "Bank1BondAccount"
-      bank2BondAccount = createAccount bank2 csd "Bank2BondAccount"
-      bank3BondAccount = createAccount bank3 csd "Bank3BondAccount"
-
+  let AccountCreation{..} = getAccounts parties
+-- WIP;reducing verbosity and reusing code 
   (cashBank1, settIssCash, lockBank1, settBank1Cash) <- submit centralBank do
     cashBank1 <- exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0
     exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash bank2CashAccount "USD" 600000000.0
