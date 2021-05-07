@@ -69,3 +69,9 @@ template CsdRole
           create AssetDeposit with
             account = account
             observers = fromList observers
+            asset = Asset with
+              id = Id with
+                signatories = Set.fromList $ signatory this
+                label = "Asset"
+                version = 0
+              quantity = 1.0

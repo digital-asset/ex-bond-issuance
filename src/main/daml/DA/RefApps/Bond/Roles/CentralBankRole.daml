@@ -74,7 +74,7 @@ template CentralBankRole
             account = account
             observers = fromList observers
             ctrls = fromList observers
-      nonconsuming CentralBankRole_CreateSettlementRuleId: Id
+      nonconsuming CentralBankRole_CreateSettlementRuleId: Account
         with
           account: Account
           observers: [Party]
@@ -83,7 +83,7 @@ template CentralBankRole
             account = account
             observers = fromList observers
             ctrls = fromList observers
-          return account.id
+          return account
 
       nonconsuming CentralBankRole_CreateFungibleRule: ContractId AssetDeposit
         with
@@ -92,6 +92,12 @@ template CentralBankRole
           create AssetDeposit with
             account = account
             observers = empty
+            asset = Asset with
+              id = Id with
+                signatories = DA.Set.fromList $ signatory this
+                label = "Asset"
+                version = 1
+              quantity = 1.0
 
       nonconsuming CentralBankRole_CreateLockRule: ContractId AssetLockRule
         with

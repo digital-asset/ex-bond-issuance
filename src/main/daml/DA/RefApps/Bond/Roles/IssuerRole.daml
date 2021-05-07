@@ -16,6 +16,7 @@ import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Util
 import DA.RefApps.Bond.Redemption
+import DA.Finance.Asset.Settlement
 
 -- Role contract invitation for bond Issuer role.
 template IssuerRoleInvitation
@@ -153,7 +154,9 @@ template CommissionBotTrigger
         with
           bondAssetFungibleCid: ContractId AssetDeposit
           bondAssetSettlementCid: ContractId AssetSettlementRule
+          bondAccount : Account
           cashAssetSettlementCid: ContractId AssetSettlementRule
+          cashAccount : Account
           fixedRateBondFactCid: ContractId FixedRateBondFact
         do
           bondAssetDeposit <- fetch bondAssetDepositCid
@@ -161,7 +164,7 @@ template CommissionBotTrigger
               rest = bondAssetDeposit.asset.quantity - decimalSize
           -- Splitting the asset if needed
           splitFactPair <- if (bondAssetDeposit.asset.quantity > intToDecimal size) then do
-                 first :: remaining <- exercise bondAssetFungibleCid $ AssetFungible_Split bondAssetDepositCid [decimalSize, rest]
+                 first :: remaining <- exercise bondAssetFungibleCid $ AssetDeposit_Split [decimalSize, rest]
                  return (first, remaining)
                 else return (bondAssetDepositCid, [])
           let splitFactCid = fst splitFactPair
@@ -180,7 +183,7 @@ template CommissionBotTrigger
                 fixedRateBondFact = fixedRateBondFact
                 cashAssetId = fixedRateBondFact.cashAssetId
                 issuerCashAccountProvider = cashAccountProvider
-                bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetFungibleCid bondAssetSettlementCid cashAssetSettlementCid observedBondAssetDeposit.asset.id.label
+                bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetFungibleCid bondAssetSettlementCid bondAccount cashAssetSettlementCid cashAccount observedBondAssetDeposit.asset.id.label
                 invitedBidders = []
                 auctionName = ""
 
