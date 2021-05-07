@@ -113,7 +113,9 @@ template InvestorSettlement
               steps = [cashSettlementStep]
               observers = Set.fromList regulators
 
-            allocatedCashChain <- exercise cashChain SettlementInstruction_AllocateNext with ctrl = investor, depositCid = cashMergedForQuantityCid
+            allocatedCashChain <- exercise cashChain SettlementInstruction_AllocateNext with
+              ctrl = investor
+              depositCid = cashMergedForQuantityCid
 
             dvpSettlement <- create DvpSettlementRule with
               masterAgreement = bondChain.masterAgreement
