@@ -4,7 +4,7 @@
  */
 import { FixedRateBondFact } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/FixedRateBond";
 import { IssuerRole } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Roles/IssuerRole";
-import { AssetDeposit } from "@daml.js/finlib-1.0.0/lib/DA/Finance/Fact/Asset";
+import { AssetDeposit } from "@daml.js/finlib-2.0.0/lib/DA/Finance/Asset";
 import { useLedger, useStreamQueries } from "@daml/react";
 import React, { useMemo } from "react";
 import Contracts, { date, field, menu, number } from "../../components/Contracts/Contracts";
