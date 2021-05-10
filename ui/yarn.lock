@@ -1199,10 +1199,10 @@
 "@daml.js/bond-issuance-2.0.0@file:daml.js/bond-issuance-2.0.0":
   version "1.12.0"
   dependencies:
-    "@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4" "file:../../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-94a23870-352f-473e-95ed-ed373eb68e82-1620641266897/node_modules/@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4"
-    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-94a23870-352f-473e-95ed-ed373eb68e82-1620641266897/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-94a23870-352f-473e-95ed-ed373eb68e82-1620641266897/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
-    "@daml.js/finlib-1.0.0" "file:../../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-94a23870-352f-473e-95ed-ed373eb68e82-1620641266897/node_modules/@daml.js/finlib-1.0.0"
+    "@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4" "file:../../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-24e84f76-138a-41f1-8d2d-2bb1472567ea-1620641493321/node_modules/@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4"
+    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-24e84f76-138a-41f1-8d2d-2bb1472567ea-1620641493321/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-24e84f76-138a-41f1-8d2d-2bb1472567ea-1620641493321/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/finlib-1.0.0" "file:../../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.12.0-24e84f76-138a-41f1-8d2d-2bb1472567ea-1620641493321/node_modules/@daml.js/finlib-1.0.0"
     "@mojotech/json-type-validation" "^3.1.0"
 
 "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662@file:daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662":
@@ -1213,9 +1213,9 @@
 "@daml.js/finlib-1.0.0@file:daml.js/finlib-1.0.0":
   version "1.12.0"
   dependencies:
-    "@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4" "file:../../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.12.0-08c6bfac-0d0a-4e61-9b34-76eb9e26c3ae-1620641266905/node_modules/@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4"
-    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.12.0-08c6bfac-0d0a-4e61-9b34-76eb9e26c3ae-1620641266905/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.12.0-08c6bfac-0d0a-4e61-9b34-76eb9e26c3ae-1620641266905/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4" "file:../../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.12.0-8c75d54b-3d16-42c7-942e-d128c6241f11-1620641493331/node_modules/@daml.js/046a0de1374de97a9881df1e91c837cbc8b6a64d3522ecd297ab1b7ee95b9de4"
+    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.12.0-8c75d54b-3d16-42c7-942e-d128c6241f11-1620641493331/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../../.cache/yarn/v6/npm-@daml-js-finlib-1-0-0-1.12.0-8c75d54b-3d16-42c7-942e-d128c6241f11-1620641493331/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
     "@mojotech/json-type-validation" "^3.1.0"
 
 "@daml/ledger@1.12.0":
@@ -1794,6 +1794,13 @@
   integrity sha512-Vs0hm0vPahPMYi9tDjtP66llufgO3ST16WXaSTtDGEl9cewAl3AibmxWw6TINOqHPT9z0uABKAYjT9jNSg4npw==
   dependencies:
     "@babel/types" "^7.3.0"
+
+"@types/classnames@^2.3.1":
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/@types/classnames/-/classnames-2.3.1.tgz#3c2467aa0f1a93f1f021e3b9bcf938bd5dfdc0dd"
+  integrity sha512-zeOWb0JGBoVmlQoznvqXbE0tEC/HONsnoUNH19Hc96NFsTAwTXbTqb8FMYkru1F/iqp7a18Ws3nWJvtA1sHD1A==
+  dependencies:
+    classnames "*"
 
 "@types/eslint@^7.2.6":
   version "7.2.7"
@@ -3437,6 +3444,11 @@ class-utils@^0.3.5:
     define-property "^0.2.5"
     isobject "^3.0.0"
     static-extend "^0.1.1"
+
+classnames@*:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.3.1.tgz#dfcfa3891e306ec1dad105d0e88f4417b8535e8e"
+  integrity sha512-OlQdbZ7gLfGarSqxesMesDa5uz7KFbID8Kpq/SxIoNGDqY8lSYs0D+hhtBXhcdB3rcbXArFr7vlHheLk1voeNA==
 
 classnames@^2.2.6:
   version "2.2.6"
