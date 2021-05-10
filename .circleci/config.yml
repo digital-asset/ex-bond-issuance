@@ -143,7 +143,7 @@ jobs:
       - run:
           name: UI build
           command: |
-            make package
+            make daml-hub-package
       - save_cache:
           paths:
             - ~/.daml
