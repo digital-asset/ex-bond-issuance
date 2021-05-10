@@ -50,6 +50,9 @@ $(JS_CODEGEN_ARTIFACT): $(MODELS_DAR) $(FINLIB_DAR)
 
 UI_INSTALL_ARTIFACT=ui/node_modules
 
+ui/yarn.lock: ui/package.json
+	cd ui && yarn install
+
 $(UI_INSTALL_ARTIFACT): ui/package.json ui/yarn.lock $(JS_CODEGEN_ARTIFACT)
 	cd ui && yarn install --force --frozen-lockfile
 
