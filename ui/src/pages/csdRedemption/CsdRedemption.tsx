@@ -27,7 +27,7 @@ export default function Report() {
       {
         name: "Accept",
         handle: doAccept,
-        shouldDisplay: () => true, //(c) => c.payload.verifier === standardizePartyId(parties, party),
+        shouldDisplay: () => true,
         paramName: "",
         items:[],
         values:[]

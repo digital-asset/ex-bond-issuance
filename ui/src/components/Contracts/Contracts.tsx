@@ -228,8 +228,17 @@ export default function Contracts({ contracts, columns, actions, dialogs } : Con
   }
 
   function getValue(data : any, path : string) {
-    const split = typeof path === "string" && path !== "" ? path.split(".") : [];
-    return getByPath(data, split);
+    if(path.includes('/')){
+      const [numerator, denominator] = path.split('/').map((piece) => {return getByPath(data, safeSplit(piece.trim())) })
+      return numerator/denominator;
+    }
+    else{
+      return getByPath(data, safeSplit(path));
+    }
+  }
+
+  function safeSplit(path : any): string[]{
+    return typeof path === "string" && path !== "" ? path.split(".") : [];
   }
 
   function paramNameForRow(paramName: string, rowId: string): string {
