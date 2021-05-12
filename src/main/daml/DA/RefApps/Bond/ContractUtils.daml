@@ -54,3 +54,6 @@ auctionBelongsTo: Party -> Text -> AuctionLockedCash -> Bool
 auctionBelongsTo auctionAgent auctionName auction =
      auctionAgent == auction.auctionAgent
   && auctionName == auction.auctionName
+
+filterContractIds: (a -> Bool) -> [Contract a] -> [ContractId a]
+filterContractIds p contracts = [id | (id, value) <- contracts, p value]
