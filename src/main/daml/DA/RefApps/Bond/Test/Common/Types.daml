@@ -19,6 +19,22 @@ import DA.Finance.Types
 import DA.Finance.Asset
 import DA.Finance.Asset.Settlement (AssetSettlementRule)
 
+data MarketSetupData =
+  MarketSetupData
+  { issuer: Party
+  , issuerRole: ContractId IssuerRole
+  , csd: Party
+  , auctionAgent: Party
+  , bank1: Party
+  , funIss: ContractId AssetDeposit
+  , settIss: ContractId AssetSettlementRule
+  , settIssCash: ContractId AssetSettlementRule
+  , cashBank1: ContractId AssetDeposit
+  , bank1BondAccount : Account
+  , bank1CashAccount : Account
+  , lockBank1: ContractId AssetLockRule
+  }
+
 data TestRoles = TestRoles {
   issuerRoleCid: ContractId IssuerRole
 , csdRoleCid: ContractId CsdRole
@@ -107,3 +123,17 @@ data RoleInvite = RoleInvite with
   csdInvitationCid : ContractId CsdRoleInvitation
   issuerCid : ContractId IssuerRoleInvitation
   centralBankCid : ContractId CentralBankRoleInvitation
+
+data BankRoleInvites = BankRoleInvites with
+  bankInvitationCid1 : ContractId BankRoleInvitation
+  bankInvitationCid2 : ContractId BankRoleInvitation
+  bankInvitationCid3 : ContractId BankRoleInvitation
+   deriving Show
+
+bankInvitationCids : RoleInvite -> [ContractId BankRoleInvitation]
+bankInvitationCids RoleInvite{..} = [bankInvitationCid1, bankInvitationCid2, bankInvitationCid3]
+
+toBankRoleInvites = \case
+ [bankInvitationCid1, bankInvitationCid2, bankInvitationCid3] -> BankRoleInvites with ..
+ _ -> error "invalid input"
+
