@@ -20,7 +20,6 @@ import DA.Finance.Asset
 import DA.Finance.Asset.Settlement
 
 import DA.RefApps.Bond.Auction
-import DA.RefApps.Bond.Roles.IssuerRole
 
 import DA.Either
 import DA.Optional
@@ -98,7 +97,7 @@ testAuctionWithSingleBid = script do
     placeBid
       bank1 42.0 20000
       participation1 issuance.cashAssets.bank1CashDepositCid
-      issuance.rules.bank1CashFungibleCid issuance.rules.bank1LockRuleCid
+      issuance.rules.bank1LockRuleCid
       issuance.rules.bank1BondSettlementCid
 
   finalizeTrigger <-
@@ -125,13 +124,13 @@ testAuctionWithTwoBids = script do
     placeBid
       bank1 42.0 20000
       participation1 issuance.cashAssets.bank1CashDepositCid
-      issuance.rules.bank1CashFungibleCid issuance.rules.bank1LockRuleCid
+      issuance.rules.bank1LockRuleCid
       issuance.rules.bank1BondSettlementCid
   (bid2, _, _) <-
     placeBid
       bank2 43.0 20000
       participation2 issuance.cashAssets.bank2CashDepositCid
-      issuance.rules.bank2CashFungibleCid issuance.rules.bank2LockRuleCid
+      issuance.rules.bank2LockRuleCid
       issuance.rules.bank2BondSettlementCid
 
   finalizeTrigger <-
@@ -180,10 +179,10 @@ startAuction MarketSetup.Parties{..} issuance = script do
       bidders = [bank1, bank2]
 
 placeBid : Party -> Decimal -> Int -> ContractId BidderParticipation -> ContractId AssetDeposit
-            -> ContractId AssetDeposit -> ContractId AssetLockRule -> ContractId AssetSettlementRule
+            -> ContractId AssetLockRule -> ContractId AssetSettlementRule
             -> Script (ContractId AuctionBid, [ContractId AssetDeposit], ContractId AuctionLockedCash)
 placeBid bank price quantity bidderParticipationCid bankCashDepositCid
-    bankCashFungibleCid bankLockRuleCid bankBondSettlementCid = script do
+    bankLockRuleCid bankBondSettlementCid = script do
   bidLockReq <- submit bank do
     Script.exerciseCmd bidderParticipationCid BidderParticipation_PlaceBid with
       price = price

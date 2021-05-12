@@ -47,11 +47,13 @@ redemptionCalculationRule party = do
 
   forA_ redemptionCalcTriggers $ \(triggerCid, trigger) -> do
     let remainingAssetCids =
-          filterContractIds (\p -> p.account.owner == trigger.issuer &&
+          fst <$>
+          filterContracts (\p -> p.account.owner == trigger.issuer &&
                                    p.asset.id == trigger.bondAssetId)
             assetDeposits
         relevantPayoutInfos =
-          filterContractIds (\p -> p.bondInstrumentId == trigger.bondAssetId)
+          fst <$>
+          filterContracts (\p -> p.bondInstrumentId == trigger.bondAssetId)
             payoutInfos
     dedupExercise triggerCid $ RedemptionCalculationBotTrigger_Start
         relevantPayoutInfos

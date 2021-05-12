@@ -48,18 +48,14 @@ redemptionFinalizeRule party = do
   assetFungibles <- query @AssetDeposit
 
   forA_ redemptionFinalizeTriggers $ \(triggerCid, trigger) -> do
-    let assetSettlementCid =
+    let (assetSettlementCid, _) =
           findAsset'
             trigger.cashAccountProviders
             trigger.issuer
             assetSettlements
-        assetFungibleCid =
-          findAsset'
-            trigger.cashAccountProviders
-            trigger.issuer
-            assetFungibles
         assetDepositCids =
-          filterContractIds
+          fst <$>
+          filterContracts
             (\p -> p.asset.id.label == trigger.cashAssetId.label &&
                    p.asset.id.version == trigger.cashAssetId.version)
             assetDeposits
@@ -67,8 +63,6 @@ redemptionFinalizeRule party = do
         assetDepositCids
         assetSettlementCid
 
-filterContractIds: (a -> Bool) -> [Contract a] -> [ContractId a]
-filterContractIds p contracts = [id | (id, value) <- contracts, p value]
 -- Tests ---------------------------
 
 testFinalizeTrigger: Script ()
@@ -88,8 +82,7 @@ testFinalizeTrigger = script do
   let activeContracts =
           toACS redemptionFinalize <>
           toACS issuance.cashAssets.issuerCashDepositCid <>
-          toACS issuance.rules.issuerCashSettlementCid <>
-          toACS issuance.rules.issuerCashFungibleCid
+          toACS issuance.rules.issuerCashSettlementCid
   flattenedCommands <- testTrigger redemptionFinalizeTrigger issuer activeContracts
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
@@ -115,8 +108,7 @@ testNoFinalizeTrigger = script do
 
   let activeContracts =
           toACS issuance.cashAssets.issuerCashDepositCid <>
-          toACS issuance.rules.issuerCashSettlementCid <>
-          toACS issuance.rules.issuerCashFungibleCid
+          toACS issuance.rules.issuerCashSettlementCid
   flattenedCommands <- testTrigger redemptionFinalizeTrigger issuer activeContracts
   length flattenedCommands === 0
 

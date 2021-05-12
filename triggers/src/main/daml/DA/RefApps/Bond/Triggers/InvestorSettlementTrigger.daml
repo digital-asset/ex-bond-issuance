@@ -50,11 +50,10 @@ finalizeSettlement:
 finalizeSettlement auctionLockedCashes assetSettlements assetFungibles settlementContract = do
   let
     (id, settlement) = settlementContract
-    assetSettlement = findAsset settlement.cashProvider settlement.investor assetSettlements
-    assetFungible = findAsset settlement.cashProvider settlement.investor assetFungibles
+    (_, assetSettlement) = findAsset settlement.cashProvider settlement.investor assetSettlements
     auctionLockedCashIds =
       case (findAuctionLockedCashes auctionLockedCashes settlement.auctionAgent settlement.auctionName) of
         [] -> error ("Can't find any auction locks for this auction: " <> settlement.auctionName)
-        result -> result
+        result -> fst <$> result
 
-  id `dedupExercise` InvestorSettlement_Finalize auctionLockedCashIds assetFungible assetSettlement
+  id `dedupExercise` InvestorSettlement_Finalize auctionLockedCashIds assetSettlement.account
