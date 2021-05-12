@@ -34,16 +34,5 @@ export default function Report() {
       }
     ]}
     dialogs={[]}
-    // actions={[
-    //   {
-    //     name: "Confirm",
-    //     handle: confirm,
-    //     shouldDisplay: (c) => c.payload.standardRegistry === standardizePartyId(parties, party),
-    //     items: [],
-    //     values: [],
-    //     paramName: "",
-    //   }
-    // ]}
-
   />);
 }
