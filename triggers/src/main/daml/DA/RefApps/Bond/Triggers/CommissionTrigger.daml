@@ -13,8 +13,11 @@ import DA.Foldable hiding (length)
 import Daml.Trigger.Assert
 import DA.Assert
 import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
+import DA.RefApps.Bond.Test.Common.Parties qualified as MarketSetup
+import DA.RefApps.Bond.Test.Common.Types qualified as MarketSetup
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.Finance.Asset
+import DA.Finance.Asset.Settlement
 import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.ContractUtils
 import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils

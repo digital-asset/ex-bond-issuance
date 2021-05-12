@@ -15,7 +15,6 @@ import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
 import DA.RefApps.Bond.Auction
 import DA.Optional
 import DA.Finance.Asset
-import DA.Finance.Asset
 import DA.RefApps.Bond.Lock
 import DA.List.Total
 import DA.RefApps.Bond.Triggers.AuctionFinalizeTrigger qualified as AuctFin

@@ -13,14 +13,18 @@ import DA.Foldable hiding (length)
 import Daml.Trigger.Assert
 import DA.Assert
 import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
+import DA.RefApps.Bond.Test.Common.Parties qualified as MarketSetup
+import DA.RefApps.Bond.Test.Common.Types qualified as MarketSetup
+import DA.RefApps.Bond.Roles.IssuerRole
+import DA.Finance.Asset
+import DA.Finance.Asset.Settlement
+
 import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Roles.IssuerRole
 
 import DA.Either
 import DA.Optional
 
-import DA.Finance.Asset
-import DA.Finance.Asset
 import DA.RefApps.Bond.Lock
 import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
 import DA.List (sort)
@@ -162,10 +166,11 @@ startAuction MarketSetup.Parties{..} issuance = script do
       size = 1000000
   (auctionInvitationCid, _remainingAssets) <- submit issuer do
     Script.exerciseCmd commissionedCid CommissionBotTrigger_InviteAgent with
-      bondAssetFungibleCid = issuance.bondBundleData.assetFungibleCid
       bondAssetSettlementCid = issuance.bondBundleData.bondSettlementCid
       cashAssetSettlementCid = issuance.bondBundleData.cashSettlementCid
       fixedRateBondFactCid = issuance.fixedRateBondFactCid
+      bondAccount = issuance.bondBundleData.bondAccount
+      cashAccount = issuance.bondBundleData.cashAccount
 
   auctionCid <- submit auctionAgent do
     Script.exerciseCmd auctionInvitationCid AuctionInvitation_Accept with
@@ -183,12 +188,13 @@ placeBid bank price quantity bidderParticipationCid bankCashDepositCid
     Script.exerciseCmd bidderParticipationCid BidderParticipation_PlaceBid with
       price = price
       quantity = quantity
+  Some bankSettlement <- Script.queryContractId bank bankBondSettlementCid
+
   lockCashResult <- submit bank do
     Script.exerciseCmd bidLockReq PlaceBidBotTrigger_LockCash with
       cashDepositCids = [bankCashDepositCid]
-      cashAssetFungibleCid = bankCashFungibleCid
       lockRuleCid = bankLockRuleCid
-      investorBondAssetSettlementCid = bankBondSettlementCid
+      investorAccount = bankSettlement.account
 
   let (bank1Lock1, bidCid1_1, rest) = fromSome $ eitherToOptional $ lockCashResult
   return (bidCid1_1, rest, bank1Lock1)

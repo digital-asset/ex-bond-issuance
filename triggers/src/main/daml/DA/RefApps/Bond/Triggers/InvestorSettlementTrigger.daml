@@ -12,7 +12,9 @@ import DA.Foldable
 import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Lock
 import DA.RefApps.Bond.ContractUtils
+
 import DA.Finance.Asset
+import DA.Finance.Asset.Settlement
 
 investorSettlementTrigger: Trigger ()
 investorSettlementTrigger = Trigger
