@@ -41,7 +41,7 @@ investorSettlementTrigger_finalizes_settlement = script do
           InvestorSettlement_Finalize
             with
               auctionLockedCashCids = progress.bank1Locks
-              investorCashSettlementCid = issuance.bondAccounts.bank1Account
+              investorCashSettlementCid = issuance.cashAccounts.bank1Account
     expectedChoice === actualChoice
 
   commands <- testTrigger investorSettlementTrigger bank1 activeContracts
