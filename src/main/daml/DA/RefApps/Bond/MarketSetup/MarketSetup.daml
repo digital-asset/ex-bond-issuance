@@ -242,7 +242,7 @@ testMarketSetup = script do
       exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash account currency cashAmount
 
   settBank1Cash :: _ <- forA bankCashAccounts $
-   \account -> centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRuleId account []
+   \account -> centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRuleId account [issuer]
 
   settIssCash <- centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount (banks parties)
   lockBank1 :: _ <- forA bankCashAccounts $
@@ -256,7 +256,7 @@ testMarketSetup = script do
 
   settBank1::_ <- forA bankBondAccounts $
    \account -> csd `submit`
-    exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule account []
+    exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule account [issuer]
 
   settIss <- csd `submit` do exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount (auctionAgent::banks parties)
 
@@ -269,7 +269,8 @@ testMarketSetupFull: Script [ContractId RedemptionPayoutInfo]
 testMarketSetupFull = script $ do
   MarketSetupData issuer issuerRole csd auctionAgent bank1
                   funIss settIss settIssCash cashBank1
-                  bank1BondAccount bank1CashAccount lockBank1 <- testMarketSetup
+                  bank1BondAccount bank1CashAccount
+                  issuerBondAccount issuerCashAccount lockBank1 <- testMarketSetup
   issuanceReq <- submit issuer do
     exerciseCmd issuerRole $ IssuerRole_Issuance with
                             issueSize = 100
@@ -296,8 +297,8 @@ testMarketSetupFull = script $ do
           bondAssetSettlementCid = settIss
           cashAssetSettlementCid = settIssCash
           fixedRateBondFactCid = bondFact
-          bondAccount = bank1BondAccount
-          cashAccount = bank1CashAccount
+          bondAccount = issuerBondAccount
+          cashAccount = issuerCashAccount
 
   auction <- submit auctionAgent do
     exerciseCmd auctionInv $ AuctionInvitation_Accept "auction1"

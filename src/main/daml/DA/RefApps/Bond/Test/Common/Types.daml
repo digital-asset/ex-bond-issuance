@@ -32,6 +32,8 @@ data MarketSetupData =
   , cashBank1: ContractId AssetDeposit
   , bank1BondAccount : Account
   , bank1CashAccount : Account
+  , issuerBondAccount : Account
+  , issuerCashAccount : Account
   , lockBank1: ContractId AssetLockRule
   }
 

@@ -284,6 +284,7 @@ template AuctionFinalizeBotTrigger
               steps = [bondSettlementStep]
               observers = Set.fromList regulators
 
+            debug auctionBid.investorAccount
             debug bondSettlementStep
             allocatedBondChain <- exercise bondChain SettlementInstruction_AllocateNext with
               ctrl = issuer
