@@ -6,7 +6,7 @@ import { Auction } from "@daml.js/bond-issuance-2.0.0/lib/DA/RefApps/Bond/Auctio
 import { useLedger, useParty, useStreamQueries } from "@daml/react";
 import React from "react";
 import Contracts, { field, text } from "../../components/Contracts/Contracts";
-import { normalizeDablPartyId, standardizePartyId } from "../../components/Util";
+import { standardizePartyId } from "../../components/Util";
 import { useSortedPartyNames } from "../login/Login";
 
 export default function Report() {
@@ -57,7 +57,7 @@ export default function Report() {
         dialogFields:[
           field(bidders, text)],
           action: doInviteBidders,
-          shouldDisplay: () => (normalizeDablPartyId(parties, party) === 'AuctionAgent')
+          shouldDisplay: () => party === 'AuctionAgent'
     }
     ]}
   />);

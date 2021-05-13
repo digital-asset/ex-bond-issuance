@@ -32,7 +32,7 @@ export default function Report() {
           name: "Accept",
           handle: doAccept,
           paramName: "Auction name",
-          shouldDisplay: () => true, //(c) => c.payload.xxxx === standardizePartyId(parties, party),
+          shouldDisplay: () => true,
           items:[],
           values:[]}
       ]}

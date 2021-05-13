@@ -27,7 +27,7 @@ export default function Report() {
     {
       name: "Settle",
       handle: doSettle,
-      shouldDisplay: () => true, //(c) => c.payload.verifier === standardizePartyId(parties, party),
+      shouldDisplay: () => true,
       paramName: "",
       items:[],
       values:[]
