@@ -5,130 +5,21 @@
 
 module DA.RefApps.Bond.MarketSetup.MarketSetupScript where
 
-import Prelude hiding (getParty)
 import Daml.Script
-
-import DA.RefApps.Bond.Roles.CentralBankRole
-import DA.RefApps.Bond.Roles.CsdRole
-import DA.RefApps.Bond.Roles.OperatorRole
-import DA.RefApps.Bond.Roles.BankRole
-import DA.RefApps.Bond.Roles.IssuerRole
-import DA.RefApps.Bond.Roles.AuctionAgentRole
 import DA.RefApps.Bond.MarketSetup.Parties
-import DA.RefApps.Bond.Util
 import DA.RefApps.Bond.Test.Common.Parties(allocateParties)
+import DA.RefApps.Bond.MarketSetup.MarketSetup(marketSetup)
+
+import Prelude hiding (getParty)
 
 setupMarket : Script ()
 setupMarket = do
   debug "Ledger is being initialized..."
   allocateParties >>= setupMarketWithParties
 
--- WIP;reducing verbosity and reusing code
 setupMarketWithParties : Parties -> Script ()
 setupMarketWithParties parties@Parties{..} = do
   debug "Starting market setup..."
-  operatorCid <-
-    submit operator $
-      createCmd OperatorRole with
-        operator = operator
-        regulators = [regulator]
-  auctionAgentInvitationCid <-
-    submit operator $
-      exerciseCmd operatorCid OperatorRole_InviteAuctionAgent with
-          auctionAgent = auctionAgent
-  bankInvitationCid1 <-
-    submit operator $
-      exerciseCmd operatorCid OperatorRole_InviteBank with
-          bank = bank1
-  bankInvitationCid2 <-
-    submit operator $
-      exerciseCmd operatorCid OperatorRole_InviteBank with
-          bank = bank2
-  bankInvitationCid3 <-
-    submit operator $
-      exerciseCmd operatorCid OperatorRole_InviteBank with
-          bank = bank3
-  csdInvitationCid <-
-    submit operator $
-      exerciseCmd operatorCid OperatorRole_InviteCsd with
-          csd = csd
-  issuerCid <-
-    submit operator $
-      exerciseCmd operatorCid OperatorRole_InviteIssuer with
-          issuer = issuer
-          bondProvider = csd
-          cashProvider = centralBank
-          auctionAgent = auctionAgent
-  centralBankCid <-
-    submit operator $
-      exerciseCmd operatorCid OperatorRole_InviteCentralBank with
-          centralBank = centralBank
-
-  submit auctionAgent do
-    exerciseCmd auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
-
-  submit bank1 do
-    exerciseCmd bankInvitationCid1 BankRoleInvitation_Accept
-
-  submit bank2 do
-    exerciseCmd bankInvitationCid2 BankRoleInvitation_Accept
-
-  submit bank3 do
-    exerciseCmd bankInvitationCid3 BankRoleInvitation_Accept
-
-  csdRoleCid <- submit csd do
-    exerciseCmd csdInvitationCid CsdRoleInvitation_Accept
-
-  submit issuer $
-    exerciseCmd issuerCid IssuerRoleInvitation_Accept
-
-  centralBankRoleCid <- submit centralBank do
-    exerciseCmd centralBankCid CentralBankRoleInvitation_Accept
-
-  let AccountCreation{..} = getAccounts $ Parties with ..
-
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash bank2CashAccount "USD" 600000000.0
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash bank3CashAccount "USD" 50000000.0
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash issuerCashAccount "USD" 100000000.0
-
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount []
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount []
-  settIssCash <-
-    submit centralBank $
-      exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount [bank1, bank2, bank3]
-
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateLockRule bank2CashAccount
-  submit centralBank $
-    exerciseCmd centralBankRoleCid $ CentralBankRole_CreateLockRule bank3CashAccount
-
-  submit csd $
-    exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule bank1BondAccount []
-  submit csd $
-    exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule bank2BondAccount []
-  submit csd $
-    exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule bank3BondAccount []
-  submit csd $
-    exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
-
-  submit csd $
-    exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount []
-  submit csd $
-    exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule bank2BondAccount []
-  submit csd $
-    exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
-  submit csd $
-    exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
+  marketSetup
   debug "Ledger is initialized."
   pure ()
