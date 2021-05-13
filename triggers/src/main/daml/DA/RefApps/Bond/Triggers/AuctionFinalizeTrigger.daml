@@ -52,6 +52,9 @@ finalizeAuction party = do
             getMatching trigger.auctionAgent trigger.auctionName participationContracts
         matchingBidCids =
             getMatching trigger.auctionAgent trigger.auctionName bidContracts
+    debug "exercise"
+    debug matchingParticipationCids
+    debug matchingBidCids
     dedupExercise triggerCid AuctionFinalizeBotTrigger_AllocateBond with
         participationCids = matchingParticipationCids
         bidCids = matchingBidCids
@@ -144,7 +147,7 @@ testAuctionWithTwoBids = script do
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid finalizeTrigger
-    assertEqChoices choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation1, participation2] [bid1, bid2])
+    assertEqChoices choiceArg (AuctionFinalizeBotTrigger_AllocateBond [participation2, participation1] [bid2, bid1])
 
 -- Helpers -------------------------
 
