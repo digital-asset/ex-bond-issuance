@@ -90,6 +90,11 @@ template InvestorSettlement
                 payment = cashMergedForQuantity.asset
 
             bondChain <- fetch settleRequest.bondSettlementChainCid
+            debug "/////"
+            debug investor
+            debug settleRequest.investor
+            debug bondChain.masterAgreement.party1
+            debug (head bondChain.steps).receiverAccount.owner
 
             dvpCid <- create Dvp with
               masterAgreement = bondChain.masterAgreement
@@ -103,8 +108,8 @@ template InvestorSettlement
 
             let cashSettlementStep = SettlementDetails with
                     depositCid = None
-                    receiverAccount = investorCashSettlementCid
-                    senderAccount = settleRequest.issuerCashSettlementCid
+                    receiverAccount = settleRequest.issuerCashSettlementCid
+                    senderAccount = investorCashSettlementCid
 
             cashChain <- create SettlementInstruction with
               masterAgreement = bondChain.masterAgreement
@@ -113,18 +118,20 @@ template InvestorSettlement
               steps = [cashSettlementStep]
               observers = Set.fromList regulators
 
-            allocatedCashChain <- exercise cashChain SettlementInstruction_AllocateNext with
+            allocatedCashChainCid <- exercise cashChain SettlementInstruction_AllocateNext with
               ctrl = investor
               depositCid = cashMergedForQuantityCid
 
+            debug "MA"
+            debug bondChain.masterAgreement
             dvpSettlement <- create DvpSettlementRule with
               masterAgreement = bondChain.masterAgreement
               -- observers = Set.fromList regulators
 
             result <- exercise dvpSettlement DvpSettlement_Process with
               dvpCid=dvpCid
-              paymentInstructionCids=[]
-              deliveryInstructionCids=[]
+              paymentInstructionCids=[allocatedCashChainCid]
+              deliveryInstructionCids=[settleRequest.bondSettlementChainCid]
               ctrl=bondChain.masterAgreement.party1
 
             redemptionPayout <- create RedemptionPayoutInfo with

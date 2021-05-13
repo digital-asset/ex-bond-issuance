@@ -108,21 +108,22 @@ setupIssuance: Parties -> Script TestIssuance
 setupIssuance parties@Parties{..} = script do
   testRoles <- setupRoles parties
   let AccountCreation{..} = getAccounts parties
+      issuerObserver = [issuer]
 
   -- Rules and cash
   (bank1CashSettlement, bank1Lock, bank1CashAsset) <- submit centralBank do
     bank1CashAsset <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank1CashAccount "USD" 50000000.0
-    bank1Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount []
+    bank1Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank1CashAccount issuerObserver
     bank1Lock <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank1CashAccount
     pure (bank1Settlement, bank1Lock, bank1CashAsset)
   (bank2CashSettlement, bank2Lock, bank2CashAsset) <- submit centralBank do
     bank2CashAsset <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank2CashAccount "USD" 600000000.0
-    bank2Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount []
+    bank2Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank2CashAccount issuerObserver
     bank2Lock <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank2CashAccount
     pure (bank2Settlement, bank2Lock, bank2CashAsset)
   (bank3CashSettlement, bank3Lock, bank3CashAsset) <- submit centralBank do
     bank3CashAsset <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_IssueCash bank3CashAccount "USD" 30000000.0
-    bank3Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount []
+    bank3Settlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule bank3CashAccount issuerObserver
     bank3Lock <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateLockRule bank3CashAccount
     pure (bank3Settlement, bank3Lock, bank3CashAsset)
 
@@ -137,9 +138,9 @@ setupIssuance parties@Parties{..} = script do
     pure (issuerFungibleRule, issuerSettlementRule)
 
   (bank1BondSettlement, bank2BondSettlement, bank3BondSettlement) <- submit csd do
-    bank1Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount []
-    bank2Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank2BondAccount []
-    bank3Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
+    bank1Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount issuerObserver
+    bank2Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank2BondAccount issuerObserver
+    bank3Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount issuerObserver
     pure (bank1Settlement, bank2Settlement, bank3Settlement)
 
   -- Bond Issuance ------------------------
@@ -294,12 +295,12 @@ startAuction parties@Parties{..} issuance = script do
     exerciseCmd bidderParticipationCid2 BidderParticipation_PlaceBid with
       price = 25.0
       quantity = 800000
-  bank2Settlement <- queryContractId bank2 issuance.rules.bank2BondSettlementCid
+  Some bank2Settlement <- queryContractId bank2 issuance.rules.bank2BondSettlementCid
   lockCashResult1 <- submit bank2 do
     exerciseCmd bidLockReq1 PlaceBidBotTrigger_LockCash with
       cashDepositCids = [issuance.cashAssets.bank2CashDepositCid]
       lockRuleCid = issuance.rules.bank2LockRuleCid
-      investorAccount = bank1Settlement.account
+      investorAccount = bank2Settlement.account
   let (bank2Lock1, bidCid2_1, rest) = fromSome $ eitherToOptional $ lockCashResult1
   bidLockReq2 <- submit bank2 do
     exerciseCmd bidderParticipationCid2 BidderParticipation_PlaceBid with
@@ -309,7 +310,7 @@ startAuction parties@Parties{..} issuance = script do
     exerciseCmd bidLockReq2 PlaceBidBotTrigger_LockCash with
       cashDepositCids = rest
       lockRuleCid = issuance.rules.bank2LockRuleCid
-      investorAccount = bank1Settlement.account
+      investorAccount = bank2Settlement.account
   let (bank2Lock2, bidCid2_2, rest') = fromSome $ eitherToOptional $ lockCashResult2
   bidLockReq3 <- submit bank2 do
     exerciseCmd bidderParticipationCid2 BidderParticipation_PlaceBid with
@@ -319,7 +320,7 @@ startAuction parties@Parties{..} issuance = script do
     exerciseCmd bidLockReq3 PlaceBidBotTrigger_LockCash with
       cashDepositCids = rest'
       lockRuleCid = issuance.rules.bank2LockRuleCid
-      investorAccount = bank1Settlement.account
+      investorAccount = bank2Settlement.account
   let (bank2Lock3, bidCid2_3, _) = fromSome $ eitherToOptional $ lockCashResult3
 
   passTime $ seconds 1
