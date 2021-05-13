@@ -174,8 +174,8 @@ template MarketSetup
 
 testMarketSetupContract: Script ()
 testMarketSetupContract = script do
-  Parties{..} <- allocateParties
-  let parties = [auctionAgent, bank1, bank2, bank3, csd, issuer, centralBank]
+  p@Parties{..} <- allocateParties
+  let parties = [auctionAgent, csd, issuer, centralBank] <> (banks p)
   signatureCreatorCid <-
     submit operator do createCmd MarketSetupSignatureCreator with signatories = [operator], ..
   void $ forA parties (\party -> submit party $ exerciseCmd signatureCreatorCid $ MarketSetupSignatureCreator_CreateSignature party)
@@ -192,6 +192,11 @@ testMarketSetup = script do
     <- operator `submit` do
       auctionAgentInvitationCid
         <- exerciseCmd operatorCid OperatorRole_InviteAuctionAgent {..}
+
+      -- BankRoleInvites{..} <-
+      --   toBankRoleInvites <$> (forA (banks parties) $ \bank -> do
+      --      z <- exerciseCmd operatorCid OperatorRole_InviteBank with {..}
+      --      pure z)
 
       bankInvitationCid1
         <- exerciseCmd operatorCid OperatorRole_InviteBank with
@@ -265,12 +270,9 @@ testMarketSetup = script do
   setTime (time (date 2019 Apr 1) 0 0 0)
   return $ MarketSetupData with ..
 
-testMarketSetupFull: Script [ContractId RedemptionPayoutInfo]
+testMarketSetupFull: Script[ContractId RedemptionPayoutInfo]
 testMarketSetupFull = script $ do
-  MarketSetupData issuer issuerRole csd auctionAgent bank1
-                  funIss settIss settIssCash cashBank1
-                  bank1BondAccount bank1CashAccount
-                  issuerBondAccount issuerCashAccount lockBank1 <- testMarketSetup
+  MarketSetupData{..} <- testMarketSetup
   issuanceReq <- submit issuer do
     exerciseCmd issuerRole $ IssuerRole_Issuance with
                             issueSize = 100
@@ -308,7 +310,7 @@ testMarketSetupFull = script $ do
   (auction', [bidderPar]) <- submit auctionAgent do
     exerciseCmd auction $ Auction_InviteBidders [bank1]
 
-  pbbTrigger <- submit bank1 do
+  pbbTrigger<-submit bank1 do
     exerciseCmd bidderPar $ BidderParticipation_PlaceBid with
       price = 1.0
       quantity = 100
