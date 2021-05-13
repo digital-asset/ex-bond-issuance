@@ -17,7 +17,6 @@ import DA.List as List
 import DA.Set as Set
 import DA.RefApps.Bond.Util
 import DA.Finance.Trade.SettlementInstruction
-import DA.Text (sha256)
 
 {-
   In the workflow described here, the auction agent should already be verified.
@@ -268,7 +267,7 @@ template AuctionFinalizeBotTrigger
                 masterAgreement = MasterAgreement with
                   id = Id with
                     signatories = Set.fromList [auctionAgent]
-                    label = sha256 $ show this
+                    label = show auctionBid.bidder <> "/" <> show issuer
                     version = 0
                   party1 = auctionBid.bidder
                   party2 = issuer
