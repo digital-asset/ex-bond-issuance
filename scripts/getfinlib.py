@@ -7,15 +7,14 @@
 # Produces dar file `target/finlib-master-sdk-{daml_sdk_version}.dar' by fetching the source and building it.
 # Arguments: daml_sdk_version
 
+import logging
 from io import BytesIO
 from os import environ, getcwd, path
 from platform import system
-from shutil import rmtree
 from subprocess import call
 from sys import argv
 from tempfile import mkdtemp
 from zipfile import ZipFile
-import logging
 
 # based on 'Cheat Sheet: Writing Python 2-3 compatible code'
 # from https://python-future.org/compatible_idioms.html
@@ -78,6 +77,3 @@ logging.debug('Working in {tmp_directory}'.format(tmp_directory=tmp_directory))
 get_source(url, tmp_directory)
 
 build_dar(daml_sdk_version, full_path_to_dar, tmp_directory)
-
-## logging.debug('Removing {tmp_directory}'.format(tmp_directory=tmp_directory))
-## rmtree(tmp_directory)
