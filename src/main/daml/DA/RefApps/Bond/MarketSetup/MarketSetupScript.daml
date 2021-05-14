@@ -20,6 +20,6 @@ setupMarket = do
 setupMarketWithParties : Parties -> Script ()
 setupMarketWithParties parties@Parties{..} = do
   debug "Starting market setup..."
-  marketSetup
+  marketSetup parties
   debug "Ledger is initialized."
   pure ()

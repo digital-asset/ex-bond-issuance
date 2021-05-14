@@ -183,9 +183,8 @@ testMarketSetupContract = script do
     exerciseCmd signatureCreatorCid MarketSetupSignatureCreator_SetupMarket {..}
 
 -- | Initial setup of the market participants and some cash
-marketSetup: Script MarketSetupData
-marketSetup = script do
-  parties@Parties{..} <- allocateParties
+marketSetup: Parties -> Script MarketSetupData
+marketSetup parties@Parties{..} = script do
   operatorCid <- submit operator do
     createCmd OperatorRole with regulators = [regulator], ..
   roleInvite@RoleInvite{..}
@@ -261,14 +260,12 @@ marketSetup = script do
 
   settIss <- csd `submit` do exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount (auctionAgent::banks parties)
 
-  -- setup time
-  now <- getTime
-  setTime (time (date 2019 Apr 1) 0 0 0)
   return $ MarketSetupData with ..
 
 testMarketSetupFull: Script[ContractId RedemptionPayoutInfo]
 testMarketSetupFull = script $ do
-  MarketSetupData{..} <- marketSetup
+  parties@Parties{..} <- allocateParties
+  MarketSetupData{..} <- marketSetup parties
   issuanceReq <- submit issuer do
     exerciseCmd issuerRole $ IssuerRole_Issuance with
                             issueSize = 100
