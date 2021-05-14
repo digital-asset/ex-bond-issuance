@@ -17,11 +17,11 @@ import time
 DEFAULT_TRIGGER_SERVICE_PORT = 8088
 DEFAULT_SANDBOX_PORT = 6865
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def add_trigger_to_service(party, package_id, trigger):
-    logger.info(f"Starting {package_id}:{trigger} as {party}")
+    log.info(f"Starting {package_id}:{trigger} as {party}")
     payload = {'triggerName': f'{package_id}:{trigger}', 'party': party}
     headers = {"Content-type": "application/json",
                "Accept": "application/json"}
@@ -31,26 +31,32 @@ def add_trigger_to_service(party, package_id, trigger):
 
 
 def get_package_id(dar):
-    result = subprocess.run(['daml', 'damlc', 'inspect-dar', '--json', dar], stdout=subprocess.PIPE)
-    if result.returncode != 0:
-        raise RuntimeError(result.stderr)
-    inspect = json.loads(result.stdout)
-    return inspect["main_package_id"]
+    result = subprocess.run(['daml', 'damlc', 'inspect-dar', '--json', dar], capture_output=True, check=True)
+    dar_properties = json.loads(result.stdout)
+    return dar_properties["main_package_id"]
 
 
-def start_trigger_service_in_background(dar, sandbox_port = DEFAULT_SANDBOX_PORT):
+def start_trigger_service_in_background(dar, ledger_port = DEFAULT_SANDBOX_PORT):
     return _start_process_in_background(
-        ["daml", "trigger-service", "--ledger-host", "localhost", "--ledger-port", f'{sandbox_port}',
-         "--wall-clock-time", "--dar", dar, ])
+        ["daml", "trigger-service", "--ledger-host", "localhost", "--ledger-port", f'{ledger_port}',
+         "--wall-clock-time", "--dar", dar])
 
 
-def kill_background_process(process):
-    logger.debug("Killing subprocess...")
+def run_script(dar, script_name, ledger_port = DEFAULT_SANDBOX_PORT):
+    log.debug("Running script...")
+    return subprocess.run([
+        "daml", "script", "--ledger-host", "localhost", "--ledger-port", f'{ledger_port}', "--dar", dar,
+        "--script-name", script_name
+    ], check=True)
+
+
+def kill_process(process):
+    log.debug("Killing subprocess...")
     try:
         # https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true
         os.killpg(os.getpgid(process.pid), signal.SIGTERM)
     except ProcessLookupError:
-        logger.warning(f'Could not found subprocess to kill')
+        log.warning(f'Could not found process {process.pid} to kill')
 
 
 def wait_for_port(port: int, host: str = 'localhost', timeout: float = 5.0):
@@ -59,18 +65,18 @@ def wait_for_port(port: int, host: str = 'localhost', timeout: float = 5.0):
     while True:
         try:
             with socket.create_connection((host, port), timeout=timeout):
-                logger.info("Port is open")
+                log.info("Port is open")
                 break
         except OSError as ex:
             if time.perf_counter() - start_time >= timeout:
                 raise TimeoutError(f'Waited too long for the port {host}:{port}') from ex
-            logger.info(f"Waiting for port {port}...")
+            log.info(f"Waiting for port {port}...")
             time.sleep(2)
 
 
 def catch_signals():
     def signal_handler(_sig, _frame):
-        logger.debug('Stopping gracefully...')
+        log.debug('Stopping gracefully...')
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
@@ -78,6 +84,6 @@ def catch_signals():
 
 
 def _start_process_in_background(args):
-    logger.debug(f'Running background {args}...')
+    log.debug(f'Running background {args}...')
     # https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true
     return subprocess.Popen(args, preexec_fn=os.setsid)
