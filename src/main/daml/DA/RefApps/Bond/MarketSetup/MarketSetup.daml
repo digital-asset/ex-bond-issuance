@@ -24,6 +24,7 @@ import DA.RefApps.Bond.Redemption
 import DA.Foldable (forA_)
 import DA.RefApps.Bond.Test.Common.Parties
 import DA.RefApps.Bond.Test.Common.Types
+import DA.RefApps.Bond.MarketSetup.MarketSetupScript
 
 -- | A contract with the operator's and a party's signature. This can
 -- be used then to setup the market.
@@ -183,89 +184,10 @@ testMarketSetupContract = script do
     exerciseCmd signatureCreatorCid MarketSetupSignatureCreator_SetupMarket {..}
 
 -- | Initial setup of the market participants and some cash
-marketSetup: Parties -> Script MarketSetupData
-marketSetup parties@Parties{..} = script do
-  operatorCid <- submit operator do
-    createCmd OperatorRole with regulators = [regulator], ..
-  roleInvite@RoleInvite{..}
-    <- operator `submit` do
-      auctionAgentInvitationCid
-        <- exerciseCmd operatorCid OperatorRole_InviteAuctionAgent with ..
-
-      bankInvitationCid1
-        <- exerciseCmd operatorCid OperatorRole_InviteBank with
-              bank = bank1
-      bankInvitationCid2
-        <- exerciseCmd operatorCid OperatorRole_InviteBank with
-              bank = bank2
-      bankInvitationCid3
-        <- exerciseCmd operatorCid OperatorRole_InviteBank with
-              bank = bank3
-      csdInvitationCid
-        <- exerciseCmd operatorCid OperatorRole_InviteCsd with ..
-
-      issuerCid
-        <- exerciseCmd operatorCid OperatorRole_InviteIssuer with
-              bondProvider = csd
-              cashProvider = centralBank
-              ..
-      centralBankCid
-        <- exerciseCmd operatorCid OperatorRole_InviteCentralBank with ..
-      return RoleInvite with ..
-
-  auctionAgent `submit` do
-    exerciseCmd auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
-
-  forA_ (banks parties `zip` bankInvitationCids roleInvite) $
-      \(bank, invitation) -> bank `submit`
-      exerciseCmd invitation BankRoleInvitation_Accept
-
-  csdRoleCid <- csd `submit`
-    exerciseCmd csdInvitationCid CsdRoleInvitation_Accept
-
-  issuerRole <- issuer `submit`
-    exerciseCmd issuerCid IssuerRoleInvitation_Accept
-
-  centralBankRoleCid <- centralBank `submit`
-    exerciseCmd centralBankCid CentralBankRoleInvitation_Accept
-
-  let tenMillion : Numeric 10 = 10.0^7
-      accounts@AccountCreation{..} = getAccounts parties
-      bankCashAccounts = toBankCashAccounts accounts
-      bankBondAccounts = toBankBondAccounts accounts
-      allAccounts = issuerCashAccount :: bankCashAccounts
-      centralbankIssuance = ("USD", ) . (* tenMillion) <$> [10.0, 5.0, 60.0, 5.0]
-
-  [issuerCash, cashBank1, cashbank2, cashBank3]
-    <- forA (centralbankIssuance `zip` allAccounts) $ \((currency, cashAmount), account) ->
-      centralBank `submit`
-      exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash account currency cashAmount
-
-  settBank1Cash :: _ <- forA bankCashAccounts $
-   \account -> centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule account []
-
-  settIssCash <- centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount (banks parties)
-  lockBank1 :: _ <- forA bankCashAccounts $
-   \account -> centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateLockRule account
-
-  forA_ bankBondAccounts $
-   \account -> csd `submit`
-    exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule account []
-
-  funIss <- csd `submit` exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
-
-  settBank1::_ <- forA bankBondAccounts $
-   \account -> csd `submit`
-    exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule account [issuer]
-
-  settIss <- csd `submit` do exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount (auctionAgent::banks parties)
-
-  return $ MarketSetupData with ..
-
 testMarketSetupFull: Script[ContractId RedemptionPayoutInfo]
 testMarketSetupFull = script $ do
   parties@Parties{..} <- allocateParties
-  MarketSetupData{..} <- marketSetup parties
+  MarketSetupData{..} <- setupMarketWithParties parties
   issuanceReq <- submit issuer do
     exerciseCmd issuerRole $ IssuerRole_Issuance with
                             issueSize = 100

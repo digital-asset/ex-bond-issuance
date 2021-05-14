@@ -2,23 +2,100 @@
 -- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 -- SPDX-License-Identifier: Apache-2.0
 --
-
+{-# LANGUAGE ApplicativeDo #-}
 module DA.RefApps.Bond.MarketSetup.MarketSetupScript where
 
 import Daml.Script
 import DA.RefApps.Bond.MarketSetup.Parties
-import DA.RefApps.Bond.Test.Common.Parties(allocateParties)
-import DA.RefApps.Bond.MarketSetup.MarketSetup(marketSetup)
+import DA.RefApps.Bond.Test.Common.Parties(banks, allocateParties)
+import DA.RefApps.Bond.Roles.CentralBankRole
+import DA.RefApps.Bond.Roles.CsdRole
+import DA.RefApps.Bond.Roles.OperatorRole
+import DA.RefApps.Bond.Roles.BankRole
+import DA.RefApps.Bond.Roles.IssuerRole
+import DA.RefApps.Bond.Roles.AuctionAgentRole
+import DA.RefApps.Bond.Util
+import DA.RefApps.Bond.Test.Common.Types
+
 
 import Prelude hiding (getParty)
+import DA.Foldable (forA_)
 
-setupMarket : Script ()
+setupMarket : Script MarketSetupData
 setupMarket = do
   allocateParties >>= setupMarketWithParties
 
-setupMarketWithParties : Parties -> Script ()
+setupMarketWithParties : Parties -> Script MarketSetupData
 setupMarketWithParties parties@Parties{..} = do
   debug "Starting market setup..."
-  marketSetup parties
+  operatorCid <- submit operator do
+    createCmd OperatorRole with regulators = [regulator], ..
+
+  auctionAgentInvitationCid <-
+    operator `submit` do
+        exerciseCmd operatorCid OperatorRole_InviteAuctionAgent with ..
+  [bankInvitationCid1, bankInvitationCid2, bankInvitationCid3] <-
+    forA (banks parties) $
+    \bank -> operator `submit` do
+        exerciseCmd operatorCid OperatorRole_InviteBank with ..
+
+  csdInvitationCid <- operator `submit` do
+        exerciseCmd operatorCid OperatorRole_InviteCsd with ..
+
+  issuerCid <- operator `submit` do
+        exerciseCmd operatorCid OperatorRole_InviteIssuer with
+              bondProvider = csd
+              cashProvider = centralBank
+              ..
+  centralBankCid <- operator `submit` do
+        exerciseCmd operatorCid OperatorRole_InviteCentralBank with ..
+
+  auctionAgent `submit` do
+    exerciseCmd auctionAgentInvitationCid AuctionAgentRoleInvitation_Accept
+
+  forA_ (banks parties `zip` bankInvitationCids (RoleInvite with ..)) $
+      \(bank, invitation) -> bank `submit`
+      exerciseCmd invitation BankRoleInvitation_Accept
+
+  csdRoleCid <- csd `submit`
+    exerciseCmd csdInvitationCid CsdRoleInvitation_Accept
+
+  issuerRole <- issuer `submit`
+    exerciseCmd issuerCid IssuerRoleInvitation_Accept
+
+  centralBankRoleCid <- centralBank `submit`
+    exerciseCmd centralBankCid CentralBankRoleInvitation_Accept
+
+  let tenMillion : Numeric 10 = 10.0^7
+      accounts@AccountCreation{..} = getAccounts parties
+      bankCashAccounts = toBankCashAccounts accounts
+      bankBondAccounts = toBankBondAccounts accounts
+      allAccounts = issuerCashAccount :: bankCashAccounts
+      centralbankIssuance = ("USD", ) . (* tenMillion) <$> [10.0, 5.0, 60.0, 5.0]
+
+  [issuerCash, cashBank1, cashbank2, cashBank3]
+    <- forA (centralbankIssuance `zip` allAccounts) $ \((currency, cashAmount), account) ->
+      centralBank `submit`
+      exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash account currency cashAmount
+
+  settBank1Cash :: _ <- forA bankCashAccounts $
+   \account -> centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule account []
+
+  settIssCash <- centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount (banks parties)
+  lockBank1 :: _ <- forA bankCashAccounts $
+   \account -> centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateLockRule account
+
+  forA_ bankBondAccounts $
+   \account -> csd `submit`
+    exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule account []
+
+  funIss <- csd `submit` exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
+
+  settBank1::_ <- forA bankBondAccounts $
+   \account -> csd `submit`
+    exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule account [issuer]
+
+  settIss <- csd `submit` do exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount (auctionAgent::banks parties)
   debug "Ledger is initialized."
-  pure ()
+  return $ MarketSetupData with ..
+
