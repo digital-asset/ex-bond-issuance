@@ -52,9 +52,6 @@ finalizeAuction party = do
             getMatching trigger.auctionAgent trigger.auctionName participationContracts
         matchingBidCids =
             getMatching trigger.auctionAgent trigger.auctionName bidContracts
-    debug "exercise"
-    debug matchingParticipationCids
-    debug matchingBidCids
     dedupExercise triggerCid AuctionFinalizeBotTrigger_AllocateBond with
         participationCids = matchingParticipationCids
         bidCids = matchingBidCids

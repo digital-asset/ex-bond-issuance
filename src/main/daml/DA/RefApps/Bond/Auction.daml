@@ -220,7 +220,6 @@ template AuctionFinalizeBotTrigger
           participationCids: [ContractId BidderParticipation]
           bidCids: [ContractId AuctionBid]
         do
-          debug "c0"
           -- fetching participations and asserting validity
           participationsOfThisAuction
             <- forA participationCids $ \participationCid -> do
@@ -228,7 +227,6 @@ template AuctionFinalizeBotTrigger
               assertMsg "Participation should refer to the same auction" $
                 participation.auctionAgent == auctionAgent && participation.auctionName == auctionName
               return participation
-          debug "c01"
           -- fetching and checking if all bidders were invited
           let bidders = sort $ map (\p -> (p.bidder)) participationsOfThisAuction
           assertMsg ("Only invited bidders should participate. Bidders: " <> (show bidders) <> "\ninvited bidders: " <> (show invitedBidders)) $ isSubset bidders invitedBidders
@@ -241,7 +239,6 @@ template AuctionFinalizeBotTrigger
                 bid.auctionAgent == auctionAgent && bid.auctionName == auctionName
               assertMsg "Bidder should be invited to this auction" $ elem bid.bidder bidders
               return (SortableBidData bid.bidData bidCid)
-          debug "c02"
           -- sort bids
           let sortedBids = sortBy cmpBids bids
               -- calculate auction result, if successful the clearing price and quantities --
@@ -252,13 +249,11 @@ template AuctionFinalizeBotTrigger
           (bidWithAssets, remainedAssetFact) <-
             splitAsset bondBundleData bondBundleData.assetDepositCid auctionResult.awardedBids []
 
-          debug "c1"
           -- allocate --
           settleRequestsWithBidder <- forA bidWithAssets $ \bidWithAsset -> do
             auctionBid <- fetch bidWithAsset.auctionBidCid
             issuerBondAssetDeposit <- fetch bidWithAsset.bondAssetDepositCid
 
-            debug (auctionBid.bidder, auctionBid.investorAccount.owner)
             assertMsg "Bidder==boooo" $ auctionBid.bidder == auctionBid.investorAccount.owner
             let bondSettlementStep = SettlementDetails with
                     depositCid = None
@@ -283,8 +278,6 @@ template AuctionFinalizeBotTrigger
               steps = [bondSettlementStep]
               observers = Set.fromList regulators
 
-            debug auctionBid.investorAccount
-            debug bondSettlementStep
             allocatedBondChain <- exercise bondChain SettlementInstruction_AllocateNext with
               ctrl = issuer
               depositCid = bidWithAsset.bondAssetDepositCid

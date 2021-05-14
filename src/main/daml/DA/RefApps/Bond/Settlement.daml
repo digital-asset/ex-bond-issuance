@@ -22,6 +22,7 @@ import DA.Optional
 import DA.Action
 import DA.RefApps.Bond.Util
 import DA.Finance.Trade.SettlementInstruction
+import DA.Foldable
 
 
 
@@ -90,11 +91,6 @@ template InvestorSettlement
                 payment = cashMergedForQuantity.asset
 
             bondChain <- fetch settleRequest.bondSettlementChainCid
-            debug "/////"
-            debug investor
-            debug settleRequest.investor
-            debug bondChain.masterAgreement.party1
-            debug (head bondChain.steps).receiverAccount.owner
 
             dvpCid <- create Dvp with
               masterAgreement = bondChain.masterAgreement
@@ -122,8 +118,6 @@ template InvestorSettlement
               ctrl = investor
               depositCid = cashMergedForQuantityCid
 
-            debug "MA"
-            debug bondChain.masterAgreement
             dvpSettlement <- create DvpSettlementRule with
               masterAgreement = bondChain.masterAgreement
               -- observers = Set.fromList regulators
@@ -147,5 +141,5 @@ template InvestorSettlement
             return (remainingNew, redemptionPayout :: redemptionPayouts)
             ) (investorCashAssetDepositCids, []) settleRequestCids
 
-          forA settleRequestCids archive
+          forA_ settleRequestCids archive
           return payoutInfos
