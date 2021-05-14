@@ -20,13 +20,11 @@ import DA.RefApps.Bond.Test.Common.Parties(allocateParties)
 
 setupMarket : Script ()
 setupMarket = do
-  debug "Ledger is being initialized..."
   allocateParties >>= setupMarketWithParties
 
 -- WIP;reducing verbosity and reusing code
 setupMarketWithParties : Parties -> Script ()
 setupMarketWithParties parties@Parties{..} = do
-  debug "Starting market setup..."
   operatorCid <-
     submit operator $
       createCmd OperatorRole with
@@ -130,5 +128,4 @@ setupMarketWithParties parties@Parties{..} = do
     exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule bank3BondAccount []
   submit csd $
     exerciseCmd csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
-  debug "Ledger is initialized."
   pure ()
