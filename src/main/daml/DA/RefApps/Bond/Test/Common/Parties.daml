@@ -6,7 +6,9 @@
 module DA.RefApps.Bond.Test.Common.Parties (Parties(..), allocateParties, banks) where
 
 import DA.RefApps.Bond.MarketSetup.Parties
-import Daml.Script
+import Daml.Script hiding (allocateParty)
+
+allocateParty p = allocatePartyWithHint p (PartyIdHint p)
 
 allocateParties : Script Parties
 allocateParties = do
