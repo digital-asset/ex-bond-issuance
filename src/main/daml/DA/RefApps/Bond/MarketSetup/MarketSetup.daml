@@ -183,20 +183,15 @@ testMarketSetupContract = script do
     exerciseCmd signatureCreatorCid MarketSetupSignatureCreator_SetupMarket {..}
 
 -- | Initial setup of the market participants and some cash
-testMarketSetup: Script MarketSetupData
-testMarketSetup = script do
+marketSetup: Script MarketSetupData
+marketSetup = script do
   parties@Parties{..} <- allocateParties
   operatorCid <- submit operator do
     createCmd OperatorRole with regulators = [regulator], ..
   roleInvite@RoleInvite{..}
     <- operator `submit` do
       auctionAgentInvitationCid
-        <- exerciseCmd operatorCid OperatorRole_InviteAuctionAgent {..}
-
-      -- BankRoleInvites{..} <-
-      --   toBankRoleInvites <$> (forA (banks parties) $ \bank -> do
-      --      z <- exerciseCmd operatorCid OperatorRole_InviteBank with {..}
-      --      pure z)
+        <- exerciseCmd operatorCid OperatorRole_InviteAuctionAgent with ..
 
       bankInvitationCid1
         <- exerciseCmd operatorCid OperatorRole_InviteBank with
@@ -208,7 +203,8 @@ testMarketSetup = script do
         <- exerciseCmd operatorCid OperatorRole_InviteBank with
               bank = bank3
       csdInvitationCid
-        <- exerciseCmd operatorCid OperatorRole_InviteCsd {..}
+        <- exerciseCmd operatorCid OperatorRole_InviteCsd with ..
+
       issuerCid
         <- exerciseCmd operatorCid OperatorRole_InviteIssuer with
               bondProvider = csd
@@ -247,7 +243,7 @@ testMarketSetup = script do
       exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash account currency cashAmount
 
   settBank1Cash :: _ <- forA bankCashAccounts $
-   \account -> centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRuleId account [issuer]
+   \account -> centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule account []
 
   settIssCash <- centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount (banks parties)
   lockBank1 :: _ <- forA bankCashAccounts $
@@ -272,7 +268,7 @@ testMarketSetup = script do
 
 testMarketSetupFull: Script[ContractId RedemptionPayoutInfo]
 testMarketSetupFull = script $ do
-  MarketSetupData{..} <- testMarketSetup
+  MarketSetupData{..} <- marketSetup
   issuanceReq <- submit issuer do
     exerciseCmd issuerRole $ IssuerRole_Issuance with
                             issueSize = 100
