@@ -79,7 +79,7 @@ setupMarketWithParties parties@Parties{..} = do
       exerciseCmd centralBankRoleCid $ CentralBankRole_IssueCash account currency cashAmount
 
   settBank1Cash :: _ <- forA bankCashAccounts $
-   \account -> centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule account []
+   \account -> centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule account [issuer]
 
   settIssCash <- centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount (banks parties)
   lockBank1 :: _ <- forA bankCashAccounts $

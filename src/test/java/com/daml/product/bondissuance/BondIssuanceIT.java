@@ -11,7 +11,7 @@ import com.daml.extensions.testing.junit4.Sandbox;
 import com.daml.extensions.testing.ledger.DefaultLedgerAdapter;
 import com.daml.extensions.testing.utils.ContractWithId;
 import com.daml.ledger.javaapi.data.Party;
-import da.finance.fact.asset.AssetDeposit;
+import da.finance.asset.AssetDeposit;
 import da.refapps.bond.auction.Auction;
 import da.refapps.bond.auction.AuctionBid;
 import da.refapps.bond.auction.AuctionInvitation;
