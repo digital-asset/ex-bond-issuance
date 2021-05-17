@@ -221,7 +221,7 @@ public class BondIssuanceIT {
             AssetDeposit.TEMPLATE_ID,
             AssetDeposit::fromValue,
             false,
-            assetDepositFinal -> // 50 000 000 - (42 * 20 000)
+            assetDepositFinal -> // 50 000 000 - (42 * 200 000)
             assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(41600000L)) == 0,
             assetDepositFinal -> // Redemption value (with coupon): 40.1 * 200 000 * 1.1
             assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(8822000L)) == 0));
