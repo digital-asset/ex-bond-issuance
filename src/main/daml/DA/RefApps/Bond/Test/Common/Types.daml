@@ -26,7 +26,6 @@ data MarketSetupData =
   , csd: Party
   , auctionAgent: Party
   , bank1: Party
-  , funIss: ContractId AssetDeposit
   , settIss: ContractId AssetSettlementRule
   , settIssCash: ContractId AssetSettlementRule
   , cashBank1: ContractId AssetDeposit

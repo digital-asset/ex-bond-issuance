@@ -158,12 +158,6 @@ template MarketSetup
           (lockBank1:: _) <-
             forA bankCashAccounts (exercise centralBankRoleCid . CentralBankRole_CreateLockRule)
 
-          forA_ bankBondAccounts $
-              \account -> exercise csdRoleCid $ CsdRole_CreateFungibleRule account []
-
-          funIss <-
-              exercise csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
-
           (settBank1:: _) <-
             forA bankBondAccounts (\account -> exercise csdRoleCid $ CsdRole_CreateSettlementRule account [])
 

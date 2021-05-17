@@ -132,10 +132,9 @@ setupIssuance parties@Parties{..} = script do
     issuerCashSettlement <- exerciseCmd testRoles.centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount [auctionAgent, bank1, bank2, bank3]
     pure (issuerCashAsset, issuerCashSettlement)
 
-  (issuerFungibleRule, issuerBondSettlement) <- submit csd do
-    issuerFungibleRule <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
+  issuerBondSettlement <- submit csd do
     issuerSettlementRule <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule issuerBondAccount [auctionAgent, bank1, bank2, bank3]
-    pure (issuerFungibleRule, issuerSettlementRule)
+    pure issuerSettlementRule
 
   (bank1BondSettlement, bank2BondSettlement, bank3BondSettlement) <- submit csd do
     bank1Settlement <- exerciseCmd testRoles.csdRoleCid $ CsdRole_CreateSettlementRule bank1BondAccount issuerObserver

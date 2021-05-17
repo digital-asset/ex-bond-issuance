@@ -2,6 +2,7 @@
 -- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 -- SPDX-License-Identifier: Apache-2.0
 --
+
 {-# LANGUAGE ApplicativeDo #-}
 module DA.RefApps.Bond.MarketSetup.MarketSetupScript where
 
@@ -84,12 +85,6 @@ setupMarketWithParties parties@Parties{..} = do
   settIssCash <- centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateSettlementRule issuerCashAccount (banks parties)
   lockBank1 :: _ <- forA bankCashAccounts $
    \account -> centralBank `submit` exerciseCmd centralBankRoleCid $ CentralBankRole_CreateLockRule account
-
-  forA_ bankBondAccounts $
-   \account -> csd `submit`
-    exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule account []
-
-  funIss <- csd `submit` exerciseCmd csdRoleCid $ CsdRole_CreateFungibleRule issuerBondAccount [auctionAgent]
 
   settBank1::_ <- forA bankBondAccounts $
    \account -> csd `submit`

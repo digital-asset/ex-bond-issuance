@@ -10,10 +10,7 @@ module DA.RefApps.Bond.Roles.CsdRole where
 import DA.Set
 
 import DA.Finance.Types
-import DA.Finance.Asset
 import DA.Finance.Asset.Settlement
-import qualified DA.Set as Set
-
 
 -- Role contract invitation for CSD role.
 template CsdRoleInvitation
@@ -60,18 +57,3 @@ template CsdRole
             account = account
             observers = fromList observers
             ctrls = fromList observers
-
-      nonconsuming CsdRole_CreateFungibleRule: ContractId AssetDeposit
-        with
-          account: Account
-          observers: [Party]
-        do
-          create AssetDeposit with
-            account = account
-            observers = fromList observers
-            asset = Asset with
-              id = Id with
-                signatories = Set.fromList $ signatory this
-                label = "Asset"
-                version = 0
-              quantity = 1.0
