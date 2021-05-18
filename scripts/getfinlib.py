@@ -9,7 +9,7 @@
 
 import logging
 from io import BytesIO
-from os import environ, getcwd, path, chdir, chmod, path, mkdir
+from os import environ, getcwd, path, chdir, chmod, mkdir
 from platform import system
 from subprocess import call
 from sys import argv
@@ -48,7 +48,7 @@ def daml_command():
 
 def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
     extracted_directory = "lib-finance-{version}".format(version=finlib_version)
-    target_dir='{pwd}/target/'.format(pwd=getcwd())
+    target_dir = '{pwd}/target/'.format(pwd=getcwd())
     project_root = "{tmp_directory}/{extracted_directory}".format(
         tmp_directory=tmp_directory,
         extracted_directory=extracted_directory)
@@ -61,7 +61,7 @@ def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
     logging.info('Calling to {build_command}')
     chdir(project_root)
 
-    chmod( './build.sh', 0o775)
+    chmod('./build.sh', 0o775)
     call(build_command)
     if not path.exists(target_dir):
         mkdir(target_dir)
