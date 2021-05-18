@@ -217,7 +217,7 @@ public class BondIssuanceIT {
 
     ledgerAdapter.exerciseChoice(CSD_PARTY, redemptionRequest.exerciseRedemptionRequest_Accept());
 
-    Thread.sleep(180_000);
+    Thread.sleep(190_000);
     assertTrue(
         ledgerAdapter.observeMatchingContracts(
             BANK1_PARTY,
