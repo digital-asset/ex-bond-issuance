@@ -217,6 +217,8 @@ public class BondIssuanceIT {
 
     ledgerAdapter.exerciseChoice(CSD_PARTY, redemptionRequest.exerciseRedemptionRequest_Accept());
 
+    // CI machines can be slow, we engineer a delay to ensure the correct state
+    // gets observed on the in memory ledger when the assertions are run.
     Thread.sleep(190_000);
     assertTrue(
         ledgerAdapter.observeMatchingContracts(
