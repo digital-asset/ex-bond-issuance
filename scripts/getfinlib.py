@@ -34,18 +34,6 @@ def get_source(url, tmp_directory):
     with ZipFile(BytesIO(resp.read())) as zipfile:
         zipfile.extractall(tmp_directory)
 
-
-def is_windows():
-    return system() == "Windows"
-
-
-def daml_command():
-    if is_windows():
-        return "daml.cmd"
-    else:
-        return "daml"
-
-
 def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
     extracted_directory = "lib-finance-{version}".format(version=finlib_version)
     target_dir = '{pwd}/target/'.format(pwd=getcwd())
