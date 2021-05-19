@@ -33,12 +33,8 @@ template AssetLockRule
           archive assetDepositCid
           create AuctionLockedCash with
             owner = account.owner
-            auctionAgent = auctionAgent
-            auctionName = auctionName
             lockedCashAssetDeposit = assetDeposit
-            account = account
-            regulators = regulators
-
+            ..
 
 -- A marker template which assigns a `AssetLockedFact` to an auction, so the
 -- settlement bot can collect the relevant locked cash assets to settle the outstanding DvPs.

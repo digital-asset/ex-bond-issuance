@@ -7,12 +7,9 @@ module DA.RefApps.Bond.ContractUtils where
 
 import DA.Optional
 import DA.List.Total
-
 import DA.Finance.Asset
 import DA.Finance.Asset.Settlement
-
 import DA.Finance.Types
-
 import DA.RefApps.Bond.Lock
 
 type Contract a = (ContractId a, a)
@@ -39,8 +36,8 @@ findAsset' providers owner assets =
     filterContracts (accountBelongsToAnyOf providers owner) assets
 
 accountBelongsToAnyOf: (HasAccount a) => [Party] -> Party -> a -> Bool
-accountBelongsToAnyOf providers owner a = do
-  let account = accountOf a
+accountBelongsToAnyOf providers owner a =
+  let account = accountOf a in
   account.provider `elem` providers && owner == account.owner
 
 findAuctionLockedCashes: [Contract AuctionLockedCash] -> Party -> Text -> [Contract AuctionLockedCash]
@@ -54,3 +51,6 @@ auctionBelongsTo auctionAgent auctionName auction =
 
 filterContracts: (a -> Bool) -> [Contract a] -> [Contract a]
 filterContracts p contracts = [ contract | contract@(_, value) <- contracts, p value]
+
+showBracketed : Show a => a -> Text
+showBracketed = (<> "] ") . (" [" <>) . show

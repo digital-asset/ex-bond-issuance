@@ -6,11 +6,11 @@
 
 module DA.RefApps.Bond.Triggers.RedemptionCalculationTrigger where
 
-import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
+import DA.RefApps.Bond.Redemption
 import DA.RefApps.Bond.Test.Common.Parties qualified as MarketSetup
 import DA.RefApps.Bond.Test.Common.Types qualified as MarketSetup
-import DA.RefApps.Bond.Redemption
-import DA.Finance.Asset
+import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
+import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.ContractUtils
 import Daml.Script (Script, script)
@@ -20,10 +20,9 @@ import Daml.Trigger.Assert
 import DA.Assert
 import DA.List
 import DA.Foldable hiding (length)
--- import DA.Finance.Asset (SettlementInstruction)
-import DA.Finance.Trade.SettlementInstruction
 
-import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
+import DA.Finance.Asset
+import DA.Finance.Trade.SettlementInstruction
 
 
 redemptionCalculationTrigger : Trigger ()

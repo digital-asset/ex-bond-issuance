@@ -11,19 +11,20 @@ import qualified Daml.Script as Script
 import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
 import DA.RefApps.Bond.Test.Common.Parties qualified as MarketSetup
 import DA.RefApps.Bond.Test.Common.Types qualified as MarketSetup
+import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
 
 import DA.RefApps.Bond.Redemption
-import DA.Finance.Asset
-import DA.Finance.Asset.Settlement
 import DA.RefApps.Bond.Roles.IssuerRole
 import DA.RefApps.Bond.ContractUtils
-import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
 import Daml.Trigger
 import Daml.Trigger.Assert
 import DA.Optional
 import DA.Assert
 import DA.List
 import DA.Foldable hiding (length)
+
+import DA.Finance.Asset
+import DA.Finance.Asset.Settlement
 
 
 redemptionFinalizeTrigger : Trigger ()
@@ -107,8 +108,8 @@ testNoFinalizeTrigger = script do
     redeem csd issuer issuance settleRequests assetsForRedemption remainedBond
 
   let activeContracts =
-          toACS issuance.cashAssets.issuerCashDepositCid <>
-          toACS issuance.rules.issuerCashSettlementCid
+          toACS issuance.cashAssets.issuerCashDepositCid
+            <> toACS issuance.rules.issuerCashSettlementCid
   flattenedCommands <- testTrigger redemptionFinalizeTrigger issuer activeContracts
   length flattenedCommands === 0
 
@@ -117,15 +118,21 @@ redeem: Party -> Party -> MarketSetup.TestIssuance -> MarketSetup.SettleRequests
 redeem csd issuer issuance settleRequests assetsForRedemption remainedBondDeposit = do
   redeemRequest <- submit issuer do
     Script.exerciseCmd issuance.roles.issuerRoleCid $ IssuerRole_Redeem issuance.fixedRateBondFactCid
-  Some otherParticipantReq <- Script.queryContractId issuer settleRequests.otherSettleReqCid
-  Some otherSettleReq <- Script.queryContractId issuer (head otherParticipantReq.settleRequestCids)
-  let request = redeemRequest
-  calc <- submit csd do
-    Script.exerciseCmd request RedemptionRequest_Accept
+  Some otherParticipantReq <-
+    Script.queryContractId issuer settleRequests.otherSettleReqCid
+  Some otherSettleReq <- Script.queryContractId
+      issuer
+      (head otherParticipantReq.settleRequestCids)
+  calc <- submit csd do Script.exerciseCmd redeemRequest RedemptionRequest_Accept
+
   submit csd do
-    fromSomeNote "Redeem: start should have returned a Some value." <$>
-      Script.exerciseCmd calc (RedemptionCalculationBotTrigger_Start
-        [assetsForRedemption.bank1RedemptionPayoutInfoCid,
-         assetsForRedemption.bank2RedemptionPayoutInfoCid,
-         assetsForRedemption.bank3RedemptionPayoutInfoCid]
-        [remainedBondDeposit])
+    fromSomeNote "Redeem: start should have returned a Some value."
+      <$> Script.exerciseCmd
+            calc
+            (RedemptionCalculationBotTrigger_Start
+              [ assetsForRedemption.bank1RedemptionPayoutInfoCid
+              , assetsForRedemption.bank2RedemptionPayoutInfoCid
+              , assetsForRedemption.bank3RedemptionPayoutInfoCid
+              ]
+              [remainedBondDeposit]
+            )

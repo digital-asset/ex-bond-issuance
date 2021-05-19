@@ -29,8 +29,8 @@ investorSettlementTrigger_finalizes_settlement = script do
     exerciseCmd settleRequests.bank1SettleReqCid AuctionParticipantSettleRequest_Settle
 
   let activeContracts =
-        toACS issuance.rules.bank1CashSettlementCid -- assetSettlements
-        <> foldMap toACS progress.bank1Locks -- auctionLockedCashes
+        toACS issuance.rules.bank1CashSettlementCid
+        <> foldMap toACS progress.bank1Locks
 
   commands <- testTrigger investorSettlementTrigger bank1 (activeContracts <> toACS settlement)
 

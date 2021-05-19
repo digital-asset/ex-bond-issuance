@@ -17,6 +17,7 @@ import DA.List as List
 import DA.Set as Set
 import DA.RefApps.Bond.Util
 import DA.Finance.Trade.SettlementInstruction
+import DA.Foldable (forA_)
 
 {-
   In the workflow described here, the auction agent should already be verified.
@@ -87,40 +88,48 @@ cmpBids (SortableBidData (BidData p _ s) _)  (SortableBidData (BidData p1 _ s1) 
 
 calcAuctionResult: AuctionData -> [SortableBidData] -> ResultData -> ResultData
 calcAuctionResult _ [] result = result
-calcAuctionResult details@(AuctionData auctionSize limitPrice) (x::xs) (ResultData price allocatedQuantity awardedBids invalidBids)
-  | (x.bidData.price < limitPrice || allocatedQuantity == auctionSize) =
-    calcAuctionResult details xs $ ResultData price allocatedQuantity awardedBids (x :: invalidBids)
+calcAuctionResult details@(AuctionData auctionSize limitPrice) (sortableBid::sortableBids) (ResultData price allocatedQuantity awardedBids invalidBids)
+  | (sortableBid.bidData.price < limitPrice || allocatedQuantity == auctionSize) =
+    calcAuctionResult details sortableBids $ ResultData price allocatedQuantity awardedBids (sortableBid :: invalidBids)
   | otherwise = do
-    let remainder = min (auctionSize - allocatedQuantity) x.bidData.quantity
-        bidData = BidData x.bidData.price remainder x.bidData.submissionTime
-        splitBid = SortableBidData
-          { bidData = bidData
-          , auctionBidCid = x.auctionBidCid
-          }
-        newResult = ResultData x.bidData.price (remainder + allocatedQuantity) (splitBid :: awardedBids) invalidBids
-    calcAuctionResult details xs newResult
+    let remainder = min (auctionSize - allocatedQuantity) sortableBid.bidData.quantity
+        bidData = BidData sortableBid.bidData.price remainder sortableBid.bidData.submissionTime
+        splitBid = SortableBidData with auctionBidCid = sortableBid.auctionBidCid, ..
+        newResult =
+         ResultData sortableBid.bidData.price (remainder + allocatedQuantity) (splitBid :: awardedBids) invalidBids
+    calcAuctionResult details sortableBids newResult
 
-splitAsset: BondBundleData -> (ContractId AssetDeposit) -> [SortableBidData] -> [BidWithAssetData] -> Update ([BidWithAssetData], Optional (ContractId AssetDeposit))
-splitAsset bondBundleData remainingAssetCid (awardedBid :: awardedBids) bidWithAssets = do
-  remainingAsset <- fetch remainingAssetCid
-  if remainingAsset.asset.quantity == intToDecimal awardedBid.bidData.quantity
-  then do
-    let bidWithAsset = BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid remainingAssetCid
-    return (bidWithAsset :: bidWithAssets, None)
-  else do
-    let neededQuantity = intToDecimal awardedBid.bidData.quantity
-    fragment :: newRemainder :: [] <-
-        exercise remainingAssetCid $
-          AssetDeposit_Split [neededQuantity]
-    let bidWithAsset = BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid fragment
-    splitAsset bondBundleData newRemainder awardedBids (bidWithAsset :: bidWithAssets)
+splitAsset bondBundleData remainingAssetCid (awardedBid :: awardedBids) bidWithAssets
+  = do
+    remainingAsset <- fetch remainingAssetCid
+    case
+        remainingAsset.asset.quantity
+        == intToDecimal awardedBid.bidData.quantity
+      of
+        True -> do
+          let bidWithAsset =
+                BidWithAssetData awardedBid.bidData awardedBid.auctionBidCid remainingAssetCid
+          return (bidWithAsset :: bidWithAssets, None)
+        False -> do
+          let neededQuantity = intToDecimal awardedBid.bidData.quantity
+          fragment :: newRemainder :: [] <- exercise remainingAssetCid
+            $ AssetDeposit_Split [neededQuantity]
+          let bidWithAsset =
+                BidWithAssetData
+                   awardedBid.bidData
+                   awardedBid.auctionBidCid
+                   fragment
+          splitAsset bondBundleData
+                     newRemainder
+                     awardedBids
+                     (bidWithAsset :: bidWithAssets)
 splitAsset bondBundleData remainingAssetCid [] bidWithAssets = do
   return (bidWithAssets, Some remainingAssetCid)
 
 invalidBidText: BidData -> AuctionData -> Text
-invalidBidText bid auctionData =
-  if (bid.price < auctionData.limitPrice) then "The offered amount didn't reach the limit price"
-    else "No amount remained to match this bid"
+invalidBidText bid auctionData
+  | (bid.price < auctionData.limitPrice) = "The offered amount didn't reach the limit price"
+  | otherwise = "No amount remained to match this bid"
 
 isSubset: Eq a => [a] -> [a] -> Bool
 isSubset [] [] = True
@@ -162,36 +171,14 @@ template Auction
         do
           participations
             <- forA bidders $ \bidder -> do
-              create BidderParticipation with
-                    bidder = bidder
-                    auctionAgent = auctionAgent
-                    issuer = issuer
-                    operator = operator
-                    regulators = regulators
-                    startDate = startDate
-                    endDate = endDate
-                    size = size
-                    fixedRateBondFact = fixedRateBondFact
-                    cashAssetId = cashAssetId
-                    issuerCashAccountProvider = issuerCashAccountProvider
-                    auctionName = auctionName
-          auction' <- create this with invitedBidders = bidders <> invitedBidders
-          return (auction', participations)
+              create BidderParticipation with ..
+          (, participations) <$> create this with
+           invitedBidders = bidders <> invitedBidders
 
       Auction_Finalize: ContractId AuctionFinalizeBotTrigger
         do
           -- create a new contract that a bot can exercise on with the collected participations
-          create AuctionFinalizeBotTrigger with
-            auctionAgent = auctionAgent
-            issuer = issuer
-            regulators = regulators
-            minPrice = minPrice
-            size = size
-            issuerCashAccountProvider = issuerCashAccountProvider
-            bondBundleData = bondBundleData
-            cashAssetId = cashAssetId
-            invitedBidders = invitedBidders
-            auctionName = auctionName
+          create AuctionFinalizeBotTrigger with ..
 
 -- This template is used to trigger the corresponding java bot which passes the active participations
 -- and bids to the single choice of this contract.
@@ -220,24 +207,37 @@ template AuctionFinalizeBotTrigger
           participationCids: [ContractId BidderParticipation]
           bidCids: [ContractId AuctionBid]
         do
+
           -- fetching participations and asserting validity
-          participationsOfThisAuction
-            <- forA participationCids $ \participationCid -> do
+          participationsOfThisAuction <- forA participationCids $ \participationCid ->
+            do
               participation <- fetch participationCid
-              assertMsg "Participation should refer to the same auction" $
-                participation.auctionAgent == auctionAgent && participation.auctionName == auctionName
+              assertMsg "Participation should refer to the same auction"
+                $  participation.auctionAgent
+                == auctionAgent
+                && participation.auctionName
+                == auctionName
               return participation
+
           -- fetching and checking if all bidders were invited
-          let bidders = sort $ map (\p -> (p.bidder)) participationsOfThisAuction
-          assertMsg ("Only invited bidders should participate. Bidders: " <> (show bidders) <> "\ninvited bidders: " <> (show invitedBidders)) $ isSubset bidders invitedBidders
+          let bidders = sort $ map (.bidder) participationsOfThisAuction
+          assertMsg
+              (  "Only invited bidders should participate. Bidders: "
+              <> (show bidders)
+              <> "\ninvited bidders: "
+              <> (show invitedBidders)
+              )
+            $ isSubset bidders invitedBidders
 
           -- fetching bids and asserting validity
-          bids
-            <- forA bidCids $ \bidCid -> do
+          bids <- forA bidCids $ \bidCid -> do
               bid <- fetch bidCid
-              assertMsg "Bid should refer to the same auction" $
-                bid.auctionAgent == auctionAgent && bid.auctionName == auctionName
-              assertMsg "Bidder should be invited to this auction" $ elem bid.bidder bidders
+              assertMsg "Bid should refer to the same auction"
+                $ bid.auctionAgent
+                == auctionAgent
+                && bid.auctionName == auctionName
+              assertMsg "Bidder should be invited to this auction"
+                $ elem bid.bidder bidders
               return (SortableBidData bid.bidData bidCid)
           -- sort bids
           let sortedBids = sortBy cmpBids bids
@@ -254,7 +254,8 @@ template AuctionFinalizeBotTrigger
             auctionBid <- fetch bidWithAsset.auctionBidCid
             issuerBondAssetDeposit <- fetch bidWithAsset.bondAssetDepositCid
 
-            assertMsg "Bidder==boooo" $ auctionBid.bidder == auctionBid.investorAccount.owner
+            assertMsg "Bidder should be bid's account owner"
+              $ auctionBid.bidder == auctionBid.investorAccount.owner
             let bondSettlementStep = SettlementDetails with
                     depositCid = None
                     receiverAccount = auctionBid.investorAccount
@@ -278,46 +279,49 @@ template AuctionFinalizeBotTrigger
               steps = [bondSettlementStep]
               observers = Set.fromList regulators
 
-            allocatedBondChain <- exercise bondChain SettlementInstruction_AllocateNext with
-              ctrl = issuer
-              depositCid = bidWithAsset.bondAssetDepositCid
-            request <- create AuctionSettleRequest with
-              investor = auctionBid.bidder
-              issuer = issuer
-              auctionAgent = auctionAgent
-              auctionName = auctionName
-              issuerCashAccountProvider = issuerCashAccountProvider
-              issuerBondAssetDepositCid = bidWithAsset.bondAssetDepositCid
-              issuerBondAssetDeposit = issuerBondAssetDeposit
-              cashAmountToPay = auctionResult.price * intToDecimal bidWithAsset.bidData.quantity
-              bondSettlementChainCid = allocatedBondChain
-              issuerCashSettlementCid = bondBundleData.cashAccount
-              cashAssetId = cashAssetId
-              regulators = regulators
-            return (auctionBid.bidder, request)
+            allocatedBondChain <-
+              exercise
+                  bondChain
+                  SettlementInstruction_AllocateNext with
+                    ctrl       = issuer
+                    depositCid = bidWithAsset.bondAssetDepositCid
+            (auctionBid.bidder, )
+                <$> create AuctionSettleRequest with
+                      investor                  = auctionBid.bidder
+                      issuerBondAssetDepositCid = bidWithAsset.bondAssetDepositCid
+                      cashAmountToPay           = auctionResult.price
+                                                    * intToDecimal bidWithAsset.bidData.quantity
+                      bondSettlementChainCid    = allocatedBondChain
+                      issuerCashSettlementCid   = bondBundleData.cashAccount
+                      ..
 
           -- notify about invalid bids
-          notificationsWithBidder <- forA auctionResult.invalidBids \(SortableBidData bidData auctionBidCid) -> do
-            auctionBid <- fetch auctionBidCid
-            notif <- exercise auctionBidCid $ AuctionBid_DiscardInvalid $ invalidBidText bidData auctionData
-            return (auctionBid.bidder, notif)
+          notificationsWithBidder <-
+            forA auctionResult.invalidBids \(SortableBidData bidData auctionBidCid) ->
+              do
+                auctionBid <- fetch auctionBidCid
+                (auctionBid.bidder, )
+                  <$> (exercise auctionBidCid
+                                $ AuctionBid_DiscardInvalid
+                                $ invalidBidText
+                                  bidData
+                                  auctionData)
 
-          settleRequests <- forA bidders \bidder -> do
-            let requests = map (\sr -> snd sr) $ List.filter (\sr -> bidder == (fst sr)) settleRequestsWithBidder
-            let notifications = map (\n -> snd n) $ List.filter (\n -> bidder == (fst n)) notificationsWithBidder
+          settleRequests <- forA bidders $ \bidder -> do
+            let requests =
+                  snd <$> List.filter ((bidder ==) . fst) settleRequestsWithBidder
+                notifications =
+                  snd <$> List.filter ((bidder ==) . fst) notificationsWithBidder
+
             create AuctionParticipantSettleRequest with
               investor = bidder
-              issuer = issuer
-              auctionAgent = auctionAgent
-              auctionName = auctionName
               settleRequestCids = requests
               invalidBidNotificationCids = notifications
-              cashProvider = issuerCashAccountProvider
-              regulators = regulators
+              cashProvider = issuerCashAccountProvider, ..
 
           -- archive participations --
-          _ <- forA participationCids $ \cid ->
-            exercise cid AuctionBidderParticipation_Archive
+          forA_ participationCids
+            $ \cid -> exercise cid AuctionBidderParticipation_Archive
           return (settleRequests, remainedAssetFact)
 
 -- Represents a bidder's (investor) participation in a particular auction (auctionName @ auctionAgent).
@@ -354,16 +358,9 @@ template BidderParticipation
           now <- getTime
           let bidData = BidData price quantity now
           create PlaceBidBotTrigger with
-            cashAssetId = cashAssetId
             cashProvider = issuerCashAccountProvider
             bondProvider = fixedRateBondFact.provider
-            bidder = bidder
-            auctionAgent = auctionAgent
-            issuer = issuer
-            bidData = bidData
-            auctionName = auctionName
-            bondAssetId = fixedRateBondFact.instrumentId
-            regulators = regulators
+            bondAssetId = fixedRateBondFact.instrumentId, ..
 
       nonconsuming AuctionBidderParticipantion_RevokeLockedBid: ContractId AssetDeposit
         with
@@ -413,17 +410,12 @@ template PlaceBidBotTrigger
           case mergeResult of
             None -> do
               bid <- fetch auctionBidCid
-              notification <- create InvalidBidNotification with
-                bid = bid
-                reason = "Insufficient funds on cash account when placing bid"
-                regulators = regulators
-              return (Left notification)
+              Left <$> create InvalidBidNotification with
+                reason = "Insufficient funds on cash account when placing bid", ..
+
             Some (mergedFactCid, rest) -> do
               lock <- exercise lockRuleCid AssetLockRule_Lock with
-                assetDepositCid = mergedFactCid
-                auctionName = auctionName
-                auctionAgent = auctionAgent
-                regulators = regulators
+                assetDepositCid = mergedFactCid, ..
               return (Right (lock, auctionBidCid, rest))
 
       PlaceBidBotTrigger_Revoke: ()
@@ -450,10 +442,7 @@ template AuctionBid
       AuctionBid_DiscardInvalid: ContractId InvalidBidNotification
         with reason: Text
         do
-        create InvalidBidNotification with
-          bid = this
-          reason = reason
-          regulators = regulators
+        create InvalidBidNotification with bid = this, ..
 
 -- Contract created by the issuer to ask an AuctionAgent to conduct the auction.
 template AuctionInvitation
@@ -468,8 +457,7 @@ template AuctionInvitation
         with
           auctionName: Text
         do
-          let auctionWithName = auction with auctionName = auctionName
-          create auctionWithName
+          create auction with auctionName = auctionName
 
 -- In case of invalid bids (bidding price under the minimum price or the auction size is already allocated)
 -- the bidder receives an `InvalidBidNotification` for each of its bids.
@@ -502,11 +490,4 @@ template AuctionParticipantSettleRequest
     controller investor can
       AuctionParticipantSettleRequest_Settle: ContractId InvestorSettlement
         do
-          create InvestorSettlement with
-            investor = investor
-            issuer = issuer
-            auctionAgent = auctionAgent
-            auctionName = auctionName
-            settleRequestCids = settleRequestCids
-            cashProvider = cashProvider
-            regulators = regulators
+          create InvestorSettlement with ..

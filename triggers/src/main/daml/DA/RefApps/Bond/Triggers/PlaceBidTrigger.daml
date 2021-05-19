@@ -83,10 +83,10 @@ testPlaceBidTrigger = script do
     placeBid bank1 42.0 20000 participation1
 
   let activeContracts =
-          toACS pbTrigger <>
-          toACS issuance.cashAssets.bank1CashDepositCid <>
-          toACS issuance.rules.bank1LockRuleCid <>
-          toACS issuance.rules.bank1BondSettlementCid
+          toACS pbTrigger
+            <> toACS issuance.cashAssets.bank1CashDepositCid
+            <> toACS issuance.rules.bank1LockRuleCid
+            <> toACS issuance.rules.bank1BondSettlementCid
   flattenedCommands <- testTrigger placeBidTrigger bank1 activeContracts
   length flattenedCommands === 1
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
@@ -104,9 +104,9 @@ testNothingHappensIfNoTrigger = script do
   AuctFin.startAuction parties issuance
 
   let activeContracts =
-          toACS issuance.cashAssets.bank1CashDepositCid <>
-          toACS issuance.rules.bank1LockRuleCid <>
-          toACS issuance.rules.bank1BondSettlementCid
+          toACS issuance.cashAssets.bank1CashDepositCid
+            <> toACS issuance.rules.bank1LockRuleCid
+            <> toACS issuance.rules.bank1BondSettlementCid
   flattenedCommands <- testTrigger  placeBidTrigger bank1 activeContracts
   length flattenedCommands === 0
 

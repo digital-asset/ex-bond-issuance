@@ -17,6 +17,7 @@ import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Util
 import DA.RefApps.Bond.Redemption
 import DA.Finance.Asset.Settlement
+import DA.Foldable (forA_)
 
 -- Role contract invitation for bond Issuer role.
 template IssuerRoleInvitation
@@ -74,9 +75,12 @@ template IssuerRole
         do
           assertMsg "Denomination should be positive" $ denomination > 0.0
           assertMsg "Coupon rate should be positive" $ couponRate > 0.0
+
           -- coupon dates should happen earlier than maturity, since maturity is added to couponDates implicitly
-          forA couponDates $ \date -> assertMsg
-            ("Coupon dates should be between the issue date and maturity. Issue date: " <> show issueDate <> " Maturity: " <> show maturityDate <> " current date: " <> show date) $
+          forA_ couponDates $ \date -> assertMsg
+            ("Coupon dates should be between the issue date and maturity. Issue date: " <>
+             show issueDate <> " Maturity: " <>
+             show maturityDate <> " current date: " <> show date) $
             date >= issueDate && date < maturityDate
           let cashAssetId = Id with
                 signatories = singleton cashProvider
@@ -99,7 +103,8 @@ template IssuerRole
           assertMsg "Minimum price should be positive" $ minPrice > 0.0
           assertMsg "Size price should be positive" $ size > 0
           asset <- fetch bondAssetDepositCid
-          assertMsg ("Asset quantity [" <> show asset.asset.quantity <> "] should be greater than or equal to issue size [" <> show size <> "]") $
+          assertMsg ("Asset quantity [" <> show asset.asset.quantity <>
+           "] should be greater than or equal to issue size [" <> show size <> "]") $
             asset.asset.quantity >= intToDecimal size
 
           create CommissionBotTrigger with
@@ -182,7 +187,11 @@ template CommissionBotTrigger
                 fixedRateBondFact = fixedRateBondFact
                 cashAssetId = fixedRateBondFact.cashAssetId
                 issuerCashAccountProvider = cashAccountProvider
-                bondBundleData = BondBundleData observedBondAssetDepositCid bondAssetSettlementCid bondAccount cashAssetSettlementCid cashAccount observedBondAssetDeposit.asset.id.label
+                bondBundleData = BondBundleData with
+                  assetDepositCid = observedBondAssetDepositCid
+                  bondSettlementCid = bondAssetSettlementCid
+                  cashSettlementCid = cashAssetSettlementCid
+                  assetLabel = observedBondAssetDeposit.asset.id.label, ..
                 invitedBidders = []
                 auctionName = ""
 
@@ -230,15 +239,9 @@ template IssuanceRequest
           fixedRateBondFactCid <- create FixedRateBondFact with
             provider = bondAccount.provider
             instrumentId = bondId
-            isin = isin
-            cashAssetId = cashAssetId
             rate = couponRate
             paymentLag = 0
-            denomination = denomination
-            couponDates = couponDates
             couponDatesTriggered = []
-            issueDate = issueDate
-            maturityDate = maturityDate
-            observers = issuer :: regulators
+            observers = issuer :: regulators, ..
           assetCid <- create assetFact
           return (fixedRateBondFactCid, assetCid)

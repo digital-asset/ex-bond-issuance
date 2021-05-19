@@ -77,8 +77,9 @@ testAuctionWithNoBid = script do
       Script.exerciseCmd auction Auction_Finalize
 
   let activeContracts =
-          toACS participation1 <> toACS participation2 <>
-          toACS finalizeTrigger
+          toACS participation1
+            <> toACS participation2
+            <> toACS finalizeTrigger
   flattenedCommands <- testTrigger auctionFinalizeTrigger auctionAgent activeContracts
 
   length flattenedCommands === 1
@@ -184,9 +185,7 @@ placeBid : Party -> Decimal -> Int -> ContractId BidderParticipation -> Contract
 placeBid bank price quantity bidderParticipationCid bankCashDepositCid
     bankLockRuleCid bankBondSettlementCid = script do
   bidLockReq <- submit bank do
-    Script.exerciseCmd bidderParticipationCid BidderParticipation_PlaceBid with
-      price = price
-      quantity = quantity
+    Script.exerciseCmd bidderParticipationCid BidderParticipation_PlaceBid with ..
   Some bankSettlement <- Script.queryContractId bank bankBondSettlementCid
 
   lockCashResult <- submit bank do

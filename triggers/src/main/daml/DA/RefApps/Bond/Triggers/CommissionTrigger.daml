@@ -57,11 +57,9 @@ commissionRule party = do
         (fixedRateBondFactCid, _) =
           getBondRefData trigger.bondAssetId fixedRateBondFacts
     dedupExercise triggerCid CommissionBotTrigger_InviteAgent with
-        bondAssetSettlementCid
         bondAccount = bondAssetSettlement.account
-        cashAssetSettlementCid
         cashAccount = cashAssetSettlement.account
-        fixedRateBondFactCid
+        ..
   where
     getBondRefData assetId bondFacts =
       headNote "Can't find any BondFact contract" $
@@ -100,10 +98,11 @@ testNoCommissionIfNoTrigger = script do
   issuance <-
     MarketSetup.setupIssuance parties
 
-  let activeContracts = toACS issuance.bondBundleData.assetDepositCid <>
-                        toACS issuance.bondBundleData.bondSettlementCid <>
-                        toACS issuance.bondBundleData.cashSettlementCid <>
-                        toACS issuance.fixedRateBondFactCid
+  let activeContracts =
+        toACS issuance.bondBundleData.assetDepositCid
+          <> toACS issuance.bondBundleData.bondSettlementCid
+          <> toACS issuance.bondBundleData.cashSettlementCid
+          <> toACS issuance.fixedRateBondFactCid
   flattenedCommands <- testTrigger commissionTrigger issuer activeContracts
   length flattenedCommands === 0
 
