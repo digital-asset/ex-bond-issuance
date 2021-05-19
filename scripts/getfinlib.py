@@ -10,7 +10,6 @@
 import logging
 from io import BytesIO
 from os import environ, getcwd, path, chdir, chmod, mkdir
-from platform import system
 from subprocess import call
 from sys import argv
 from tempfile import mkdtemp
@@ -33,6 +32,7 @@ def get_source(url, tmp_directory):
     resp = urlopen(url)
     with ZipFile(BytesIO(resp.read())) as zipfile:
         zipfile.extractall(tmp_directory)
+
 
 def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
     extracted_directory = "lib-finance-{version}".format(version=finlib_version)
