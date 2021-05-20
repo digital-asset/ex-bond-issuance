@@ -2,7 +2,7 @@
  * Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-import { AssetDeposit } from "@daml.js/finlib-1.0.0/lib/DA/Finance/Fact/Asset";
+import { AssetDeposit } from "@daml.js/finlib-2.0.0/lib/DA/Finance/Asset";
 import { useStreamQueries } from "@daml/react";
 import React from "react";
 import Contracts from "../../components/Contracts/Contracts";

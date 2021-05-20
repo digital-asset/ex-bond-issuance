@@ -11,12 +11,13 @@ import DA.Optional
 import DA.Foldable (forA_)
 
 import DA.Finance.Types
-import DA.Finance.Rule.Trade.Dvp
-import DA.Finance.Rule.Asset
-import DA.Finance.Fact.Asset
+import DA.Finance.Asset
+import DA.Finance.Asset.Settlement
+import DA.Finance.Trade.Dvp.Settlement
 
 import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.Util
+import DA.RefApps.Bond.ContractUtils
 
 {-
 -    InvestorSettlement_Finalize             +----------------------+
@@ -42,7 +43,7 @@ template RedemptionPayoutInfo
     bondAccountProvider: Party
     investorCashAccount: Account
     settlementResult: DvpSettlement_Process_Result
-    investorCashAssetSettlementCid: ContractId AssetSettlement
+    investorCashAssetSettlementCid: Account
     regulators: [Party]
   where
     signatory investor
@@ -52,7 +53,7 @@ template RedemptionPayoutInfo
       RedemptionPayoutInfo_Redeem: ContractId AssetDeposit
         with
           cashAssetDepositCid: ContractId AssetDeposit
-          issuerCashAssetSettlementCid: ContractId AssetSettlement
+          issuerCashAssetSettlementCid: ContractId AssetSettlementRule
           bondArchivalRequestCid: ContractId BondArchivalRequest
           fixedRateBondFactCid: ContractId FixedRateBondFact
         do
@@ -60,15 +61,21 @@ template RedemptionPayoutInfo
 
           -- quantity check
           bondDeposit <- fetch $ head $ head settlementResult.deliveryDepositCids
-          let quantity = fixedRateBondFact.denomination * (1.0 + fixedRateBondFact.rate) * bondDeposit.asset.quantity
+          let quantity =
+                fixedRateBondFact.denomination
+                  * (1.0 + fixedRateBondFact.rate)
+                  * bondDeposit.asset.quantity
           cashAssetFact <- fetch cashAssetDepositCid
-          assertMsg ("Cash asset quantity should be " <> (show quantity)) $ quantity == cashAssetFact.asset.quantity
+          assertMsg ("Cash asset quantity should be " <> (show quantity))
+            $  quantity
+            == cashAssetFact.asset.quantity
 
           -- archive the bond asset
           exercise bondArchivalRequestCid BondArchivalRequest_Archive
 
           -- transfer
-          exercise issuerCashAssetSettlementCid $ AssetSettlement_Transfer investor cashAssetDepositCid investorCashAssetSettlementCid
+          exercise issuerCashAssetSettlementCid
+            $ AssetSettlement_Transfer investorCashAssetSettlementCid.id cashAssetDepositCid
 
 -- The issuer can initiate a redemption at the bond account provider using this contract.
 -- The `RedemptionRequest_Accept` choice creates a trigger contract which is picked
@@ -89,12 +96,10 @@ template RedemptionRequest
         do
           bond <- fetch fixedRateBondFactCid
           create RedemptionCalculationBotTrigger with
-              issuer = issuer
-              provider = provider
               fixedRateBondFactCid = fixedRateBondFactCid
               bondAssetId = bond.instrumentId
               cashAssetId = bond.cashAssetId
-              regulators = regulators
+              ..
 
 -- Triggers the redemption calculation bot. The bot collects the relevant bond assets
 -- and `RedemptionPayoutInfo`s and calculates the final coupon and creates cash
@@ -124,10 +129,12 @@ template RedemptionCalculationBotTrigger
           -- archive the bonds left at issuer
           forA_ bondsAtIssuer \depositCid -> do
             deposit <- fetch depositCid
-            assertMsg "BondsAtIssuer: all bonds should be owned by the issuer." $
-              deposit.account.owner == issuer
-            assertMsg ("BondsAtIssuer: IDs should be " <> show redeemedBondInstrumentId) $
-              deposit.asset.id == redeemedBondInstrumentId
+            assertMsg "BondsAtIssuer: all bonds should be owned by the issuer."
+               $  deposit.account.owner
+               == issuer
+            assertMsg ("BondsAtIssuer: IDs should be " <> show redeemedBondInstrumentId)
+               $  deposit.asset.id
+               == redeemedBondInstrumentId
             archive depositCid
 
           -- proceed with redemption of the sold bonds
@@ -153,16 +160,14 @@ template RedemptionCalculationBotTrigger
                     regulators = regulators
                   let payment = fixedRateBond.denomination * (1.0 + fixedRateBond.rate) * asset.asset.quantity
                       instruction = RedemptionInstruction with
-                          issuer = issuer
-                          provider = provider
                           investor = payoutInfo.investor
-                          payment = payment
                           bondAssetId = fixedRateBond.instrumentId
                           currency = fixedRateBond.cashAssetId.label
                           bondAssetDepositCid = bondAssetDepositCid
                           redemptionPayoutInfoCid = redemptionPayoutInfoCid
                           fixedRateBondFactCid = fixedRateBondFactCid
                           bondArchivalRequestCid = arcReq
+                          ..
                   pure $ Some (instruction, payoutInfo.investorCashAccount.provider)
                 None ->
                   pure None
@@ -186,15 +191,25 @@ getDeliveredAssetDeposit payoutInfo = do
 
 ownerErrorText : Party -> Party -> Text
 ownerErrorText owner investor =
-  "Bond owner [" <> show owner <> "] and account owner [" <> show investor <> "] should be the same"
+  "Bond owner"
+    <> showBracketed owner
+    <> "and account owner"
+    <> showBracketed investor
+    <> "should be the same"
 
 assetIdErrorText : Id -> Id -> Text
 assetIdErrorText identifier redeemedBondInstrumentId =
-  "Asset fact instrumentId [" <> show identifier <> "] should match " <> show redeemedBondInstrumentId
+  "Asset fact instrumentId"
+   <> showBracketed identifier
+   <> "should match "
+   <> show redeemedBondInstrumentId
 
 instrumentIdErrorText : Id -> Id -> Text
 instrumentIdErrorText bondInstrumentId redeemedBondInstrumentId =
-  "RedemptionPayoutInfo instrumentId [" <> show bondInstrumentId <> "] should match " <> show redeemedBondInstrumentId
+  "RedemptionPayoutInfo instrumentId"
+   <> showBracketed bondInstrumentId
+   <> "should match "
+   <> show redeemedBondInstrumentId
 
 data RedemptionInstruction = RedemptionInstruction
   with
@@ -212,27 +227,35 @@ data RedemptionInstruction = RedemptionInstruction
 
 processInstructions: [RedemptionInstruction] ->
                      [ContractId AssetDeposit] ->
-                     ContractId AssetFungible ->
-                     ContractId AssetSettlement ->
+                     ContractId AssetSettlementRule ->
                      [ContractId AssetDeposit] ->
                      Update [ContractId AssetDeposit]
-processInstructions instructions cashAssetDepositCids cashAssetFungibleCid cashAssetSettlementCid payments
+processInstructions instructions cashAssetDepositCids cashAssetSettlementCid payments
   | null instructions =
       pure payments
   | otherwise = do
       let instruction :: otherInstructions = instructions
-      let firstCid = head cashAssetDepositCids
+          firstCid                         = head cashAssetDepositCids
       firstCashDeposit <- fetch firstCid
-      mergeResult <- mergeForQuantity firstCid firstCashDeposit (tail cashAssetDepositCids) instruction.payment cashAssetFungibleCid
-      assertMsg "Cash assets should suffice when paying out on redemption" $ isSome mergeResult
-      let (merged, remainingAssets)  = fromSome $ mergeResult
+      mergeResult      <-
+        mergeForQuantity firstCid
+                         firstCashDeposit
+                         (tail cashAssetDepositCids)
+                         instruction.payment
+      assertMsg "Cash assets should suffice when paying out on redemption"
+        $ isSome mergeResult
+      let (merged, remainingAssets) = fromSome mergeResult
       payoutInfo <- fetch instruction.redemptionPayoutInfoCid
-      payment <- exercise instruction.redemptionPayoutInfoCid RedemptionPayoutInfo_Redeem with
-        cashAssetDepositCid = merged
-        issuerCashAssetSettlementCid = cashAssetSettlementCid
-        bondArchivalRequestCid = instruction.bondArchivalRequestCid
-        fixedRateBondFactCid = instruction.fixedRateBondFactCid
-      processInstructions otherInstructions remainingAssets cashAssetFungibleCid cashAssetSettlementCid (payment :: payments)
+      payment    <- exercise instruction.redemptionPayoutInfoCid
+        RedemptionPayoutInfo_Redeem with
+          cashAssetDepositCid          = merged
+          issuerCashAssetSettlementCid = cashAssetSettlementCid
+          bondArchivalRequestCid       = instruction.bondArchivalRequestCid
+          fixedRateBondFactCid         = instruction.fixedRateBondFactCid
+      processInstructions otherInstructions
+                          remainingAssets
+                          cashAssetSettlementCid
+                          (payment :: payments)
 
 -- Triggers the redemption finalize bot which accepts the redemption payment
 -- on behalf of the investor.
@@ -252,11 +275,11 @@ template RedemptionFinalizeBotTrigger
       RedemptionFinalizeBotTrigger_Finalize: [ContractId AssetDeposit]
         with
           cashAssetDepositCids: [ContractId AssetDeposit] -- the cash assets this choice can merge and split the required payment from
-          cashAssetSettlementCid: ContractId AssetSettlement
-          cashAssetFungibleCid: ContractId AssetFungible
+          cashAssetSettlementCid: ContractId AssetSettlementRule
         do
-          assertMsg "Cash asset parameter should not be empty" $ (length cashAssetDepositCids) > 0
-          processInstructions instructions cashAssetDepositCids cashAssetFungibleCid cashAssetSettlementCid []
+          assertMsg "Cash asset parameter should not be empty"
+            $ not (null cashAssetDepositCids)
+          processInstructions instructions cashAssetDepositCids cashAssetSettlementCid []
 
 -- Helper contract to archive the bond assets (which needs signature of both
 -- the investor and the provider (CSD))

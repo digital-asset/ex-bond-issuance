@@ -7,10 +7,10 @@
 
 module DA.RefApps.Bond.Roles.CsdRole where
 
-import DA.Next.Set
+import DA.Set
 
 import DA.Finance.Types
-import DA.Finance.Rule.Asset
+import DA.Finance.Asset.Settlement
 
 -- Role contract invitation for CSD role.
 template CsdRoleInvitation
@@ -48,20 +48,12 @@ template CsdRole
     observer regulators
 
     controller csd can
-      nonconsuming CsdRole_CreateSettlementRule: ContractId AssetSettlement
+      nonconsuming CsdRole_CreateSettlementRule: ContractId AssetSettlementRule
         with
           account: Account
           observers: [Party]
         do
-          create AssetSettlement with
+          create AssetSettlementRule with
             account = account
             observers = fromList observers
-
-      nonconsuming CsdRole_CreateFungibleRule: ContractId AssetFungible
-        with
-          account: Account
-          observers: [Party]
-        do
-          create AssetFungible with
-            account = account
-            observers = fromList observers
+            ctrls = fromList observers

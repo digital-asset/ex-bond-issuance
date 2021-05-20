@@ -15,7 +15,7 @@ import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Auction
 import DA.RefApps.Bond.Triggers.InvestorSettlementTrigger
 import DA.RefApps.Bond.Test.FullScenario qualified as LedgerSetup
-import DA.RefApps.Bond.Test.FullScenario (Parties(..), allocateParties)
+import DA.RefApps.Bond.Test.Common.Parties (Parties(..), allocateParties)
 import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
 
 investorSettlementTrigger_finalizes_settlement: Script ()
@@ -29,9 +29,8 @@ investorSettlementTrigger_finalizes_settlement = script do
     exerciseCmd settleRequests.bank1SettleReqCid AuctionParticipantSettleRequest_Settle
 
   let activeContracts =
-           toACS issuance.rules.bank1CashFungibleCid -- assetFungibles
-        <> toACS issuance.rules.bank1CashSettlementCid -- assetSettlements
-        <> foldMap toACS progress.bank1Locks -- auctionLockedCashes
+        toACS issuance.rules.bank1CashSettlementCid
+        <> foldMap toACS progress.bank1Locks
 
   commands <- testTrigger investorSettlementTrigger bank1 (activeContracts <> toACS settlement)
 
@@ -42,8 +41,7 @@ investorSettlementTrigger_finalizes_settlement = script do
           InvestorSettlement_Finalize
             with
               auctionLockedCashCids = progress.bank1Locks
-              cashAssetFungible = issuance.rules.bank1CashFungibleCid
-              investorCashSettlementCid = issuance.rules.bank1CashSettlementCid
+              investorCashSettlementCid = issuance.cashAccounts.bank1Account
     expectedChoice === actualChoice
 
   commands <- testTrigger investorSettlementTrigger bank1 activeContracts

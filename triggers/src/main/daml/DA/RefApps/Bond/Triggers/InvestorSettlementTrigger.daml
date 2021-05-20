@@ -12,7 +12,9 @@ import DA.Foldable
 import DA.RefApps.Bond.Settlement
 import DA.RefApps.Bond.Lock
 import DA.RefApps.Bond.ContractUtils
-import DA.Finance.Rule.Asset
+
+import DA.Finance.Asset
+import DA.Finance.Asset.Settlement
 
 investorSettlementTrigger: Trigger ()
 investorSettlementTrigger = Trigger
@@ -22,8 +24,8 @@ investorSettlementTrigger = Trigger
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @InvestorSettlement,
       registeredTemplate @AuctionLockedCash,
-      registeredTemplate @AssetSettlement,
-      registeredTemplate @AssetFungible
+      registeredTemplate @AssetSettlementRule,
+      registeredTemplate @AssetDeposit
     ]
   , heartbeat = None
   }
@@ -32,8 +34,8 @@ finalizeSettlements: Party -> TriggerA () ()
 finalizeSettlements party = do
   investorSettlements <- query @InvestorSettlement
   auctionLockedCashes <- query @AuctionLockedCash
-  assetSettlements <- query @AssetSettlement
-  assetFungibles <- query @AssetFungible
+  assetSettlements <- query @AssetSettlementRule
+  assetFungibles <- query @AssetDeposit
 
   forA_
     investorSettlements
@@ -41,18 +43,17 @@ finalizeSettlements party = do
 
 finalizeSettlement:
   [Contract AuctionLockedCash] ->
-  [Contract AssetSettlement] ->
-  [Contract AssetFungible] ->
+  [Contract AssetSettlementRule] ->
+  [Contract AssetDeposit] ->
   Contract InvestorSettlement ->
   TriggerA () ()
 finalizeSettlement auctionLockedCashes assetSettlements assetFungibles settlementContract = do
   let
     (id, settlement) = settlementContract
-    assetSettlement = findAsset settlement.cashProvider settlement.investor assetSettlements
-    assetFungible = findAsset settlement.cashProvider settlement.investor assetFungibles
+    (_, assetSettlement) = findAsset settlement.cashProvider settlement.investor assetSettlements
     auctionLockedCashIds =
       case (findAuctionLockedCashes auctionLockedCashes settlement.auctionAgent settlement.auctionName) of
         [] -> error ("Can't find any auction locks for this auction: " <> settlement.auctionName)
-        result -> result
+        result -> fst <$> result
 
-  id `dedupExercise` InvestorSettlement_Finalize auctionLockedCashIds assetFungible assetSettlement
+  id `dedupExercise` InvestorSettlement_Finalize auctionLockedCashIds assetSettlement.account

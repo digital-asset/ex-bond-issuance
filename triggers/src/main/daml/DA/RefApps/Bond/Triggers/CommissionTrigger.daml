@@ -13,8 +13,11 @@ import DA.Foldable hiding (length)
 import Daml.Trigger.Assert
 import DA.Assert
 import DA.RefApps.Bond.Test.FullScenario qualified as MarketSetup
+import DA.RefApps.Bond.Test.Common.Parties qualified as MarketSetup
+import DA.RefApps.Bond.Test.Common.Types qualified as MarketSetup
 import DA.RefApps.Bond.Roles.IssuerRole
-import DA.Finance.Rule.Asset
+import DA.Finance.Asset
+import DA.Finance.Asset.Settlement
 import DA.RefApps.Bond.FixedRateBond
 import DA.RefApps.Bond.ContractUtils
 import DA.RefApps.Bond.Test.Triggers.TriggerTestUtils
@@ -27,8 +30,8 @@ commissionTrigger = Trigger
   , registeredTemplates = RegisteredTemplates [
       registeredTemplate @CommissionBotTrigger,
       registeredTemplate @FixedRateBondFact,
-      registeredTemplate @AssetSettlement,
-      registeredTemplate @AssetFungible
+      registeredTemplate @AssetSettlementRule,
+      registeredTemplate @AssetDeposit
     ]
   , heartbeat = None
   }
@@ -37,36 +40,30 @@ commissionRule : Party -> TriggerA () ()
 commissionRule party = do
   triggerContracts <- query @CommissionBotTrigger
   fixedRateBondFacts <- query @FixedRateBondFact
-  assetSettlements <- query @AssetSettlement
-  assetFungibles <- query @AssetFungible
+  assetSettlements <- query @AssetSettlementRule
+  assetFungibles <- query @AssetDeposit
 
   forA_ triggerContracts $ \(triggerCid, trigger) -> do
-    let bondAssetSettlementCid =
+    let (bondAssetSettlementCid, bondAssetSettlement) =
           findAsset
             trigger.issuerBondAccount.provider
             trigger.issuerBondAccount.owner
             assetSettlements
-        cashAssetSettlementCid =
+        (cashAssetSettlementCid, cashAssetSettlement) =
           findAsset
             trigger.cashAccountProvider
             party
             assetSettlements
-        bondAssetFungibleCid =
-          findAsset
-            trigger.issuerBondAccount.provider
-            trigger.issuerBondAccount.owner
-            assetFungibles
-        fixedRateBondFactCid =
+        (fixedRateBondFactCid, _) =
           getBondRefData trigger.bondAssetId fixedRateBondFacts
     dedupExercise triggerCid CommissionBotTrigger_InviteAgent with
-        bondAssetFungibleCid
-        bondAssetSettlementCid
-        cashAssetSettlementCid
-        fixedRateBondFactCid
+        bondAccount = bondAssetSettlement.account
+        cashAccount = cashAssetSettlement.account
+        ..
   where
     getBondRefData assetId bondFacts =
       headNote "Can't find any BondFact contract" $
-        filterContractIds (\p -> p.instrumentId == assetId) bondFacts
+        filterContracts (\p -> p.instrumentId == assetId) bondFacts
 
 
 -- Tests ---------------------------
@@ -82,7 +79,6 @@ testCommissionHappens = script do
   let activeContracts = toACS commissionBotTrigger <>
                         toACS issuance.bondBundleData.assetDepositCid <>
                         toACS issuance.bondBundleData.bondSettlementCid <>
-                        toACS issuance.bondBundleData.assetFungibleCid <>
                         toACS issuance.bondBundleData.cashSettlementCid <>
                         toACS issuance.fixedRateBondFactCid
   flattenedCommands <- testTrigger commissionTrigger issuer activeContracts
@@ -90,9 +86,10 @@ testCommissionHappens = script do
   assertExerciseCmd flattenedCommands $ \(cid, choiceArg) -> do
     assertEq cid commissionBotTrigger
     assertEq choiceArg $ CommissionBotTrigger_InviteAgent
-      issuance.bondBundleData.assetFungibleCid
       issuance.bondBundleData.bondSettlementCid
+      issuance.bondBundleData.bondAccount
       issuance.bondBundleData.cashSettlementCid
+      issuance.bondBundleData.cashAccount
       issuance.fixedRateBondFactCid
 
 testNoCommissionIfNoTrigger: Script ()
@@ -101,11 +98,11 @@ testNoCommissionIfNoTrigger = script do
   issuance <-
     MarketSetup.setupIssuance parties
 
-  let activeContracts = toACS issuance.bondBundleData.assetDepositCid <>
-                        toACS issuance.bondBundleData.bondSettlementCid <>
-                        toACS issuance.bondBundleData.assetFungibleCid <>
-                        toACS issuance.bondBundleData.cashSettlementCid <>
-                        toACS issuance.fixedRateBondFactCid
+  let activeContracts =
+        toACS issuance.bondBundleData.assetDepositCid
+          <> toACS issuance.bondBundleData.bondSettlementCid
+          <> toACS issuance.bondBundleData.cashSettlementCid
+          <> toACS issuance.fixedRateBondFactCid
   flattenedCommands <- testTrigger commissionTrigger issuer activeContracts
   length flattenedCommands === 0
 

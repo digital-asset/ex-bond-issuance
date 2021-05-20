@@ -1,0 +1,29 @@
+--
+-- Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+--
+
+module DA.RefApps.Bond.Test.Common.Parties (Parties(..), allocateParties, banks) where
+
+import DA.RefApps.Bond.MarketSetup.Parties
+import Daml.Script hiding (allocateParty)
+
+allocateParty p = allocatePartyWithHint p (PartyIdHint p)
+
+allocateParties : Script Parties
+allocateParties = do
+  operator <- allocateParty "Operator"
+  regulator <- allocateParty "Regulator"
+  auctionAgent <- allocateParty "AuctionAgent"
+  bank1 <- allocateParty "Bank1"
+  bank2 <- allocateParty "Bank2"
+  bank3 <- allocateParty "Bank3"
+  bank4 <- allocateParty "Bank4"
+  csd <- allocateParty "Csd"
+  issuer <- allocateParty "Issuer"
+  centralBank <- allocateParty "CentralBank"
+  pure Parties with ..
+
+banks : Parties -> [Party]
+banks Parties{..} = [bank1, bank2,bank3]
+

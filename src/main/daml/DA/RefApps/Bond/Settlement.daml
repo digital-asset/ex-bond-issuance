@@ -7,20 +7,23 @@
 
 module DA.RefApps.Bond.Settlement where
 
-import DA.Finance.Rule.Trade.Dvp
-import DA.Finance.Fact.Trade.Dvp
+import DA.Finance.Trade.Dvp
+import DA.Finance.Trade.Dvp.Settlement
+import DA.Finance.Asset
+
 import DA.Finance.Types
-import DA.Finance.Fact.Asset
-import DA.Finance.Rule.Asset
 
 
 import DA.RefApps.Bond.Redemption
 import DA.RefApps.Bond.Lock
 import DA.List
-import DA.Next.Set as Set
+import DA.Set as Set
 import DA.Optional
 import DA.Action
 import DA.RefApps.Bond.Util
+import DA.Finance.Trade.SettlementInstruction
+import DA.Foldable
+
 
 
 -- This template is used to collect the allocation details for a particular DvP created
@@ -35,8 +38,8 @@ template AuctionSettleRequest
     issuerBondAssetDepositCid: ContractId AssetDeposit
     issuerBondAssetDeposit: AssetDeposit
     cashAmountToPay: Decimal
-    bondSettlementChainCid: ContractId AssetSettlementChain
-    issuerCashSettlementCid: ContractId AssetSettlement
+    bondSettlementChainCid: ContractId SettlementInstruction
+    issuerCashSettlementCid: Account -- ContractId AssetSettlementRule
     cashAssetId: Id
     regulators: [Party]
   where
@@ -63,8 +66,7 @@ template InvestorSettlement
       InvestorSettlement_Finalize: [ContractId RedemptionPayoutInfo]
         with
           auctionLockedCashCids: [ContractId AuctionLockedCash]
-          cashAssetFungible: ContractId AssetFungible
-          investorCashSettlementCid: ContractId AssetSettlement
+          investorCashSettlementCid: Account -- ContractId AssetSettlementRule
         do
 
           -- unlock
@@ -72,8 +74,7 @@ template InvestorSettlement
             lock <- fetch lockCid
             assertMsg "Lock should be owned by the settling party" $ lock.owner == investor
             assertMsg "AuctionLockedCash should match the auction" $ lock.auctionName == auctionName && lock.auctionAgent == auctionAgent
-            unlocked <- exercise lockCid AuctionLockedCash_Unlock
-            return unlocked
+            exercise lockCid AuctionLockedCash_Unlock
 
           -- process all settle requests
           (_, payoutInfos) <- foldlA (\(remaining, redemptionPayouts) settleRequestCid -> do
@@ -82,7 +83,7 @@ template InvestorSettlement
             settleRequest <- fetch settleRequestCid
             let firstCashAssetCid = head remaining
             firstCashAsset <- fetch firstCashAssetCid
-            mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail remaining) settleRequest.cashAmountToPay cashAssetFungible
+            mergeResult <- mergeForQuantity firstCashAssetCid firstCashAsset (tail remaining) settleRequest.cashAmountToPay
             assertMsg "Locked cash should be sufficient to finalize settlement" $ isSome mergeResult
             let (cashMergedForQuantityCid, remainingNew)  = fromSome $ mergeResult
             cashMergedForQuantity <- fetch cashMergedForQuantityCid
@@ -101,33 +102,31 @@ template InvestorSettlement
               deliveries = [delivery]
               observers = Set.fromList regulators
 
-            let cashSettlementStep = AssetSettlementStep with
-                    sender = investor
-                    receiver = issuer
+            let cashSettlementStep = SettlementDetails with
                     depositCid = None
-                    creditSettlementCid = investorCashSettlementCid
-                    debitSettlementCid = settleRequest.issuerCashSettlementCid
+                    receiverAccount = settleRequest.issuerCashSettlementCid
+                    senderAccount = investorCashSettlementCid
 
-            cashChain <- create AssetSettlementChain with
+            cashChain <- create SettlementInstruction with
               masterAgreement = bondChain.masterAgreement
               tradeId = bondChain.tradeId
               asset = cashMergedForQuantity.asset
               steps = [cashSettlementStep]
               observers = Set.fromList regulators
 
-            allocatedCashChain <- exercise cashChain $ AssetSettlementChain_AllocateNext cashMergedForQuantityCid
+            allocatedCashChainCid <- exercise cashChain SettlementInstruction_AllocateNext with
+              ctrl = investor
+              depositCid = cashMergedForQuantityCid
 
-            let settleParam = DvpSettlement_Process_Param with
-                  dvpCid = dvpCid
-                  paymentChainCids = [allocatedCashChain]
-                  deliveryChainCids = [settleRequest.bondSettlementChainCid]
-
-            dvpSettlement <- create DvpSettlement with
+            dvpSettlement <- create DvpSettlementRule with
               masterAgreement = bondChain.masterAgreement
-              observers = Set.fromList regulators
+              -- observers = Set.fromList regulators
 
-            result <- exercise dvpSettlement DvpSettlement_Process1 with
-              param = settleParam
+            result <- exercise dvpSettlement DvpSettlement_Process with
+              dvpCid=dvpCid
+              paymentInstructionCids=[allocatedCashChainCid]
+              deliveryInstructionCids=[settleRequest.bondSettlementChainCid]
+              ctrl=bondChain.masterAgreement.party1
 
             redemptionPayout <- create RedemptionPayoutInfo with
                   issuer = issuer
@@ -142,5 +141,5 @@ template InvestorSettlement
             return (remainingNew, redemptionPayout :: redemptionPayouts)
             ) (investorCashAssetDepositCids, []) settleRequestCids
 
-          forA settleRequestCids \sr -> archive sr
+          forA_ settleRequestCids archive
           return payoutInfos

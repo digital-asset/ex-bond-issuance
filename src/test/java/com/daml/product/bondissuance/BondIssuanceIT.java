@@ -11,7 +11,7 @@ import com.daml.extensions.testing.junit4.Sandbox;
 import com.daml.extensions.testing.ledger.DefaultLedgerAdapter;
 import com.daml.extensions.testing.utils.ContractWithId;
 import com.daml.ledger.javaapi.data.Party;
-import da.finance.fact.asset.AssetDeposit;
+import da.finance.asset.AssetDeposit;
 import da.refapps.bond.auction.Auction;
 import da.refapps.bond.auction.AuctionBid;
 import da.refapps.bond.auction.AuctionInvitation;
@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -64,6 +65,7 @@ public class BondIssuanceIT {
               ISSUER_PARTY.getValue(),
               CSD_PARTY.getValue())
           .useWallclockTime()
+          .observationTimeout(Duration.ofMinutes(5L))
           .moduleAndScript("DA.RefApps.Bond.MarketSetup.MarketSetupScript", "setupMarket")
           .build();
 
@@ -74,7 +76,7 @@ public class BondIssuanceIT {
       RuleChain.outerRule(sandbox.getRule()).around(new Automation(sandbox::getSandboxPort));
 
   @Test
-  public void testFullWorkflow() throws IOException {
+  public void testFullWorkflow() throws IOException, InterruptedException {
     DefaultLedgerAdapter ledgerAdapter = sandbox.getLedgerAdapter();
 
     // Issuance of a bond
@@ -221,10 +223,10 @@ public class BondIssuanceIT {
             AssetDeposit.TEMPLATE_ID,
             AssetDeposit::fromValue,
             false,
-            assetDepositFinal -> // 50 000 000 - (42 * 20 000)
-            assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(41600000L)) == 0,
+            assetDepositFinal -> // 50 000 000 - (42 * 200 000)
+            assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(41_600_000L)) == 0,
             assetDepositFinal -> // Redemption value (with coupon): 40.1 * 200 000 * 1.1
-            assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(8822000L)) == 0));
+            assetDepositFinal.asset.quantity.compareTo(BigDecimal.valueOf(8_822_000L)) == 0));
   }
 
   private AssetDeposit.ContractId findBondAssetDeposit(String expectedLabel) {

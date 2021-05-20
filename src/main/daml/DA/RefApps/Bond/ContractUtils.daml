@@ -7,10 +7,9 @@ module DA.RefApps.Bond.ContractUtils where
 
 import DA.Optional
 import DA.List.Total
-
-import DA.Finance.Rule.Asset
+import DA.Finance.Asset
+import DA.Finance.Asset.Settlement
 import DA.Finance.Types
-
 import DA.RefApps.Bond.Lock
 
 type Contract a = (ContractId a, a)
@@ -18,37 +17,40 @@ type Contract a = (ContractId a, a)
 class Template a => HasAccount a where
   accountOf: a -> Account
 
-instance HasAccount AssetSettlement where
+instance HasAccount AssetSettlementRule where
   accountOf t = t.account
 
-instance HasAccount AssetFungible where
+instance HasAccount AssetDeposit where
   accountOf t = t.account
-
-filterContractIds: (a -> Bool) -> [Contract a] -> [ContractId a]
-filterContractIds p contracts = [id | (id, value) <- contracts, p value]
 
 headNote: Text -> [a] -> a
 headNote message = (fromSomeNote message) . head
 
-findAsset: (HasAccount a) => Party -> Party -> [Contract a] -> ContractId a
+findAsset: (HasAccount a) => Party -> Party -> [Contract a] -> Contract a
 findAsset provider owner assets =
   findAsset' [provider] owner assets
 
-findAsset': (HasAccount a) => [Party] -> Party -> [Contract a] -> ContractId a
+findAsset': (HasAccount a) => [Party] -> Party -> [Contract a] -> Contract a
 findAsset' providers owner assets =
   headNote "Can't find any asset contract" $
-    filterContractIds (accountBelongsToAnyOf providers owner) assets
+    filterContracts (accountBelongsToAnyOf providers owner) assets
 
 accountBelongsToAnyOf: (HasAccount a) => [Party] -> Party -> a -> Bool
-accountBelongsToAnyOf providers owner a = do
-  let account = accountOf a
+accountBelongsToAnyOf providers owner a =
+  let account = accountOf a in
   account.provider `elem` providers && owner == account.owner
 
-findAuctionLockedCashes: [Contract AuctionLockedCash] -> Party -> Text -> [ContractId AuctionLockedCash]
+findAuctionLockedCashes: [Contract AuctionLockedCash] -> Party -> Text -> [Contract AuctionLockedCash]
 findAuctionLockedCashes auctionLockedCashes auctionAgent auctionName =
-  filterContractIds (auctionBelongsTo auctionAgent auctionName) auctionLockedCashes
+  filterContracts (auctionBelongsTo auctionAgent auctionName) auctionLockedCashes
 
 auctionBelongsTo: Party -> Text -> AuctionLockedCash -> Bool
 auctionBelongsTo auctionAgent auctionName auction =
      auctionAgent == auction.auctionAgent
   && auctionName == auction.auctionName
+
+filterContracts: (a -> Bool) -> [Contract a] -> [Contract a]
+filterContracts p contracts = [ contract | contract@(_, value) <- contracts, p value]
+
+showBracketed : Show a => a -> Text
+showBracketed = (<> "] ") . (" [" <>) . show

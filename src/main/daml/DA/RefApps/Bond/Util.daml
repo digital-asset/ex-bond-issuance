@@ -5,18 +5,25 @@
 
 module DA.RefApps.Bond.Util where
 
-import DA.Finance.Fact.Asset
-import DA.Finance.Rule.Asset
+import DA.Finance.Asset
+import DA.Finance.Asset.Settlement
 
 import DA.List
+import DA.Finance.Types
+import DA.Set (fromList)
+import DA.RefApps.Bond.MarketSetup.Parties(Parties(..))
 
 data BondBundleData = BondBundleData {
   assetDepositCid: ContractId AssetDeposit
-, assetFungibleCid: ContractId AssetFungible
-, bondSettlementCid: ContractId AssetSettlement
-, cashSettlementCid: ContractId AssetSettlement
+, bondSettlementCid: ContractId AssetSettlementRule
+, bondAccount: Account
+, cashSettlementCid: ContractId AssetSettlementRule
+, cashAccount: Account
 , assetLabel: Text
 } deriving (Eq, Show)
+
+buildAccounts : Text -> [Text]
+buildAccounts accountType = ["Bank" <> show i <> accountType <> "Account" | i <- [1..3]]
 
 -- Utility function to combine a set of AssetFacts so that it results in a single
 -- AssetFact which has the required quantity and the rest.
@@ -24,19 +31,55 @@ mergeForQuantity: ContractId AssetDeposit ->
                   AssetDeposit ->
                   [ContractId AssetDeposit] ->
                   Decimal ->
-                  ContractId AssetFungible ->
                   Update (Optional (ContractId AssetDeposit, [ContractId AssetDeposit]))
-mergeForQuantity firstAssetCid firstAsset otherAssets requiredQuantity assetFungible
+mergeForQuantity firstAssetCid firstAsset otherAssets requiredQuantity
   | firstAsset.asset.quantity == requiredQuantity = do return (Some (firstAssetCid, otherAssets))
   | firstAsset.asset.quantity > requiredQuantity = do
     let rest = firstAsset.asset.quantity - requiredQuantity
-    withRequiredQuantity :: remainder <- exercise assetFungible $ AssetFungible_Split firstAssetCid [requiredQuantity, rest]
+    withRequiredQuantity :: remainder <- exercise firstAssetCid $ AssetDeposit_Split [requiredQuantity, rest]
     return (Some (withRequiredQuantity, remainder <> otherAssets))
   | otherwise =
     if null otherAssets then
       -- There's no subsequent asset to merge into the firstAsset, it means that the sum is lower than the required quantity.
       pure None
     else do
-      mergedAssetCid <- exercise assetFungible $ AssetFungible_Merge [firstAssetCid, head otherAssets]
+      mergedAssetCid <- exercise firstAssetCid $ AssetDeposit_Merge [head otherAssets]
       mergedAsset <- fetch mergedAssetCid
-      mergeForQuantity mergedAssetCid mergedAsset (tail otherAssets) requiredQuantity assetFungible
+      mergeForQuantity mergedAssetCid mergedAsset (tail otherAssets) requiredQuantity
+
+data AccountCreation = AccountCreation with
+  issuerCashAccount : Account
+  bank1CashAccount : Account
+  bank2CashAccount : Account
+  bank3CashAccount : Account
+  issuerBondAccount: Account
+  bank1BondAccount : Account
+  bank2BondAccount : Account
+  bank3BondAccount : Account
+
+toBankCashAccounts AccountCreation{..} =
+  [bank1CashAccount, bank2CashAccount, bank3CashAccount]
+
+toBankBondAccounts AccountCreation{..} =
+  [bank1BondAccount, bank2BondAccount, bank3BondAccount]
+
+getAccounts : Parties -> AccountCreation
+getAccounts Parties{..} =
+  let banks = [bank1, bank2, bank3]
+      issuerCashAccount = createAccount issuer centralBank "IssuerCashAccount"
+      issuerBondAccount = createAccount issuer csd "IssuerBondAccount"
+      [bank1CashAccount, bank2CashAccount, bank3CashAccount]=
+        (\(label, owner)-> createAccount owner centralBank label) <$> ((buildAccounts "Cash") `zip` banks)
+      [bank1BondAccount, bank2BondAccount,bank3BondAccount] =
+        (\(label, owner)-> createAccount owner csd label) <$> ((buildAccounts "Bond") `zip` banks) in
+  AccountCreation with ..
+
+createAccount: Party -> Party -> Text -> Account
+createAccount owner provider label =
+  Account with
+    id = Id with
+      signatories = fromList [provider]
+      label = label
+      version = 0
+    provider = provider
+    owner = owner

@@ -9,12 +9,12 @@
 
 import logging
 from io import BytesIO
-from os import environ, getcwd, path
-from platform import system
+from os import environ, getcwd, path, chdir, chmod, mkdir
 from subprocess import call
 from sys import argv
 from tempfile import mkdtemp
 from zipfile import ZipFile
+from shutil import copyfile
 
 # based on 'Cheat Sheet: Writing Python 2-3 compatible code'
 # from https://python-future.org/compatible_idioms.html
@@ -23,8 +23,7 @@ try:
 except ImportError:
     from urllib2 import urlopen
 
-# We use c9284704da890fa08ce96624f51ff997512711c4, the last one before FinLib 2.0
-finlib_version = 'c9284704da890fa08ce96624f51ff997512711c4'
+finlib_version = '5d7fc48efcaebc400dd2b98aaee6d4c403264a7e'
 url = "https://github.com/digital-asset/lib-finance/archive/{version}.zip".format(version=finlib_version)
 
 
@@ -35,28 +34,27 @@ def get_source(url, tmp_directory):
         zipfile.extractall(tmp_directory)
 
 
-def is_windows():
-    return system() == "Windows"
-
-
-def daml_command():
-    if is_windows():
-        return "daml.cmd"
-    else:
-        return "daml"
-
-
 def build_dar(daml_sdk_version, full_path_to_dar, tmp_directory):
     extracted_directory = "lib-finance-{version}".format(version=finlib_version)
+    target_dir = '{pwd}/target/'.format(pwd=getcwd())
     project_root = "{tmp_directory}/{extracted_directory}".format(
         tmp_directory=tmp_directory,
         extracted_directory=extracted_directory)
-    build_command = [daml_command(), "build", "--project-root", project_root, "-o", full_path_to_dar]
+    build_command = ["./build.sh", "build-dars"]
     logging.info(
         'Executing {build_command} with DAML_SDK_VERSION={daml_sdk_version}'.format(
             build_command=" ".join(build_command), daml_sdk_version=daml_sdk_version))
+    logging.info('Setting environment to {sdk}'.format(sdk=daml_sdk_version))
     environ['DAML_SDK_VERSION'] = daml_sdk_version
+    logging.info('Calling to {build_command}')
+    chdir(project_root)
+
+    chmod('./build.sh', 0o775)
     call(build_command)
+    if not path.exists(target_dir):
+        mkdir(target_dir)
+    logging.info('Copying to {full_path}'.format(full_path=full_path_to_dar))
+    copyfile('./model/.daml/dist/finlib-2.0.0.dar', full_path_to_dar)
 
 
 logging.basicConfig(level=logging.INFO)

@@ -27,42 +27,20 @@ template OperatorRole
     controller operator can
       nonconsuming OperatorRole_InviteAuctionAgent: ContractId AuctionAgentRoleInvitation
         with auctionAgent : Party
-        do create AuctionAgentRoleInvitation with
-            auctionAgent = auctionAgent
-            operator = operator
-            regulators = regulators
-
+        do create AuctionAgentRoleInvitation with ..
       nonconsuming OperatorRole_InviteBank: ContractId BankRoleInvitation
         with bank : Party
-        do create BankRoleInvitation with
-              bank = bank
-              operator = operator
-              regulators = regulators
-
+        do create BankRoleInvitation with ..
       nonconsuming OperatorRole_InviteCsd: ContractId CsdRoleInvitation
         with csd : Party
-        do create CsdRoleInvitation with
-              csd = csd
-              operator = operator
-              regulators = regulators
-
+        do create CsdRoleInvitation with ..
       nonconsuming OperatorRole_InviteIssuer: ContractId IssuerRoleInvitation
         with
           issuer : Party
           bondProvider: Party
           cashProvider: Party
           auctionAgent: Party
-        do create IssuerRoleInvitation with
-              issuer = issuer
-              bondProvider = bondProvider
-              cashProvider = cashProvider
-              auctionAgent = auctionAgent
-              operator = operator
-              regulators = regulators
-
+        do create IssuerRoleInvitation with ..
       nonconsuming OperatorRole_InviteCentralBank: ContractId CentralBankRoleInvitation
         with centralBank : Party
-        do create CentralBankRoleInvitation with
-              centralBank = centralBank
-              operator = operator
-              regulators = regulators
+        do create CentralBankRoleInvitation with ..
