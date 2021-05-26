@@ -44,7 +44,7 @@ public class Automation extends ExternalResource {
   }
 
   private ProcessBuilder command() {
-    return new ProcessBuilder().command("scripts/startTriggers.py", ledgerPort.get().toString());
+    return new ProcessBuilder().command("launchers/automation", ledgerPort.get().toString());
   }
 
   private void waitForTriggerServiceToStart() throws MalformedURLException, InterruptedException {
