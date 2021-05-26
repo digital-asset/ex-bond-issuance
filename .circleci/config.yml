@@ -210,8 +210,8 @@ jobs:
       - run:
           name: Blackduck detect
           command: |
+            # TODO remove exclude pip
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) \
-# TODO remove exclude pip
             ci-build digitalasset_ex-bond-issuance main \
             --logging.level.com.synopsys.integration=DEBUG \
             --detect.excluded.detector.types=pip \
