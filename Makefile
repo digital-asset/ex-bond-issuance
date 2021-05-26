@@ -5,13 +5,17 @@ FINLIB_DAR=target/finlib-master-sdk-$(SDK_VERSION).dar
 JS_CODEGEN_DIR=ui/daml.js
 
 .PHONY: build
-build: build-dars yarn-install-deps
+build: build-dars yarn-install-deps install-python-dependencies
 
 .PHONY: clean
 clean:
 	rm -rf .daml triggers/.daml
 	rm -rf ui/node_modules ui/build $(JS_CODEGEN_DIR)
 	rm -rf target
+
+.PHONY: install-python-dependencies
+install-python-dependencies:
+	cd scripts && pipenv sync
 
 ### DARS ###
 
