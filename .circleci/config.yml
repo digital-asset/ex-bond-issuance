@@ -158,6 +158,7 @@ jobs:
       - restore_cache:
           keys:
             - daml-{{ checksum "daml.yaml" }}
+      - install_python_dependencies
       - install_sdk:
           version: << parameters.daml_sdk_version >>
       - run:
@@ -185,6 +186,7 @@ jobs:
           keys:
             - m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
             - m2
+      - install_python_dependencies
       - install_sdk:
           version: << parameters.daml_sdk_version >>
       - save_cache:
@@ -209,6 +211,7 @@ jobs:
           name: Blackduck detect
           command: |
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) \
+# TODO remove exclude pip
             ci-build digitalasset_ex-bond-issuance main \
             --logging.level.com.synopsys.integration=DEBUG \
             --detect.excluded.detector.types=pip \
