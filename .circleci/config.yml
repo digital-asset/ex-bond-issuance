@@ -30,6 +30,19 @@ commands:
             curl -sSL https://get.daml.com/ | sh /dev/stdin << parameters.version >>
             # idea from https://circleci.com/docs/2.0/env-vars/
             >> $BASH_ENV echo 'export PATH="$HOME/.daml/bin:$PATH"'
+  install_python_dependencies:
+    description: "Install Python Dependencies"
+    steps:
+      - run:
+          name: Install pipenv
+          command: |
+            sudo apt-get update || sudo apt-get update
+            sudo apt-get install python3-pip
+            pip3 install pipenv
+      - run:
+          name: Install flake8
+          command: |
+            pip3 install flake8
   slack_notification:
     description: "Notify about failure on Slack"
     steps:
@@ -86,15 +99,16 @@ jobs:
             - m2
       - install_sdk:
           version: << parameters.daml_sdk_version >>
-      - run:
-          name: Install flake8
-          command: |
-            sudo apt-get update || sudo apt-get update
-            sudo apt-get install flake8
+      - install_python_dependencies
       - run:
           name: Python flake8
           command: |
             flake8 --max-line-length=120 $(find -name \*.py)
+      - run:
+          name: Pipenv check
+          working_directory: scripts
+          command: |
+            pipenv check
       - run:
           name: Integration tests
           command: |
@@ -144,6 +158,7 @@ jobs:
       - restore_cache:
           keys:
             - daml-{{ checksum "daml.yaml" }}
+      - install_python_dependencies
       - install_sdk:
           version: << parameters.daml_sdk_version >>
       - run:
@@ -171,6 +186,7 @@ jobs:
           keys:
             - m2-{{ checksum "pom.xml" }}-{{ checksum "daml.yaml" }}
             - m2
+      - install_python_dependencies
       - install_sdk:
           version: << parameters.daml_sdk_version >>
       - save_cache:
@@ -194,6 +210,7 @@ jobs:
       - run:
           name: Blackduck detect
           command: |
+            # TODO remove exclude pip
             bash <(curl -s https://raw.githubusercontent.com/DACH-NY/security-blackduck/master/synopsys-detect) \
             ci-build digitalasset_ex-bond-issuance main \
             --logging.level.com.synopsys.integration=DEBUG \

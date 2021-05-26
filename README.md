@@ -18,11 +18,7 @@ Be sure you have the following installed:
 - Yarn
 - Node v12
 - Make
-- Python
-
-To sort out Python dependencies, either
-* manually resolve: `(cd scripts && pip install requests)`
-* run `pipenv install`
+- [Python Pipenv](https://pipenv.pypa.io/)
 
 #### Build the App
 
