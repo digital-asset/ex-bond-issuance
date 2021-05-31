@@ -65,7 +65,7 @@ public class BondIssuanceIT {
               ISSUER_PARTY.getValue(),
               CSD_PARTY.getValue())
           .useWallclockTime()
-          .observationTimeout(Duration.ofMinutes(5L))
+          .observationTimeout(Duration.ofMinutes(1L))
           .moduleAndScript("DA.RefApps.Bond.MarketSetup.MarketSetupScript", "setupMarket")
           .build();
 
