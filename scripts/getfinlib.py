@@ -23,7 +23,7 @@ try:
 except ImportError:
     from urllib2 import urlopen
 
-finlib_version = '5d7fc48efcaebc400dd2b98aaee6d4c403264a7e'
+finlib_version = 'ffc05a2003fe2942a945dd0338d9e0c42e270ebb'
 url = "https://github.com/digital-asset/lib-finance/archive/{version}.zip".format(version=finlib_version)
 
 
