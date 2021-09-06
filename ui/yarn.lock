@@ -1243,10 +1243,10 @@
 "@daml.js/bond-issuance-2.0.0@file:daml.js/bond-issuance-2.0.0":
   version "1.16.0"
   dependencies:
-    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.16.0-0e3dac98-8188-4256-96f2-7f6767a879f9-1629817700878/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
-    "@daml.js/97b883cd8a2b7f49f90d5d39c981cf6e110cf1f1c64427a28a6d58ec88c43657" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.16.0-0e3dac98-8188-4256-96f2-7f6767a879f9-1629817700878/node_modules/@daml.js/97b883cd8a2b7f49f90d5d39c981cf6e110cf1f1c64427a28a6d58ec88c43657"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.16.0-0e3dac98-8188-4256-96f2-7f6767a879f9-1629817700878/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
-    "@daml.js/finlib-2.0.0" "file:../../../.cache/yarn/v6/npm-@daml-js-bond-issuance-2-0-0-1.16.0-0e3dac98-8188-4256-96f2-7f6767a879f9-1629817700878/node_modules/@daml.js/finlib-2.0.0"
+    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
+    "@daml.js/97b883cd8a2b7f49f90d5d39c981cf6e110cf1f1c64427a28a6d58ec88c43657" "file:daml.js/97b883cd8a2b7f49f90d5d39c981cf6e110cf1f1c64427a28a6d58ec88c43657"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/finlib-2.0.0" "file:daml.js/finlib-2.0.0"
     "@mojotech/json-type-validation" "^3.1.0"
 
 "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662@file:daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662":
@@ -1257,10 +1257,10 @@
 "@daml.js/finlib-2.0.0@file:daml.js/finlib-2.0.0":
   version "1.16.0"
   dependencies:
-    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-2-0-0-1.16.0-eb7dfa3b-5376-4391-bab0-a26680a13b7f-1629817700883/node_modules/@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
-    "@daml.js/97b883cd8a2b7f49f90d5d39c981cf6e110cf1f1c64427a28a6d58ec88c43657" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-2-0-0-1.16.0-eb7dfa3b-5376-4391-bab0-a26680a13b7f-1629817700883/node_modules/@daml.js/97b883cd8a2b7f49f90d5d39c981cf6e110cf1f1c64427a28a6d58ec88c43657"
-    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-2-0-0-1.16.0-eb7dfa3b-5376-4391-bab0-a26680a13b7f-1629817700883/node_modules/@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
-    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:../../../.cache/yarn/v6/npm-@daml-js-finlib-2-0-0-1.16.0-eb7dfa3b-5376-4391-bab0-a26680a13b7f-1629817700883/node_modules/@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
+    "@daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7" "file:daml.js/40f452260bef3f29dede136108fc08a88d5a5250310281067087da6f0baddff7"
+    "@daml.js/97b883cd8a2b7f49f90d5d39c981cf6e110cf1f1c64427a28a6d58ec88c43657" "file:daml.js/97b883cd8a2b7f49f90d5d39c981cf6e110cf1f1c64427a28a6d58ec88c43657"
+    "@daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f" "file:daml.js/bfcd37bd6b84768e86e432f5f6c33e25d9e7724a9d42e33875ff74f6348e733f"
+    "@daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662" "file:daml.js/d14e08374fc7197d6a0de468c968ae8ba3aadbf9315476fd39071831f5923662"
     "@mojotech/json-type-validation" "^3.1.0"
 
 "@daml/ledger@1.16.0":
@@ -6025,10 +6025,10 @@ immer@8.0.1:
   resolved "https://registry.yarnpkg.com/immer/-/immer-8.0.1.tgz#9c73db683e2b3975c424fb0572af5889877ae656"
   integrity sha512-aqXhGP7//Gui2+UrEtvxZxSquQVXTpZ7KDxfCcKAF3Vysvw0CViVaW9RZ1j1xlIYqaaaipBoqdqeibkc18PNvA==
 
-immer@^8.0.1:
-  version "8.0.4"
-  resolved "https://registry.yarnpkg.com/immer/-/immer-8.0.4.tgz#3a21605a4e2dded852fb2afd208ad50969737b7a"
-  integrity sha512-jMfL18P+/6P6epANRvRk6q8t+3gGhqsJ9EuJ25AXE+9bNTYtssvzeYbEd0mXRYWCmmXSIbnlpz6vd6iJlmGGGQ==
+immer@^9.0.6:
+  version "9.0.6"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-9.0.6.tgz#7a96bf2674d06c8143e327cbf73539388ddf1a73"
+  integrity sha512-G95ivKpy+EvVAnAab4fVa4YGYn24J1SpEktnJX7JJ45Bd7xqME/SCplFzYFmTbrkwZbQ4xJK1xMTUYBkN6pWsQ==
 
 import-cwd@^2.0.0:
   version "2.1.0"
