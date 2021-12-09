@@ -153,7 +153,9 @@ assertEqChoices: AuctionFinalizeBotTrigger_AllocateBond -> AuctionFinalizeBotTri
 assertEqChoices lhs rhs = do
   sorted lhs === sorted rhs
  where
-  sorted c = c with participationCids = sort c.participationCids
+  sorted c = c with
+    participationCids = sort c.participationCids
+    bidCids = sort c.bidCids
 
 startAuction : MarketSetup.Parties -> MarketSetup.TestIssuance -> Script (ContractId Auction, [ContractId BidderParticipation])
 startAuction MarketSetup.Parties{..} issuance = script do
